@@ -19,9 +19,9 @@ class TestNode extends DgraphNode {
   enabled: boolean;
 }
 
-debug(NODE_STORAGE);
-debug(PREDICATE_STORAGE);
-debug(NODE_PREDICATE_MAPPING);
+debug('node storage:\n%O', NODE_STORAGE);
+debug('predicate storage:\n%O', PREDICATE_STORAGE);
+debug('node-predicate mapping:\n%O', NODE_PREDICATE_MAPPING);
 
 const t = new TestNode();
 
