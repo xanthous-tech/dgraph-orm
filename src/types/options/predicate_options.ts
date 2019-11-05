@@ -1,9 +1,9 @@
 import { IndexOptions } from './index_options';
+import { DgraphType } from '../dgraph_types';
 
 export class PredicateOptions {
-  // TODO: use enum for type
-  type?: string;
-
+  type?: DgraphType;
+  isArray?: boolean;
   index?: IndexOptions;
   count?: boolean;
 }

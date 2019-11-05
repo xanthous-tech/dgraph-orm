@@ -7,12 +7,22 @@ const debug = debugWrapper('node-decorator');
 
 export function Node(): ClassDecorator {
   return function nodeDecorator<TFunction extends Function>(target: TFunction): TFunction | void {
-    const definition = new NodeDefinition(target.name);
-    const mapping = NODE_PREDICATE_MAPPING[target.name];
+    const nodeName = target.name;
+
+    const definition = new NodeDefinition(nodeName);
+
+    const mapping = NODE_PREDICATE_MAPPING[nodeName];
     if (mapping) {
       definition.predicates = mapping.map(k => PREDICATE_STORAGE[k]);
+      debug(`added node predicate mapping for ${nodeName}`);
     }
-    NODE_STORAGE[target.name] = definition;
-    debug(`pushed ${target.name} into node storage`);
+
+    NODE_STORAGE[nodeName] = definition;
+    debug(`pushed ${nodeName} into node storage`);
+
+    if (Reflect && Reflect.defineMetadata) {
+      Reflect.defineMetadata('dgraph:node', definition, target);
+      debug(`added dgraph:node metadata to ${nodeName}`);
+    }
   }
 }

@@ -7,13 +7,17 @@ import { Node } from './decorators/node';
 import { Predicate } from './decorators/predicate';
 
 import { NODE_STORAGE, PREDICATE_STORAGE, NODE_PREDICATE_MAPPING } from './storage';
+import { DgraphType } from './types/dgraph_types';
 
 const debug = debugWrapper('index');
 
 @Node()
 class TestNode extends DgraphNode {
-  @Predicate()
-  type: string;
+  @Predicate({
+    type: DgraphType.String,
+    isArray: true,
+  })
+  type: string[];
 
   @Predicate()
   enabled: boolean;
