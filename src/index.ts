@@ -6,7 +6,7 @@ import { DgraphNode } from './types/dgraph_node';
 import { Node } from './decorators/node';
 import { Predicate } from './decorators/predicate';
 
-import { NODE_STORAGE, PREDICATE_STORAGE, NODE_PREDICATE_MAPPING } from './storage';
+import { NODE_STORAGE, PREDICATE_STORAGE, NODE_PREDICATE_MAPPING, getGlobalDgraphSchema } from './storage';
 import { DgraphType } from './types/dgraph_types';
 
 const debug = debugWrapper('index');
@@ -30,3 +30,4 @@ debug('node-predicate mapping:\n%O', NODE_PREDICATE_MAPPING);
 const t = new TestNode();
 
 debug(Reflect.getMetadata('dgraph:node', t.constructor));
+debug(getGlobalDgraphSchema());

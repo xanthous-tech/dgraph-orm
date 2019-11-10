@@ -13,12 +13,7 @@ export class PredicateDefinition implements SchemaGenerable {
   generateSchema(): string {
     const parts = [];
     parts.push(`${this.name}:`);
-
-    if (this.isArray) {
-      parts.push(`[${this.type}]`);
-    } else {
-      parts.push(this.type);
-    }
+    parts.push(this.getTypeName(true));
 
     if (this.index) {
       parts.push(`@index(${this.index.type})`);
@@ -34,5 +29,25 @@ export class PredicateDefinition implements SchemaGenerable {
 
     parts.push('.');
     return parts.join(' ');
+  }
+
+  getBaseTypeName(isRaw?: boolean): string {
+    if (typeof this.type === 'function') {
+      if (isRaw) {
+        return 'uid';
+      }
+
+      return this.type.name;
+    }
+
+    return this.type;
+  }
+
+  getTypeName(isRaw?: boolean): string {
+    if (this.isArray) {
+      return `[${this.getBaseTypeName(isRaw)}]`;
+    }
+
+    return this.getBaseTypeName(isRaw);
   }
 }

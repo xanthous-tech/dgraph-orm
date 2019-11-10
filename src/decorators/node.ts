@@ -18,6 +18,7 @@ export function Node(): ClassDecorator {
     }
 
     NODE_STORAGE[nodeName] = definition;
+    debug(definition.generateSchema());
     debug(`pushed ${nodeName} into node storage`);
 
     if (Reflect && Reflect.defineMetadata) {

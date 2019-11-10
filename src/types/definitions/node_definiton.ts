@@ -11,6 +11,10 @@ export class NodeDefinition implements SchemaGenerable {
   }
 
   generateSchema(): string {
-    throw new Error("Method not implemented.");
+    return `type ${this.name} {
+${this.predicates.map((predicate: PredicateDefinition) => {
+  return `  ${predicate.name}: ${predicate.getTypeName()}`;
+}).join('\n')}
+}`;
   }
 }
