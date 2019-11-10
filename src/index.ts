@@ -29,4 +29,4 @@ debug('node-predicate mapping:\n%O', NODE_PREDICATE_MAPPING);
 
 const t = new TestNode();
 
-debug(t);
+debug(Reflect.getMetadata('dgraph:node', t.constructor));

@@ -18,18 +18,29 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
       definition.isArray = !!options.isArray;
     } else {
       const reflectedType: Function = Reflect && (Reflect as any).getMetadata ? (Reflect as any).getMetadata('design:type', target, key) : undefined;
+
+      if (!reflectedType) {
+        throw new Error(`cannot infer type for predicate ${key}, please define type in options`);
+      }
+
       const reflectedTypeName: string = reflectedType.name.toLowerCase();
+
       debug(`predicate ${key} reflected type ${reflectedTypeName}`);
+
       if (reflectedType === Array) {
         throw new Error(`cannot infer array types for predicate ${key}, please define type in options`);
-      } else {
-        const reflectedDraphType: DgraphType = INFERRED_TYPE[reflectedTypeName];
-        if (!reflectedDraphType) {
-          throw new Error(`cannot infer type for predicate ${key}, please define type in options`);
-        }
-        definition.type = reflectedDraphType;
-        definition.isArray = false;
       }
+
+      const reflectedDraphType: DgraphType = INFERRED_TYPE[reflectedTypeName];
+
+      if (!reflectedDraphType) {
+        // cannot find the reflected type, should be uid
+        definition.type = DgraphType.Uid;
+      } else {
+        definition.type = reflectedDraphType;
+      }
+
+      definition.isArray = false;
     }
 
     if (options && options.index) {
@@ -46,6 +57,8 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
     }
 
     PREDICATE_STORAGE[key] = definition;
+
+    debug(definition.generateSchema());
     debug(`pushed ${key} into predicate storage`);
 
     const parent = target.constructor;
