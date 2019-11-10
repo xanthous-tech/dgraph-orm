@@ -12,6 +12,12 @@ import { DgraphType } from './types/dgraph_types';
 const debug = debugWrapper('index');
 
 @Node()
+class ConnectedNode extends DgraphNode {
+  @Predicate()
+  name: string;
+}
+
+@Node()
 class TestNode extends DgraphNode {
   @Predicate({
     type: DgraphType.String,
@@ -21,6 +27,12 @@ class TestNode extends DgraphNode {
 
   @Predicate()
   enabled: boolean;
+
+  @Predicate({
+    type: ConnectedNode,
+    isArray: true,
+  })
+  connects: ConnectedNode[];
 }
 
 debug('node storage:\n%O', NODE_STORAGE);
