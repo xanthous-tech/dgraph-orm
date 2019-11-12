@@ -1,3 +1,5 @@
+import { Type } from 'class-transformer';
+
 import debugWrapper from '../utils/debug';
 
 import { PredicateOptions } from '../types/options/predicate_options';
@@ -16,6 +18,13 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
     if (options && options.type) {
       definition.type = options.type;
       definition.isArray = !!options.isArray;
+
+      // call class-transformer's @Type to set up plainToClass conversion
+      if (typeof options.type === 'function') {
+        const typ: Function = options.type;
+        Type(() => typ)(target, key);
+      }
+
     } else {
       const reflectedType: Function = Reflect && (Reflect as any).getMetadata ? (Reflect as any).getMetadata('design:type', target, key) : undefined;
 
@@ -43,12 +52,22 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
       definition.isArray = false;
     }
 
+    // TODO: validation logic - what types can use @index, @lang, @count, @reverse, etc
+
     if (options && options.index) {
       definition.index = options.index;
     }
 
+    if (options && options.lang) {
+      definition.lang = options.lang;
+    }
+
     if (options && options.count) {
       definition.count = options.count;
+    }
+
+    if (options && options.reverse) {
+      definition.reverse = options.reverse;
     }
 
     if (key in PREDICATE_STORAGE) {
@@ -71,5 +90,5 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
     }
 
     debug(`predicate ${key} mapped to node ${parentName}`);
-  }
+  };
 }

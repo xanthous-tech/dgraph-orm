@@ -7,8 +7,9 @@ export class PredicateDefinition implements SchemaGenerable {
   type: DgraphType | Function;
   isArray: boolean;
   index?: IndexOptions;
-  count?: boolean;
   lang?: boolean;
+  count?: boolean;
+  reverse?: boolean;
 
   generateSchema(): string {
     const parts = [];
@@ -19,12 +20,16 @@ export class PredicateDefinition implements SchemaGenerable {
       parts.push(`@index(${this.index.type})`);
     }
 
+    if (this.lang) {
+      parts.push('@lang');
+    }
+
     if (this.count) {
       parts.push('@count');
     }
 
-    if (this.lang) {
-      parts.push('@lang');
+    if (this.reverse) {
+      parts.push('@reverse');
     }
 
     parts.push('.');

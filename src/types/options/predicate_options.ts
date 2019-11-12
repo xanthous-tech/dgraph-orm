@@ -5,6 +5,7 @@ export class PredicateOptions {
   type?: DgraphType | Function;
   isArray?: boolean;
   index?: IndexOptions;
-  count?: boolean;
   lang?: boolean;
+  count?: boolean;
+  reverse?: boolean;
 }

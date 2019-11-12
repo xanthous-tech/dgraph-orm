@@ -25,5 +25,5 @@ export function Node(): ClassDecorator {
       Reflect.defineMetadata('dgraph:node', definition, target);
       debug(`added dgraph:node metadata to ${nodeName}`);
     }
-  }
+  };
 }
