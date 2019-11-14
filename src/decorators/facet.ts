@@ -2,10 +2,8 @@ import { Expose } from 'class-transformer';
 
 import { FacetOptions } from '../types/options/facet_options';
 
-// basically we wrap class-transformer's @Expose to achieve facet mapping
-
 export function Facet(options: FacetOptions | string): PropertyDecorator {
-  return function predicateDecorator(target: Object, key: string): void {
+  return function facetDecorator(target: Object, key: string): void {
     let name: string;
 
     if (typeof options === 'string') {
@@ -19,6 +17,7 @@ export function Facet(options: FacetOptions | string): PropertyDecorator {
       toClassOnly: true,
     });
 
+    // basically we wrap class-transformer's @Expose to achieve facet mapping
     return exposeDecorator(target, key);
   };
 }

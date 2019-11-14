@@ -22,6 +22,7 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
       // call class-transformer's @Type to set up plainToClass conversion
       if (typeof options.type === 'function') {
         const typ: Function = options.type;
+        debug(`injecting class-transformer's @Type to property ${key}`);
         Type(() => typ)(target, key);
       }
 
