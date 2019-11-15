@@ -45,3 +45,39 @@ export function addFacetMetadata(target: Function, property: string, prefix: str
 
   debug(`added ${mKey} metadata to ${target.name} on property ${property}`);
 }
+
+function metadataExists(mKey: string, target: Function, property: string): boolean {
+  if (!Reflect || !Reflect.hasMetadata) {
+    throw new Error('please check reflect-metadata import');
+  }
+
+  return Reflect.hasMetadata(mKey, target, property);
+}
+
+export function isPredicate(target: Function, property: string): boolean {
+  const mKey = metadataKey(PREDICATE);
+  return metadataExists(mKey, target, property);
+}
+
+export function isFacet(target: Function, property: string): boolean {
+  const mKey = metadataKey(FACET);
+  return metadataExists(mKey, target, property);
+}
+
+export function getPredicateDefinition(target: Function, property: string): PredicateDefinition | undefined {
+  if (!Reflect || !Reflect.getMetadata) {
+    throw new Error('please check reflect-metadata import');
+  }
+
+  const mKey = metadataKey(PREDICATE)
+  return Reflect.getMetadata(mKey, target, property);
+}
+
+export function getNodeDefinition(target: Object): NodeDefinition | undefined {
+  if (!Reflect || !Reflect.getMetadata) {
+    throw new Error('please check reflect-metadata import');
+  }
+
+  const mKey = metadataKey(NODE)
+  return Reflect.getMetadata(mKey, target.constructor);
+}

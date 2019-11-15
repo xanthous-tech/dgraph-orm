@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 
-import { plainToClass } from 'class-transformer';
 import { Operation, Txn } from 'dgraph-js';
 
 import debugWrapper from './utils/debug';
@@ -83,7 +82,7 @@ async function main() {
 
   debug(responseJson);
 
-  const nodes = plainToClass(TestNode, responseJson.test);
+  const nodes = DgraphNode.load(TestNode, responseJson.test);
 
   debug(nodes);
 }
