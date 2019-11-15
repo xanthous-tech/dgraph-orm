@@ -1,6 +1,7 @@
 import { plainToClass } from 'class-transformer';
 import * as instauuid from 'instauuid';
 import { isArray } from 'util';
+import { DataFactory, Quad } from 'n3';
 
 import debugWrapper from '../utils/debug';
 import { Constructor } from '../utils/class';
@@ -8,14 +9,17 @@ import { getNodeDefinition } from '../utils/metadata';
 
 import { ChangelogTracker } from '../types/interfaces/changelog_tracker';
 import { ArrayChangelog } from './array_changelog';
+import { NodeDefinition } from './definitions/node_definiton';
 
 const debug = debugWrapper('changelog');
 
-// const BLACKLIST = ['_changelogs', '_symbol', 'uid'];
+const { quad, literal, namedNode, blankNode } = DataFactory;
 
 export class DgraphNode implements ChangelogTracker {
   _changelogs = new Map();
   _symbol: string = `${instauuid('hex')}`;
+
+  private _nodeDefinition: NodeDefinition;
 
   uid?: string;
 
@@ -36,46 +40,21 @@ export class DgraphNode implements ChangelogTracker {
   }
 
   constructor() {
-    const nodeDefinition = getNodeDefinition(this);
+    const nodeDef = getNodeDefinition(this);
 
-    if (!nodeDefinition) {
+    if (!nodeDef) {
       throw new Error(`${this} does not have node definition!`);
     }
 
-    const arrayPredicates = nodeDefinition.predicates.filter(p => p.isArray);
+    this._nodeDefinition = nodeDef;
+
+    const arrayPredicates = this._nodeDefinition.predicates.filter(p => p.isArray);
 
     arrayPredicates.forEach(p => {
       this._changelogs.set(p.name, new ArrayChangelog());
     });
 
     return new Proxy(this, {
-      // get: (target, prop, receiver) => {
-      //   const value = Reflect.get(target, prop, receiver);
-      //   const predIdx = arrayPredicates.findIndex(p => p.name === prop);
-
-      //   if (value && predIdx > -1) {
-      //     return new Proxy(value, {
-      //       set: (array, idx, value, receiver) => {
-      //         // filter out the non-numeric updates
-      //         if (isNaN(Number(idx))) {
-      //           return true;
-      //         }
-
-      //         debug('array set', target.constructor.name, prop, idx, value);
-      //         const result = Reflect.set(array, idx, value, receiver);
-      //         if (result) {
-      //           (target._changelogs.get(prop) as ArrayChangelog).new = array;
-      //         }
-      //         return result;
-      //       },
-      //       apply: (array, thisArg, argsList) => {
-      //         debug('array method', thisArg, argsList);
-      //       }
-      //     });
-      //   } else {
-      //     return value;
-      //   }
-      // },
       set: (target, prop, value, receiver) => {
         if (prop.toString().startsWith('_')) {
           return true;
@@ -101,12 +80,7 @@ export class DgraphNode implements ChangelogTracker {
   clearChangelogs(): void {
     this._changelogs.clear();
 
-    const nodeDef = getNodeDefinition(this);
-    if (!nodeDef) {
-      return;
-    }
-
-    for (const predicateDef of nodeDef.predicates) {
+    for (const predicateDef of this._nodeDefinition.predicates) {
       const predicate = Reflect.get(this, predicateDef.name);
 
       if (predicateDef.isArray) {
@@ -129,13 +103,20 @@ export class DgraphNode implements ChangelogTracker {
           }
       }
     }
-
-    // for (const prop of this.getOwnProps()) {
-    //   if ()
-    // }
   }
 
-  // private getOwnProps(): string[] {
-  //   return Object.getOwnPropertyNames(this).filter(n => BLACKLIST.indexOf(n) < 0);
-  // }
+  getSetNquads(): Quad[] {
+    const nquads: Quad[] = [];
+    const node = this.uid ? namedNode(this.uid) : blankNode(this._symbol);
+    this._changelogs.forEach((value, key) => {
+      if (value instanceof ArrayChangelog) {
+        // skip for now
+        return;
+      } else {
+        nquads.push(quad(node, namedNode(key), literal(value)));
+      }
+    });
+
+    return nquads;
+  }
 }

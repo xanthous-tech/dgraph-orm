@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 
 import { Operation, Txn } from 'dgraph-js';
+import { Writer, Quad } from 'n3';
 
 import debugWrapper from './utils/debug';
 import { client } from './utils/client';
@@ -95,6 +96,12 @@ async function main() {
   nodes[0].connects.shift();
 
   debug(nodes);
+
+  const writer = new Writer({ format: 'N-Quads' });
+
+  debug(writer.quadsToString(nodes.reduce((acc, n) => {
+    return acc.concat(n.getSetNquads());
+  }, [] as Quad[])));
 }
 
 main();
