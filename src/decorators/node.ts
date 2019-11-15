@@ -1,6 +1,6 @@
 import debugWrapper from '../utils/debug';
 
-import { addNodeDefinitionMetadata } from '../utils/reflection';
+import { addNodeDefinitionMetadata } from '../utils/metadata';
 
 import { NodeDefinition } from '../types/definitions/node_definiton';
 

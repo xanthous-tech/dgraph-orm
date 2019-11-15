@@ -1,9 +1,9 @@
-import debugWrapper from '../utils/debug';
+import debugWrapper from './debug';
 
 import { NodeDefinition } from '../types/definitions/node_definiton';
 import { PredicateDefinition } from '../types/definitions/predicate_definition';
 
-const debug = debugWrapper('reflection-utils');
+const debug = debugWrapper('metadata-utils');
 
 const NODE = 'node';
 const PREDICATE = 'predicate';

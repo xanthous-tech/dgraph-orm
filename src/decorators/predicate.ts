@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 
 import debugWrapper from '../utils/debug';
-import { addPredicateDefinitionMetadata } from '../utils/reflection';
+import { addPredicateDefinitionMetadata } from '../utils/metadata';
 
 import { PredicateOptions } from '../types/options/predicate_options';
 import { PredicateDefinition } from '../types/definitions/predicate_definition';

@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 
-import { addFacetMetadata } from '../utils/reflection';
+import { addFacetMetadata } from '../utils/metadata';
 
 import { FacetOptions } from '../types/options/facet_options';
 
