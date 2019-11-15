@@ -8,6 +8,7 @@ import { PredicateDefinition } from '../types/definitions/predicate_definition';
 import { DgraphType, INFERRED_TYPE } from '../types/dgraph_types';
 
 import { PREDICATE_STORAGE, NODE_PREDICATE_MAPPING } from '../storage';
+import { DefaultValue } from 'src/utils/class';
 
 const debug = debugWrapper('predicate-decorator');
 
@@ -19,14 +20,6 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
     if (options && options.type) {
       definition.type = options.type;
       definition.isArray = !!options.isArray;
-
-      // call class-transformer's @Type to set up plainToClass conversion
-      if (typeof options.type === 'function') {
-        const typ: Function = options.type;
-        debug(`injecting class-transformer's @Type to property ${key}`);
-        Type(() => typ)(target, key);
-      }
-
     } else {
       const reflectedType: Function = Reflect && (Reflect as any).getMetadata ? (Reflect as any).getMetadata('design:type', target, key) : undefined;
 
@@ -77,6 +70,18 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
 
   return function predicateDecorator(target: Object, key: string): void {
     const definition = createPredicateDefinition(target, key);
+
+    // call class-transformer's @Type to set up plainToClass conversion
+    if (typeof definition.type === 'function') {
+      const typ: Function = definition.type;
+      debug(`injecting class-transformer's @Type to property ${key}`);
+      Type(() => typ)(target, key);
+    }
+
+    // set default value to empty array for array types
+    if (definition.isArray) {
+      DefaultValue([])(target, key);
+    }
 
     if (key in PREDICATE_STORAGE) {
       // TODO: error for now, need to compare if the definition is the same

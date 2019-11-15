@@ -82,7 +82,14 @@ async function main() {
 
   debug(responseJson);
 
-  const nodes = DgraphNode.load(TestNode, responseJson.test);
+  const nodes = DgraphNode.load(TestNode, responseJson.test) as TestNode[];
+
+  nodes[0].enabled = false;
+  const cNode = new ConnectedNode();
+  cNode.name = 'C';
+  cNode.order = 3;
+  nodes[0].connects.push(cNode);
+  nodes[0].connects.shift();
 
   debug(nodes);
 }
