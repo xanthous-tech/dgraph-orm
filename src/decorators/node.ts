@@ -1,10 +1,11 @@
 import debugWrapper from '../utils/debug';
 
-import { addNodeDefinitionMetadata } from '../utils/metadata';
+import { addNodeDefinitionMetadata, getFacetDefinition } from '../utils/metadata';
 
 import { NodeDefinition } from '../types/definitions/node_definiton';
 
-import { NODE_STORAGE, NODE_PREDICATE_MAPPING, PREDICATE_STORAGE } from '../storage';
+import { NODE_STORAGE, NODE_PREDICATE_MAPPING, PREDICATE_STORAGE, NODE_FACET_MAPPING } from '../storage';
+import { FacetDefinition } from 'src/types/definitions/facet_definition';
 
 const debug = debugWrapper('node-decorator');
 
@@ -14,10 +15,16 @@ export function Node(): ClassDecorator {
 
     const definition = new NodeDefinition(nodeName);
 
-    const mapping = NODE_PREDICATE_MAPPING[nodeName];
-    if (mapping) {
-      definition.predicates = mapping.map(k => PREDICATE_STORAGE[k]);
+    const nodePredicateMapping = NODE_PREDICATE_MAPPING[nodeName];
+    if (nodePredicateMapping) {
+      definition.predicates = nodePredicateMapping.map(k => PREDICATE_STORAGE[k]);
       debug(`added node predicate mapping for ${nodeName}`);
+    }
+
+    const nodeFacetMapping = NODE_FACET_MAPPING[nodeName];
+    if (nodeFacetMapping) {
+      definition.facets = nodeFacetMapping.map(k => getFacetDefinition(target, k) as FacetDefinition);
+      debug(`added node facet mapping for ${nodeName}`);
     }
 
     NODE_STORAGE[nodeName] = definition;

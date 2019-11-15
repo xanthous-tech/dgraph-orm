@@ -2,6 +2,7 @@ import debugWrapper from './debug';
 
 import { NodeDefinition } from '../types/definitions/node_definiton';
 import { PredicateDefinition } from '../types/definitions/predicate_definition';
+import { FacetDefinition } from '../types/definitions/facet_definition';
 
 const debug = debugWrapper('metadata-utils');
 
@@ -35,13 +36,13 @@ export function addPredicateDefinitionMetadata(target: Function, property: strin
   debug(`added ${mKey} metadata to ${target.name} on property ${property}`);
 }
 
-export function addFacetMetadata(target: Function, property: string, prefix: string): void {
+export function addFacetMetadata(target: Function, property: string, definition: FacetDefinition): void {
   if (!Reflect || !Reflect.defineMetadata) {
     throw new Error('please check reflect-metadata import');
   }
 
   const mKey = metadataKey(FACET);
-  Reflect.defineMetadata(mKey, prefix, target, property);
+  Reflect.defineMetadata(mKey, definition, target, property);
 
   debug(`added ${mKey} metadata to ${target.name} on property ${property}`);
 }
@@ -70,6 +71,15 @@ export function getPredicateDefinition(target: Function, property: string): Pred
   }
 
   const mKey = metadataKey(PREDICATE)
+  return Reflect.getMetadata(mKey, target, property);
+}
+
+export function getFacetDefinition(target: Function, property: string): FacetDefinition | undefined {
+  if (!Reflect || !Reflect.getMetadata) {
+    throw new Error('please check reflect-metadata import');
+  }
+
+  const mKey = metadataKey(FACET)
   return Reflect.getMetadata(mKey, target, property);
 }
 

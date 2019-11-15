@@ -15,6 +15,7 @@ import {
   PREDICATE_STORAGE,
   NODE_PREDICATE_MAPPING,
   getGlobalDgraphSchema,
+  NODE_FACET_MAPPING,
 } from './storage';
 import { DgraphType } from './types/dgraph_types';
 
@@ -51,6 +52,8 @@ async function main() {
   debug('node storage:\n%O', NODE_STORAGE);
   debug('predicate storage:\n%O', PREDICATE_STORAGE);
   debug('node-predicate mapping:\n%O', NODE_PREDICATE_MAPPING);
+  debug('node-facet mapping:\n%O', NODE_FACET_MAPPING);
+
   const t = new TestNode();
   debug(Reflect.getMetadata('dgraph:node', t.constructor));
 

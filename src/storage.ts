@@ -13,6 +13,10 @@ export const NODE_PREDICATE_MAPPING: {
   [key: string]: string[];
 } = {};
 
+export const NODE_FACET_MAPPING: {
+  [key: string]: string[];
+} = {};
+
 export function getGlobalDgraphSchema(): string {
   const typedSchema = Object.keys(NODE_STORAGE).map((nodeName: string) => {
     const nodeDef = NODE_STORAGE[nodeName];
