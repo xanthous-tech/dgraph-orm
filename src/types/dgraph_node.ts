@@ -1,7 +1,7 @@
 import { plainToClass } from 'class-transformer';
 import * as instauuid from 'instauuid';
 import { isArray } from 'util';
-import { DataFactory, Quad } from 'n3';
+import { DataFactory, Quad, BlankNode, NamedNode, Util as N3Util } from 'n3';
 
 import debugWrapper from '../utils/debug';
 import { Constructor } from '../utils/class';
@@ -106,17 +106,33 @@ export class DgraphNode implements ChangelogTracker {
   }
 
   getSetNquads(): Quad[] {
-    const nquads: Quad[] = [];
-    const node = this.uid ? namedNode(this.uid) : blankNode(this._symbol);
+    let nquads: Quad[] = [];
+    const node = this.getRDFNode();
     this._changelogs.forEach((value, key) => {
       if (value instanceof ArrayChangelog) {
-        // skip for now
-        return;
+        nquads = nquads.concat(value.additions.reduce((acc, item) => {
+          const itemNode = item.getRDFNode();
+          acc = acc.concat(item.getSetNquads());
+          if (N3Util.isBlankNode(itemNode)) {
+            acc.push(quad(node, namedNode(key), itemNode));
+          }
+          return acc;
+        }, [] as Quad[]));
       } else {
+        // FIXME: facet connections
         nquads.push(quad(node, namedNode(key), literal(value)));
       }
     });
 
     return nquads;
+  }
+
+  // TODO
+  // getDeleteNquads(): Quad[] {
+
+  // }
+
+  getRDFNode(): NamedNode | BlankNode {
+    return this.uid ? namedNode(this.uid) : blankNode(this._symbol);
   }
 }

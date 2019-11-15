@@ -99,7 +99,7 @@ async function main() {
 
   const writer = new Writer({ format: 'N-Quads' });
 
-  debug(writer.quadsToString(nodes.reduce((acc, n) => {
+  console.log(writer.quadsToString(nodes.reduce((acc, n) => {
     return acc.concat(n.getSetNquads());
   }, [] as Quad[])));
 }
