@@ -1,7 +1,10 @@
 import debugWrapper from '../utils/debug';
 
-import { NODE_STORAGE, NODE_PREDICATE_MAPPING, PREDICATE_STORAGE } from "../storage";
-import { NodeDefinition } from "../types/definitions/node_definiton";
+import { addNodeDefinitionMetadata } from '../utils/reflection';
+
+import { NodeDefinition } from '../types/definitions/node_definiton';
+
+import { NODE_STORAGE, NODE_PREDICATE_MAPPING, PREDICATE_STORAGE } from '../storage';
 
 const debug = debugWrapper('node-decorator');
 
@@ -21,9 +24,6 @@ export function Node(): ClassDecorator {
     debug(definition.generateSchema());
     debug(`pushed ${nodeName} into node storage`);
 
-    if (Reflect && Reflect.defineMetadata) {
-      Reflect.defineMetadata('dgraph:node', definition, target);
-      debug(`added dgraph:node metadata to ${nodeName}`);
-    }
+    addNodeDefinitionMetadata(target, definition);
   };
 }

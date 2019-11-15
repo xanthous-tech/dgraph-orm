@@ -1,17 +1,18 @@
 import { Type } from 'class-transformer';
 
 import debugWrapper from '../utils/debug';
+import { addPredicateDefinitionMetadata } from '../utils/reflection';
 
 import { PredicateOptions } from '../types/options/predicate_options';
 import { PredicateDefinition } from '../types/definitions/predicate_definition';
+import { DgraphType, INFERRED_TYPE } from '../types/dgraph_types';
 
 import { PREDICATE_STORAGE, NODE_PREDICATE_MAPPING } from '../storage';
-import { DgraphType, INFERRED_TYPE } from '../types/dgraph_types';
 
 const debug = debugWrapper('predicate-decorator');
 
 export function Predicate(options?: PredicateOptions): PropertyDecorator {
-  return function predicateDecorator(target: Object, key: string): void {
+  function createPredicateDefinition(target: Object, key: string): PredicateDefinition {
     const definition = new PredicateDefinition();
     definition.name = key;
 
@@ -71,6 +72,12 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
       definition.reverse = options.reverse;
     }
 
+    return definition;
+  }
+
+  return function predicateDecorator(target: Object, key: string): void {
+    const definition = createPredicateDefinition(target, key);
+
     if (key in PREDICATE_STORAGE) {
       // TODO: error for now, need to compare if the definition is the same
       throw new Error(`predicate ${key} already defined`);
@@ -91,5 +98,7 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
     }
 
     debug(`predicate ${key} mapped to node ${parentName}`);
+
+    addPredicateDefinitionMetadata(parent, key, definition);
   };
 }

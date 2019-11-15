@@ -1,17 +1,22 @@
 import { Expose } from 'class-transformer';
 
+import { addFacetMetadata } from '../utils/reflection';
+
 import { FacetOptions } from '../types/options/facet_options';
 
 export function Facet(options: FacetOptions | string): PropertyDecorator {
   return function facetDecorator(target: Object, key: string): void {
-    let name: string;
+    let prefix: string;
 
     if (typeof options === 'string') {
-      name = `${options}|${key}`;
+      prefix = options;
     } else {
-      name = `${options.prefix}|${key}`;
+      prefix = options.prefix;
     }
 
+    addFacetMetadata(target.constructor, key, prefix);
+
+    const name = `${prefix}|${key}`;
     const exposeDecorator = Expose({
       name,
       toClassOnly: true,
