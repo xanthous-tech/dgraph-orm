@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 
 import debugWrapper from '../utils/debug';
+import { DefaultValue } from '../utils/class';
 import { addPredicateDefinitionMetadata } from '../utils/metadata';
 
 import { PredicateOptions } from '../types/options/predicate_options';
@@ -8,7 +9,6 @@ import { PredicateDefinition } from '../types/definitions/predicate_definition';
 import { DgraphType, INFERRED_TYPE } from '../types/dgraph_types';
 
 import { PREDICATE_STORAGE, NODE_PREDICATE_MAPPING } from '../storage';
-import { DefaultValue } from 'src/utils/class';
 
 const debug = debugWrapper('predicate-decorator');
 

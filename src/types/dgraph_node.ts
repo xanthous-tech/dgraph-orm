@@ -1,7 +1,7 @@
 import { plainToClass } from 'class-transformer';
 import * as instauuid from 'instauuid';
 import { isArray } from 'util';
-import { DataFactory, Quad, BlankNode, NamedNode, Util as N3Util } from 'n3';
+import { DataFactory, Quad, BlankNode, NamedNode, Quad_Object, Variable, Util as N3Util } from '@xanthous/n3';
 
 import debugWrapper from '../utils/debug';
 import { Constructor } from '../utils/class';
@@ -10,14 +10,18 @@ import { getNodeDefinition } from '../utils/metadata';
 import { ChangelogTracker } from '../types/interfaces/changelog_tracker';
 import { ArrayChangelog } from './array_changelog';
 import { NodeDefinition } from './definitions/node_definiton';
+import { PredicateDefinition } from './definitions/predicate_definition';
 
 const debug = debugWrapper('changelog');
 
-const { quad, literal, namedNode, blankNode } = DataFactory;
+const { quad, literal, namedNode, blankNode, variable } = DataFactory;
+
+const DGRAPH_TYPE = 'dgraph.type';
 
 export class DgraphNode implements ChangelogTracker {
   _changelogs = new Map();
   _symbol: string = `${instauuid('hex')}`;
+  _parent: DgraphNode; // parent ref
 
   private _nodeDefinition: NodeDefinition;
 
@@ -48,7 +52,7 @@ export class DgraphNode implements ChangelogTracker {
 
     this._nodeDefinition = nodeDef;
 
-    const arrayPredicates = this._nodeDefinition.predicates.filter(p => p.isArray);
+    const arrayPredicates = this.getArrayPredicateDefs();
 
     arrayPredicates.forEach(p => {
       this._changelogs.set(p.name, new ArrayChangelog());
@@ -57,14 +61,19 @@ export class DgraphNode implements ChangelogTracker {
     return new Proxy(this, {
       set: (target, prop, value, receiver) => {
         if (prop.toString().startsWith('_')) {
-          return true;
+          return Reflect.set(target, prop, value, receiver);
         }
 
         debug('set', target.constructor.name, prop, value);
 
         const predIdx = arrayPredicates.findIndex(p => p.name === prop);
         if (predIdx > -1) {
-          (target._changelogs.get(prop) as ArrayChangelog).new = value;
+          (target._changelogs.get(prop) as ArrayChangelog).new = value.map((v: any) => {
+            if (v instanceof DgraphNode) {
+              v._parent = target;
+            }
+            return v;
+          });
         } else {
           target._changelogs.set(prop, value);
         }
@@ -80,7 +89,8 @@ export class DgraphNode implements ChangelogTracker {
   clearChangelogs(): void {
     this._changelogs.clear();
 
-    for (const predicateDef of this._nodeDefinition.predicates) {
+    for (const predicateKey of Object.keys(this._nodeDefinition.predicates)) {
+      const predicateDef = this._nodeDefinition.predicates[predicateKey];
       const predicate = Reflect.get(this, predicateDef.name);
 
       if (predicateDef.isArray) {
@@ -108,19 +118,37 @@ export class DgraphNode implements ChangelogTracker {
   getSetNquads(): Quad[] {
     let nquads: Quad[] = [];
     const node = this.getRDFNode();
+
+    if (N3Util.isBlankNode(node)) {
+      // add dgraph.type predicate for new nodes
+      nquads.push(quad(node, namedNode(DGRAPH_TYPE), literal(this.constructor.name)));
+    }
+
     this._changelogs.forEach((value, key) => {
+      if (!this.isPredicate(key)) {
+        return;
+      }
+
       if (value instanceof ArrayChangelog) {
         nquads = nquads.concat(value.additions.reduce((acc, item) => {
-          const itemNode = item.getRDFNode();
-          acc = acc.concat(item.getSetNquads());
-          if (N3Util.isBlankNode(itemNode)) {
+          let itemNode: Quad_Object;
+          if (this.isArrayLiteralPredicate(key)) {
+            itemNode = literal(item);
             acc.push(quad(node, namedNode(key), itemNode));
+          } else {
+            itemNode = item.getRDFNode();
+            acc = acc.concat(item.getSetNquads());
+            if (N3Util.isBlankNode(itemNode)) {
+              // do facet rendering here
+              acc.push(quad(node, namedNode(key), itemNode, item.getFacets()));
+            }
           }
           return acc;
         }, [] as Quad[]));
       } else {
-        // FIXME: facet connections
-        nquads.push(quad(node, namedNode(key), literal(value)));
+        if (!this.isFacet(key)) {
+          nquads.push(quad(node, namedNode(key), literal(value)));
+        }
       }
     });
 
@@ -134,5 +162,43 @@ export class DgraphNode implements ChangelogTracker {
 
   getRDFNode(): NamedNode | BlankNode {
     return this.uid ? namedNode(this.uid) : blankNode(this._symbol);
+  }
+
+  getFacets(): Variable | undefined {
+    const facetKeys = Object.keys(this._nodeDefinition.facets);
+    const facetString = `(${facetKeys.reduce(
+      (acc: string[], fk) => {
+        if (!this._changelogs.has(fk)) {
+          return acc;
+        }
+
+        return acc.concat([`${this._nodeDefinition.facets[fk].name}=${Reflect.get(this, fk)}`]);
+      },
+      [],
+    )})`;
+
+    return facetString === '()' ? undefined : variable(facetString);
+  }
+
+  private getArrayPredicateDefs(): PredicateDefinition[] {
+    return Object.keys(this._nodeDefinition.predicates).map(
+      pk => this._nodeDefinition.predicates[pk],
+    ).filter(p => p.isArray);
+  }
+
+  private isFacet(key: string | number | symbol): boolean {
+    return key in this._nodeDefinition.facets;
+  }
+
+  private isPredicate(key: string | number | symbol): boolean {
+    return key in this._nodeDefinition.predicates;
+  }
+
+  private isArrayPredicate(key: string | number| symbol): boolean {
+    return this.isPredicate(key) && this._nodeDefinition.predicates[key as string].isArray;
+  }
+
+  private isArrayLiteralPredicate(key: string | number| symbol): boolean {
+    return this.isArrayPredicate(key) && typeof this._nodeDefinition.predicates[key as string].type !== 'function';
   }
 }

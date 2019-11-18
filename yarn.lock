@@ -50,6 +50,11 @@
   resolved "https://registry.yarnpkg.com/@types/validator/-/validator-10.11.3.tgz#945799bef24a953c5bc02011ca8ad79331a3ef25"
   integrity sha512-GKF2VnEkMmEeEGvoo03ocrP9ySMuX1ypKazIYMlsjfslfBMhOAtC5dmEWKdJioW4lJN7MZRS88kalTsVClyQ9w==
 
+"@xanthous/n3@^1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@xanthous/n3/-/n3-1.3.1.tgz#e8a55cef8041cdba6048a48b5b04b2e7def8cf5b"
+  integrity sha512-YOlFR8vHiEo+T1zWrTteG89pJXV/ijLkffV7TZI0Y2wGXyANw8R/JRKPuE2zPF4P4IaxOOS+Bgb09EzI3CDl4g==
+
 abbrev@1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.1.1.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"
@@ -1189,11 +1194,6 @@ ms@^2.1.1:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
-
-n3@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/n3/-/n3-1.3.0.tgz#9359ccac435d397fd815094f58739fb969a824bd"
-  integrity sha512-qTbZPDpEc/+dUHMpC/WUi4bQbFdnKsb2ra/bE+pWdSvshzQeZLhCYtKQk4kQytTn2b625//eDBZYNda2wBjcfw==
 
 nan@^2.0.9, nan@^2.12.1, nan@^2.13.2:
   version "2.14.0"
