@@ -2,16 +2,12 @@ export class ArrayChangelog {
   old: any[];
   new: any[];
 
-  constructor(initial?: any[]) {
-    if (!initial) {
-      this.old = [];
-      this.new = [];
-    } else {
+  constructor(initial: any[] = []) {
       // old is always a shallow copy
       this.old = initial.slice(0);
+
       // new is the reference
       this.new = initial;
-    }
   }
 
   get deletions(): any[] {
