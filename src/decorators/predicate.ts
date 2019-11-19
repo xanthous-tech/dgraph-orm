@@ -21,7 +21,8 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
       definition.type = options.type;
       definition.isArray = !!options.isArray;
     } else {
-      const reflectedType: Function = Reflect && (Reflect as any).getMetadata ? (Reflect as any).getMetadata('design:type', target, key) : undefined;
+      const reflectedType: Function =
+        Reflect && (Reflect as any).getMetadata ? (Reflect as any).getMetadata('design:type', target, key) : undefined;
 
       if (!reflectedType) {
         throw new Error(`cannot infer type for predicate ${key}, please define type in options`);
@@ -83,9 +84,8 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
       DefaultValue([])(target, key);
     }
 
-    if (key in PREDICATE_STORAGE) {
-      // TODO: error for now, need to compare if the definition is the same
-      throw new Error(`predicate ${key} already defined`);
+    if (Private.shouldPreventPredicate(key, definition)) {
+      throw new Error(`Cannot define predicate ${key} because it has conflicting types between definitions`);
     }
 
     PREDICATE_STORAGE[key] = definition;
@@ -106,4 +106,23 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
 
     addPredicateDefinitionMetadata(parent, key, definition);
   };
+}
+
+/**
+ * Module private statics.
+ */
+namespace Private {
+  /**
+   * Check if we should interrupt the predicate definition.
+   */
+  export function shouldPreventPredicate(key: string, definition: PredicateDefinition): boolean {
+    let shouldPrevent = false;
+
+    if (key in PREDICATE_STORAGE) {
+      const existing = PREDICATE_STORAGE[key];
+      shouldPrevent = !existing.equals(definition);
+    }
+
+    return shouldPrevent;
+  }
 }

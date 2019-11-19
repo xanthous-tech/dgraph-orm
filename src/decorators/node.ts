@@ -18,25 +18,19 @@ export function Node(): ClassDecorator {
 
     const nodePredicateMapping = NODE_PREDICATE_MAPPING[nodeName];
     if (nodePredicateMapping) {
-      definition.predicates = nodePredicateMapping.reduce(
-        (acc: { [key: string]: PredicateDefinition }, k) => {
-          acc[k] = PREDICATE_STORAGE[k];
-          return acc;
-        },
-        {},
-      );
+      definition.predicates = nodePredicateMapping.reduce((acc: { [key: string]: PredicateDefinition }, k) => {
+        acc[k] = PREDICATE_STORAGE[k];
+        return acc;
+      }, {});
       debug(`added node predicate mapping for ${nodeName}`);
     }
 
     const nodeFacetMapping = NODE_FACET_MAPPING[nodeName];
     if (nodeFacetMapping) {
-      definition.facets = nodeFacetMapping.reduce(
-        (acc: { [key: string]: FacetDefinition }, k) => {
-          acc[k] = getFacetDefinition(target, k) as FacetDefinition;
-          return acc;
-        },
-        {},
-      );
+      definition.facets = nodeFacetMapping.reduce((acc: { [key: string]: FacetDefinition }, k) => {
+        acc[k] = getFacetDefinition(target, k) as FacetDefinition;
+        return acc;
+      }, {});
       debug(`added node facet mapping for ${nodeName}`);
     }
 

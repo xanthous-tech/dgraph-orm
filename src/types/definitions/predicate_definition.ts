@@ -11,6 +11,13 @@ export class PredicateDefinition implements SchemaGenerable {
   count?: boolean;
   reverse?: boolean;
 
+  /**
+   * Check if definition is equal to another definition.
+   */
+  equals(other: PredicateDefinition): boolean {
+    return this.type === other.type && this.isArray === other.isArray && this.name === other.name;
+  }
+
   generateSchema(): string {
     const parts = [];
     parts.push(`${this.name}:`);

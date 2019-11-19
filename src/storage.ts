@@ -18,15 +18,19 @@ export const NODE_FACET_MAPPING: {
 } = {};
 
 export function getGlobalDgraphSchema(): string {
-  const typedSchema = Object.keys(NODE_STORAGE).map((nodeName: string) => {
-    const nodeDef = NODE_STORAGE[nodeName];
-    return nodeDef.generateSchema();
-  }).join('\n');
+  const typedSchema = Object.keys(NODE_STORAGE)
+    .map((nodeName: string) => {
+      const nodeDef = NODE_STORAGE[nodeName];
+      return nodeDef.generateSchema();
+    })
+    .join('\n');
 
-  const rawSchema = Object.keys(PREDICATE_STORAGE).map((predicateName: string) => {
-    const predicateDef = PREDICATE_STORAGE[predicateName];
-    return predicateDef.generateSchema();
-  }).join('\n');
+  const rawSchema = Object.keys(PREDICATE_STORAGE)
+    .map((predicateName: string) => {
+      const predicateDef = PREDICATE_STORAGE[predicateName];
+      return predicateDef.generateSchema();
+    })
+    .join('\n');
 
   return typedSchema + '\n' + rawSchema;
 }

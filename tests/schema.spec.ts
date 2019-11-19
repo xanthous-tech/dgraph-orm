@@ -12,8 +12,15 @@ test("schema check", () => {
     name: string;
   }
 
+  @Node()
+  class Work {
+    @Predicate()
+    name: string;
+  }
+
   // Bypass no unused locals.
   Person;
+  Work;
 
   console.log(getGlobalDgraphSchema());
 });

@@ -26,13 +26,14 @@ export function Facet(options: FacetOptions | string): PropertyDecorator {
     const name = `${prefix}|${key}`;
     const exposeDecorator = Expose({
       name,
-      toClassOnly: true,
+      toClassOnly: true
     });
 
     definition.name = key;
     definition.predicate = prefix;
 
-    const reflectedType: Function = Reflect && (Reflect as any).getMetadata ? (Reflect as any).getMetadata('design:type', target, key) : undefined;
+    const reflectedType: Function =
+      Reflect && (Reflect as any).getMetadata ? (Reflect as any).getMetadata('design:type', target, key) : undefined;
     if (!reflectedType) {
       throw new Error(`cannot infer type for facet ${key}, please use the allowed types`);
     }
@@ -42,14 +43,17 @@ export function Facet(options: FacetOptions | string): PropertyDecorator {
 
     const reflectedDraphType: DgraphType = INFERRED_TYPE[reflectedTypeName];
 
-    if (!reflectedDraphType
-      || (reflectedDraphType !== DgraphType.String
-          && reflectedDraphType !== DgraphType.Bool
-          && reflectedDraphType !== DgraphType.Int
-          && reflectedDraphType !== DgraphType.Float
-          && reflectedDraphType !== DgraphType.DateTime)
+    if (
+      !reflectedDraphType ||
+      (reflectedDraphType !== DgraphType.String &&
+        reflectedDraphType !== DgraphType.Bool &&
+        reflectedDraphType !== DgraphType.Int &&
+        reflectedDraphType !== DgraphType.Float &&
+        reflectedDraphType !== DgraphType.DateTime)
     ) {
-      throw new Error(`cannot infer type for facet ${key} with reflected type ${reflectedTypeName}, please use the allowed types`);
+      throw new Error(
+        `cannot infer type for facet ${key} with reflected type ${reflectedTypeName}, please use the allowed types`
+      );
     } else {
       definition.type = reflectedDraphType;
     }
