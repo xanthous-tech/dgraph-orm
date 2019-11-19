@@ -10,7 +10,7 @@
     "experimentalDecorators": true,
     "target": "es2015",
     "sourceMap": true,
-    "outDir": "./dist/src",
+    "outDir": "./dist",
     "noUnusedLocals": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
