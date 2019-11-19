@@ -1,5 +1,5 @@
 {
-  "name": "dgraph-orm",
+  "name": "@xanthous/dgraph-orm",
   "version": "0.0.1",
   "description": "dgraph ORM in TypeScript",
   "main": "dist/src/index.js",
@@ -11,11 +11,18 @@
     "postinstall": "npm run clean && npm run build",
     "prestart": "npm run postinstall",
     "start": "node .",
-    "debug": "DEBUG=dgraph-orm:* DEBUG_DEPTH=10 ts-node --files -r tsconfig-paths/register src/index.ts"
+    "debug": "DEBUG=dgraph-orm:* DEBUG_DEPTH=10 ts-node --files -r tsconfig-paths/register src/index.ts",
+    "test": "jest"
   },
   "devDependencies": {
+    "@babel/core": "^7.7.2",
+    "@babel/preset-env": "^7.7.1",
+    "@babel/preset-typescript": "^7.7.2",
     "@types/debug": "^4.1.5",
+    "@types/jest": "^24.0.23",
     "@types/n3": "^1.1.1",
+    "babel-jest": "^24.9.0",
+    "jest": "^24.9.0",
     "nodemon": "^1.19.4",
     "ts-node": "^8.4.1",
     "tsconfig-paths": "^3.9.0",

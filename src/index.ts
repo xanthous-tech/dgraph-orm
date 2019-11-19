@@ -1,133 +1,137 @@
 import 'reflect-metadata';
 
-import { Operation } from 'dgraph-js';
-import { Writer } from '@xanthous/n3';
+export * from './decorators';
+export * from './types';
+export { getGlobalDgraphSchema } from './storage';
 
-import debugWrapper from './utils/debug';
-import { client } from './utils/client';
-import { DgraphNode } from './types/dgraph_node';
+// import { Operation } from 'dgraph-js';
+// import { Writer } from '@xanthous/n3';
 
-import { Node } from './decorators/node';
-import { Predicate } from './decorators/predicate';
-import { Facet } from './decorators/facet';
+// import debugWrapper from './utils/debug';
+// import { client } from './utils/client';
+// import { DgraphNode } from './types/dgraph_node';
 
-import {
-  NODE_STORAGE,
-  PREDICATE_STORAGE,
-  NODE_PREDICATE_MAPPING,
-  getGlobalDgraphSchema,
-  NODE_FACET_MAPPING,
-} from './storage';
-import { DgraphType } from './types/dgraph_types';
+// import { Node } from './decorators/node';
+// import { Predicate } from './decorators/predicate';
+// import { Facet } from './decorators/facet';
 
-const debug = debugWrapper('index');
+// import {
+//   NODE_STORAGE,
+//   PREDICATE_STORAGE,
+//   NODE_PREDICATE_MAPPING,
+//   getGlobalDgraphSchema,
+//   NODE_FACET_MAPPING,
+// } from './storage';
+// import { DgraphType } from './types/dgraph_types';
 
-@Node()
-class ConnectedNode extends DgraphNode {
-  @Predicate()
-  name: string;
+// const debug = debugWrapper('index');
 
-  @Facet('connects')
-  order?: number;
-}
+// @Node()
+// class ConnectedNode extends DgraphNode {
+//   @Predicate()
+//   name: string;
 
-@Node()
-class TestNode extends DgraphNode {
-  @Predicate({
-    type: DgraphType.String,
-    isArray: true,
-  })
-  type: string[];
+//   @Facet('connects')
+//   order?: number;
+// }
 
-  @Predicate()
-  enabled: boolean;
+// @Node()
+// class TestNode extends DgraphNode {
+//   @Predicate({
+//     type: DgraphType.String,
+//     isArray: true,
+//   })
+//   type: string[];
 
-  @Predicate({
-    type: ConnectedNode,
-    isArray: true,
-  })
-  connects: ConnectedNode[];
-}
+//   @Predicate()
+//   enabled: boolean;
 
-async function main() {
-  debug('node storage:\n%O', NODE_STORAGE);
-  debug('predicate storage:\n%O', PREDICATE_STORAGE);
-  debug('node-predicate mapping:\n%O', NODE_PREDICATE_MAPPING);
-  debug('node-facet mapping:\n%O', NODE_FACET_MAPPING);
+//   @Predicate({
+//     type: ConnectedNode,
+//     isArray: true,
+//   })
+//   connects: ConnectedNode[];
+// }
 
-  debug(getGlobalDgraphSchema());
+// async function main() {
+//   debug('node storage:\n%O', NODE_STORAGE);
+//   debug('predicate storage:\n%O', PREDICATE_STORAGE);
+//   debug('node-predicate mapping:\n%O', NODE_PREDICATE_MAPPING);
+//   debug('node-facet mapping:\n%O', NODE_FACET_MAPPING);
 
-  debug('pushing schema into dgraph');
+//   debug(getGlobalDgraphSchema());
 
-  const schemaOp = new Operation();
-  schemaOp.setSchema(getGlobalDgraphSchema());
-  await client.alter(schemaOp);
-  debug('done');
+//   debug('pushing schema into dgraph');
 
-  // const txn = new Txn(client);
-  // const query = `query testQuery() {
-  //   test(func: type(TestNode)) {
-  //     uid
-  //     type
-  //     enabled
-  //     connects @facets(order) {
-  //       uid
-  //       name
-  //     }
-  //   }
-  // }`;
+//   const schemaOp = new Operation();
+//   schemaOp.setSchema(getGlobalDgraphSchema());
+//   await client.alter(schemaOp);
+//   debug('done');
 
-  // const response = await txn.query(query);
+//   // const txn = new Txn(client);
+//   // const query = `query testQuery() {
+//   //   test(func: type(TestNode)) {
+//   //     uid
+//   //     type
+//   //     enabled
+//   //     connects @facets(order) {
+//   //       uid
+//   //       name
+//   //     }
+//   //   }
+//   // }`;
 
-  // const responseJson = response.getJson();
+//   // const response = await txn.query(query);
 
-  // debug(responseJson);
+//   // const responseJson = response.getJson();
 
-  // const nodes = DgraphNode.load(TestNode, responseJson.test) as TestNode[];
+//   // debug(responseJson);
 
-  // nodes[0].enabled = false;
-  // const cNode = new ConnectedNode();
-  // cNode.name = 'C';
-  // cNode.order = 3;
-  // cNode._parent = nodes[0]; // FIXME: maybe auto-handle this parent relation
-  // nodes[0].connects.push(cNode);
-  // nodes[0].connects.shift();
+//   // const nodes = DgraphNode.load(TestNode, responseJson.test) as TestNode[];
 
-  const t = new TestNode();
-  // debug(Reflect.getMetadata('dgraph:node', t.constructor));
+//   // nodes[0].enabled = false;
+//   // const cNode = new ConnectedNode();
+//   // cNode.name = 'C';
+//   // cNode.order = 3;
+//   // cNode._parent = nodes[0]; // FIXME: maybe auto-handle this parent relation
+//   // nodes[0].connects.push(cNode);
+//   // nodes[0].connects.shift();
 
-  t.type = ['a', 'b'];
-  t.enabled = true;
-  const c1 = new ConnectedNode();
-  c1.name = 'C1';
-  c1.order = 1;
-  const c2 = new ConnectedNode();
-  c2.name = 'C2';
-  c2.order = 2;
-  const c3 = new ConnectedNode();
-  c3.name = 'C3';
-  c3.order = 3;
+//   const t = new TestNode();
+//   // debug(Reflect.getMetadata('dgraph:node', t.constructor));
 
-  const c: ConnectedNode[] = [c1, c2, c3];
+//   t.type = ['a', 'b'];
+//   t.enabled = true;
+//   const c1 = new ConnectedNode();
+//   c1.name = 'C1';
+//   c1.order = 1;
+//   const c2 = new ConnectedNode();
+//   c2.name = 'C2';
+//   c2.order = 2;
+//   const c3 = new ConnectedNode();
+//   c3.name = 'C3';
+//   c3.order = 3;
 
-  t.connects = c;
+//   const c: ConnectedNode[] = [c1, c2, c3];
 
-  const c4 = new ConnectedNode();
-  c4.name = 'C4';
-  c4.order = 4;
+//   t.connects = c;
 
-  // FIXME: the only caveat right now is to reset the reference so it attaches into the changelog
-  t.connects = c.concat([c4]);
+//   const c4 = new ConnectedNode();
+//   c4.name = 'C4';
+//   c4.order = 4;
 
-  debug(t._changelogs.get('connects'));
+//   // FIXME: the only caveat right now is to reset the reference so it attaches into the changelog
+//   t.connects = c.concat([c4]);
 
-  const writer = new Writer({ format: 'N-Quads' });
+//   debug(t._changelogs.get('connects'));
 
-  console.log(writer.quadsToString(t.getSetNquads()));
+//   const writer = new Writer({ format: 'N-Quads' });
 
-  // console.log(writer.quadsToString(nodes.reduce((acc, n) => {
-  //   return acc.concat(n.getSetNquads());
-  // }, [] as Quad[])));
-}
+//   console.log(writer.quadsToString(t.getSetNquads()));
 
-main();
+//   // console.log(writer.quadsToString(nodes.reduce((acc, n) => {
+//   //   return acc.concat(n.getSetNquads());
+//   // }, [] as Quad[])));
+// }
+
+// main();

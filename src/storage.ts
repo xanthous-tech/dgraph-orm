@@ -30,3 +30,14 @@ export function getGlobalDgraphSchema(): string {
 
   return typedSchema + '\n' + rawSchema;
 }
+
+function clearStorage(obj: { [key: string]: any }): void {
+  Object.keys(obj).forEach(k => delete obj[k]);
+}
+
+export function clearAllStorage(): void {
+  clearStorage(NODE_STORAGE);
+  clearStorage(PREDICATE_STORAGE);
+  clearStorage(NODE_PREDICATE_MAPPING);
+  clearStorage(NODE_PREDICATE_MAPPING);
+}
