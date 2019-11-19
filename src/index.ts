@@ -112,7 +112,14 @@ async function main() {
 
   t.connects = c;
 
-  // debug(t);
+  const c4 = new ConnectedNode();
+  c4.name = 'C4';
+  c4.order = 4;
+
+  // FIXME: the only caveat right now is to reset the reference so it attaches into the changelog
+  t.connects = c.concat([c4]);
+
+  debug(t._changelogs.get('connects'));
 
   const writer = new Writer({ format: 'N-Quads' });
 

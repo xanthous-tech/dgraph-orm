@@ -1,7 +1,7 @@
 import { plainToClass } from 'class-transformer';
 import * as instauuid from 'instauuid';
 import { isArray } from 'util';
-import { DataFactory, Quad, BlankNode, NamedNode, Quad_Object, Variable, Util as N3Util } from '@xanthous/n3';
+import { DataFactory, Quad, Quad_Object, Variable, Util as N3Util, Quad_Subject } from '@xanthous/n3';
 
 import debugWrapper from '../utils/debug';
 import { Constructor } from '../utils/class';
@@ -44,38 +44,26 @@ export class DgraphNode implements ChangelogTracker {
   }
 
   constructor() {
-    const nodeDef = getNodeDefinition(this);
-
-    if (!nodeDef) {
-      throw new Error(`${this} does not have node definition!`);
-    }
-
-    this._nodeDefinition = nodeDef;
-
-    const arrayPredicates = this.getArrayPredicateDefs();
-
-    arrayPredicates.forEach(p => {
-      this._changelogs.set(p.name, new ArrayChangelog());
-    });
+    this.setNodeDef();
+    this.createArrayChangelogs();
 
     return new Proxy(this, {
       set: (target, prop, value, receiver) => {
-        if (prop.toString().startsWith('_')) {
-          return Reflect.set(target, prop, value, receiver);
-        }
+        if (!prop.toString().startsWith('_')) {
+          debug('set', target.constructor.name, prop, value);
 
-        debug('set', target.constructor.name, prop, value);
-
-        const predIdx = arrayPredicates.findIndex(p => p.name === prop);
-        if (predIdx > -1) {
-          (target._changelogs.get(prop) as ArrayChangelog).new = value.map((v: any) => {
-            if (v instanceof DgraphNode) {
-              v._parent = target;
-            }
-            return v;
-          });
-        } else {
-          target._changelogs.set(prop, value);
+          if (this.isArrayPredicate(prop)) {
+            (target._changelogs.get(prop) as ArrayChangelog).setNewValues(
+              value.map((v: any) => {
+                if (v instanceof DgraphNode) {
+                  v._parent = target;
+                }
+                return v;
+              }),
+            );
+          } else {
+            target._changelogs.set(prop, value);
+          }
         }
 
         return Reflect.set(target, prop, value, receiver);
@@ -89,8 +77,7 @@ export class DgraphNode implements ChangelogTracker {
   clearChangelogs(): void {
     this._changelogs.clear();
 
-    for (const predicateKey of Object.keys(this._nodeDefinition.predicates)) {
-      const predicateDef = this._nodeDefinition.predicates[predicateKey];
+    for (const predicateDef of this.getPredicateDefs()) {
       const predicate = Reflect.get(this, predicateDef.name);
 
       if (predicateDef.isArray) {
@@ -108,9 +95,9 @@ export class DgraphNode implements ChangelogTracker {
           }
         });
       } else {
-          if (predicate instanceof DgraphNode) {
-            predicate.clearChangelogs();
-          }
+        if (predicate instanceof DgraphNode) {
+          predicate.clearChangelogs();
+        }
       }
     }
   }
@@ -146,9 +133,7 @@ export class DgraphNode implements ChangelogTracker {
           return acc;
         }, [] as Quad[]));
       } else {
-        if (!this.isFacet(key)) {
-          nquads.push(quad(node, namedNode(key), literal(value)));
-        }
+        nquads.push(quad(node, namedNode(key), literal(value)));
       }
     });
 
@@ -160,7 +145,7 @@ export class DgraphNode implements ChangelogTracker {
 
   // }
 
-  getRDFNode(): NamedNode | BlankNode {
+  getRDFNode(): Quad_Subject {
     return this.uid ? namedNode(this.uid) : blankNode(this._symbol);
   }
 
@@ -168,27 +153,46 @@ export class DgraphNode implements ChangelogTracker {
     const facetKeys = Object.keys(this._nodeDefinition.facets);
     const facetString = `(${facetKeys.reduce(
       (acc: string[], fk) => {
-        if (!this._changelogs.has(fk)) {
-          return acc;
-        }
+        // if (!this._changelogs.has(fk)) {
+        //   return acc;
+        // }
 
         return acc.concat([`${this._nodeDefinition.facets[fk].name}=${Reflect.get(this, fk)}`]);
       },
-      [],
+      [] as string[],
     )})`;
 
     return facetString === '()' ? undefined : variable(facetString);
   }
 
-  private getArrayPredicateDefs(): PredicateDefinition[] {
-    return Object.keys(this._nodeDefinition.predicates).map(
-      pk => this._nodeDefinition.predicates[pk],
-    ).filter(p => p.isArray);
+  private setNodeDef(): void {
+    const nodeDef = getNodeDefinition(this);
+
+    if (!nodeDef) {
+      throw new Error(`${this} does not have node definition!`);
+    }
+
+    this._nodeDefinition = nodeDef;
   }
 
-  private isFacet(key: string | number | symbol): boolean {
-    return key in this._nodeDefinition.facets;
+  private createArrayChangelogs(): void {
+    const arrayPredicates = this.getArrayPredicateDefs();
+
+    arrayPredicates.forEach(p => {
+      this._changelogs.set(p.name, new ArrayChangelog());
+    });
   }
+
+  private getPredicateDefs(): PredicateDefinition[] {
+    return Object.keys(this._nodeDefinition.predicates).map(
+      pk => this._nodeDefinition.predicates[pk],
+    );
+  }
+
+  private getArrayPredicateDefs(): PredicateDefinition[] {
+    return this.getPredicateDefs().filter(p => p.isArray);
+  }
+
 
   private isPredicate(key: string | number | symbol): boolean {
     return key in this._nodeDefinition.predicates;

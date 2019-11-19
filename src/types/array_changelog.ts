@@ -21,4 +21,8 @@ export class ArrayChangelog {
   get additions(): any[] {
     return this.new.filter(x => !this.old.includes(x));
   }
+
+  setNewValues(values: any[]): void {
+    this.new = values;
+  }
 }
