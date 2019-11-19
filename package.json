@@ -1,6 +1,6 @@
 {
   "name": "@xanthous/dgraph-orm",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "dgraph ORM in TypeScript",
   "main": "dist/src/index.js",
   "author": "Simon Liang <simon@x-tech.io>",
