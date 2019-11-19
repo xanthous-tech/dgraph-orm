@@ -1,24 +1,19 @@
-import { Node, Predicate, getGlobalDgraphSchema } from '../src';
-import { clearAllStorage } from '../src/storage';
+import { Node, Predicate, getGlobalDgraphSchema } from "../src";
+import { clearAllStorage } from "../src/storage";
 
 beforeEach(() => {
   clearAllStorage();
 });
 
-test('schema check', () => {
-  // @Node()
-  // class TestNode {
-  //   @Predicate()
-  //   name: string;
-  // }
-
-  const TestNode = Node()(class TestNode {
+test("schema check", () => {
+  @Node()
+  class Person {
+    @Predicate()
     name: string;
+  }
 
-    constructor() {
-      Predicate()(this, 'name');
-    }
-  });
+  // Bypass no unused locals.
+  Person;
 
   console.log(getGlobalDgraphSchema());
 });
