@@ -29,6 +29,7 @@
     "dgraph-js": "^2.0.2",
     "grpc": "^1.24.2",
     "instauuid": "^1.0.4",
+    "lodash": "^4.17.15",
     "reflect-metadata": "^0.1.13"
   }
 }
