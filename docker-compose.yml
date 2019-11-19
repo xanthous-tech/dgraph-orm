@@ -12,7 +12,7 @@ services:
     ports:
       - 5080:5080
       - 6080:6080
-    restart: on-failure
+    restart: always
     command: dgraph zero --my=dgraph-zero:5080
   dgraph-alpha:
     image: dgraph/dgraph:v1.1.0
@@ -41,6 +41,7 @@ services:
           nocopy: true
     ports:
       - 8000:8000
+    restart: always
     command: dgraph-ratel
 
 volumes:
