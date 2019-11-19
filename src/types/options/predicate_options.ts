@@ -8,4 +8,13 @@ export class PredicateOptions {
   lang?: boolean;
   count?: boolean;
   reverse?: boolean;
+
+  /**
+   * Name of the predicate that is created in DGraph.
+   *
+   * ### Notes
+   * Setting name property lets user to reuse a global predicate between
+   * different nodes.
+   */
+  name?: string;
 }

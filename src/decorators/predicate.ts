@@ -12,10 +12,15 @@ import { PREDICATE_STORAGE, NODE_PREDICATE_MAPPING } from '../storage';
 
 const debug = debugWrapper('predicate-decorator');
 
-export function Predicate(options?: PredicateOptions): PropertyDecorator {
-  function createPredicateDefinition(target: Object, key: string): PredicateDefinition {
+export function Predicate(options: PredicateOptions = {}): PropertyDecorator {
+  /**
+   * @param target
+   * @param key
+   * @param keyAlias Custom name defined by user for the predicate. Check `PredicateOptions.name`.
+   */
+  function createPredicateDefinition(target: Object, key: string, keyAlias: string): PredicateDefinition {
     const definition = new PredicateDefinition();
-    definition.name = key;
+    definition.name = keyAlias;
 
     if (options && options.type) {
       definition.type = options.type;
@@ -25,15 +30,15 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
         Reflect && (Reflect as any).getMetadata ? (Reflect as any).getMetadata('design:type', target, key) : undefined;
 
       if (!reflectedType) {
-        throw new Error(`cannot infer type for predicate ${key}, please define type in options`);
+        throw new Error(`cannot infer type for predicate ${keyAlias}, please define type in options`);
       }
 
       const reflectedTypeName: string = reflectedType.name.toLowerCase();
 
-      debug(`predicate ${key} reflected type ${reflectedTypeName}`);
+      debug(`predicate ${keyAlias} reflected type ${reflectedTypeName}`);
 
       if (reflectedType === Array) {
-        throw new Error(`cannot infer array types for predicate ${key}, please define type in options`);
+        throw new Error(`cannot infer array types for predicate ${keyAlias}, please define type in options`);
       }
 
       const reflectedDraphType: DgraphType = INFERRED_TYPE[reflectedTypeName];
@@ -70,7 +75,8 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
   }
 
   return function predicateDecorator(target: Object, key: string): void {
-    const definition = createPredicateDefinition(target, key);
+    const predicateKey = Private.buildPredicateName(target, key, options);
+    const definition = createPredicateDefinition(target, key, predicateKey);
 
     // call class-transformer's @Type to set up plainToClass conversion
     if (typeof definition.type === 'function') {
@@ -84,27 +90,27 @@ export function Predicate(options?: PredicateOptions): PropertyDecorator {
       DefaultValue([])(target, key);
     }
 
-    if (Private.shouldPreventPredicate(key, definition)) {
-      throw new Error(`Cannot define predicate ${key} because it has conflicting types between definitions`);
+    if (Private.shouldPreventPredicate(predicateKey, definition)) {
+      throw new Error(`Cannot define predicate ${predicateKey} because it has conflicting types between definitions`);
     }
 
-    PREDICATE_STORAGE[key] = definition;
+    PREDICATE_STORAGE[predicateKey] = definition;
 
     debug(definition.generateSchema());
-    debug(`pushed ${key} into predicate storage`);
+    debug(`pushed ${predicateKey} into predicate storage`);
 
     const parent = target.constructor;
     const parentName = parent.name;
 
     if (NODE_PREDICATE_MAPPING[parentName] && NODE_PREDICATE_MAPPING[parentName].length) {
-      NODE_PREDICATE_MAPPING[parentName].push(key);
+      NODE_PREDICATE_MAPPING[parentName].push(predicateKey);
     } else {
-      NODE_PREDICATE_MAPPING[parentName] = [key];
+      NODE_PREDICATE_MAPPING[parentName] = [predicateKey];
     }
 
-    debug(`predicate ${key} mapped to node ${parentName}`);
+    debug(`predicate ${predicateKey} mapped to node ${parentName}`);
 
-    addPredicateDefinitionMetadata(parent, key, definition);
+    addPredicateDefinitionMetadata(parent, predicateKey, definition);
   };
 }
 
@@ -124,5 +130,13 @@ namespace Private {
     }
 
     return shouldPrevent;
+  }
+
+  export function buildPredicateName(target: Object, key: string, options: PredicateOptions): string {
+    if (options.name) {
+      return options.name;
+    }
+
+    return `${target.constructor.name}.${key}`;
   }
 }
