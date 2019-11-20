@@ -5,10 +5,39 @@ import { NodeMetadata } from './node';
 import { PredicateMetadata } from './predicate';
 import { FacetMetadata } from './facet';
 
+/**
+ * Internal utilities namespace.
+ */
+export namespace MetadataStorageUtils {
+  /**
+   * Closure added when Metadata storage is instantiated. This is a testing utility for flushing all metadata.
+   * managed by the storage.
+   *
+   * Use flush() instead.
+   */
+  export let flushClosure: Function | null = null;
+
+  /**
+   * Flush all data.
+   */
+  export function flush() {
+    MetadataStorageUtils.flushClosure && MetadataStorageUtils.flushClosure!();
+  }
+}
+
 class MetadataStorageImpl {
   readonly nodes = new Map<string, NodeMetadata>();
   readonly predicates = new Map<string, PredicateMetadata>();
-  readonly facets = new Map<string, FacetMetadata>();
+  readonly facets = new Map<string, FacetMetadata[]>();
+
+  constructor() {
+    // Register a private flush method to utilities so we can use this to clear all storage during test.
+    MetadataStorageUtils.flushClosure = () => {
+      this.nodes.clear();
+      this.predicates.clear();
+      this.facets.clear();
+    };
+  }
 
   /**
    * Define a new node metadata.
@@ -25,7 +54,15 @@ class MetadataStorageImpl {
    * Define a new facet metadata.
    */
   addFacetMetadata(args: FacetMetadata.IArgs): void {
-    this.facets.set('NOOP', new FacetMetadata(args));
+    const key = args.target.constructor.name;
+    const metadata = new FacetMetadata(args);
+
+    if (this.facets.has(key)) {
+      this.facets.get(key)!.push(metadata);
+      return;
+    }
+
+    this.facets.set(key, [metadata]);
   }
 
   /**

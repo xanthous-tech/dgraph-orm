@@ -1,4 +1,4 @@
-import { Expose, Type } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 
 import { MetadataStorage } from '../metadata/storage';
 import { PredicateType, PredicateTypeUtils } from '../types/predicate_type';
@@ -18,13 +18,6 @@ export function Predicate(options: Predicate.IOptions = {}) {
       );
     }
 
-    // Setup class transformer for node type of predicates.
-    // This will also be threat as a connection edge when building
-    // queries.
-    if (isNodePredicate) {
-      Type(() => type as Function)(target, propertyName);
-    }
-
     let name = options.name;
     if (!name) {
       name = `${target.constructor.name}.${propertyName}`;
@@ -32,6 +25,32 @@ export function Predicate(options: Predicate.IOptions = {}) {
       // defined as the auto-generated name, we need to make sure property with predicate
       // decorator returns the correct value.
       Expose({ name, toClassOnly: true })(target, propertyName);
+    }
+
+    // Setup class transformer for node type of predicates.
+    // This will also be threat as a connection edge when building
+    // queries.
+    if (isNodePredicate) {
+      Type(() => type as Function)(target, propertyName);
+      const facet = MetadataStorage.Instance.facets.get((type as Function).name);
+
+      // Here we register a transformer on the predicate decorator.
+      // This will allow us to transform child predicates facet values on runtime.
+      // TODO: We need to check if we can do this more performant way.
+      //  Currently, this is O(N) on each predicate field.
+      if (facet) {
+        facet.forEach(f => {
+          const facetPropertyName = `${name}|${f.args.propertyName}`;
+          Transform((value: any[]) => {
+            value.forEach(v => {
+              v[f.args.propertyName] = v[facetPropertyName];
+              delete v[facetPropertyName];
+            });
+
+            return value;
+          })(target, propertyName);
+        });
+      }
     }
 
     MetadataStorage.Instance.addPredicateMetadata({

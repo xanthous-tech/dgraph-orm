@@ -1,6 +1,6 @@
 import { PredicateMetadata } from '../metadata/predicate';
 import { MetadataStorage } from '../metadata/storage';
-import { PredicateType } from '../types/predicate_type';
+import { PredicateType } from '..';
 
 /**
  * Schema builder namespace for building global schema based on the metadata storage.

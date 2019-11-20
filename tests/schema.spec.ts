@@ -1,15 +1,24 @@
-import { Node, Predicate, PredicateType, SchemaBuilder } from '../src';
+import { Node, Predicate, Uid, PredicateType, SchemaBuilder } from '../src';
+import { MetadataStorageUtils } from '../src/metadata/storage';
 
 describe('Global schema', () => {
+  beforeEach(() => MetadataStorageUtils.flush());
+
   it('should build the correct schema', function() {
     @Node()
     class Work {
+      @Uid()
+      id: string;
+
       @Predicate()
       name: string;
     }
 
     @Node()
     class Person {
+      @Uid()
+      id: string;
+
       @Predicate({ name: 'name' })
       name: string;
 
@@ -17,7 +26,7 @@ describe('Global schema', () => {
       hobbies: string[];
 
       @Predicate({ type: [Work] })
-      works: Work[]
+      works: Work[];
     }
 
     Private.noopClass(Person);
