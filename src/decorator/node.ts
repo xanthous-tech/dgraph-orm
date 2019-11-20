@@ -4,7 +4,7 @@
 import { MetadataStorage } from '../metadata/storage';
 
 export function Node(options: Node.IOptions = {}): Function {
-  return function<TFunction extends Function>(target: TFunction): void {
+  return function(target: Function): void {
     MetadataStorage.Instance.addNodeMetadata({
       target,
       name: target.name

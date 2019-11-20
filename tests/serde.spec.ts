@@ -2,6 +2,7 @@ import { Facet, Node, Predicate, Property, Uid } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
+import {DiffTracker} from "../src/diffing/tracker";
 
 describe('Serialize deserialize', () => {
   beforeEach(() => MetadataStorageUtils.flush());
@@ -81,7 +82,7 @@ describe('Serialize deserialize', () => {
     expect(instances[0].works).toHaveLength(1);
   });
 
-  it('should handle circulars correctly', function() {
+  it.only('should handle circulars correctly', function() {
     @Node()
     class Person {
       @Uid()
@@ -105,7 +106,14 @@ describe('Serialize deserialize', () => {
           {
             uid: '0x2',
             'Person.friends|familiarity': 9999,
-            'Person.name': 'Jane'
+            'Person.name': 'Jane',
+            'Person.friends': [
+              {
+                uid: '0x3',
+                'Person.friends|familiarity': 9999,
+                'Person.name': 'Kamil'
+              }
+            ]
           }
         ]
       }
@@ -115,6 +123,8 @@ describe('Serialize deserialize', () => {
       .addEntryType(Person)
       .addJsonData(data)
       .build();
+
+    console.log(JSON.stringify(DiffTracker.getValues(instances[0].friends[0]), null, 2));
 
     expect(instances[0].name).toEqual(data[0]["Person.name"]);
     expect(instances[0].friends).toHaveLength(1);

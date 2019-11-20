@@ -2,6 +2,7 @@ import { Expose, Transform, Type } from 'class-transformer';
 
 import { MetadataStorage } from '../metadata/storage';
 import { Constructor } from '../utils/class';
+import {DiffTracker} from "../diffing/tracker";
 
 /**
  * A decorator to annotate properties on a DGraph Node class. Only the properties
@@ -34,13 +35,10 @@ export function Predicate(options: Predicate.IOptions = {}) {
 
     // Here we register a transformer on the predicate decorator for each facet defined on the predicate.
     // This will allow us to transform child properties facet values on runtime.
+    //
     // TODO: We need to check if we can do this more performant way.
     //  Currently, this is adding O(n x m) complexity to the predicate field where n is number of facets
     //  and m is number of properties.
-    //
-    // TODO: Make sure we can handle late references to predicate. Meaning is, if we define a class with predicate
-    //  first, and then define a Facet, it should still be able to handle the facet conversion.
-    //  I think currently, it poops.
     Transform((value: any[]) => {
       const facet = MetadataStorage.Instance.facets.get((type as Function).name);
       value &&
@@ -50,6 +48,10 @@ export function Predicate(options: Predicate.IOptions = {}) {
               const facetPropertyName = `${name}|${f.args.propertyName}`;
               v[f.args.propertyName] = v[facetPropertyName];
               delete v[facetPropertyName];
+
+              // Purge all of the changelogs to clear out any change log created by the
+              // class transformer.
+              DiffTracker.purgeInstance(v);
             });
         });
 

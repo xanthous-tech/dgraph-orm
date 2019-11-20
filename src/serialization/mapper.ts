@@ -2,9 +2,10 @@ import { plainToClass } from 'class-transformer';
 
 import { ObjectLiteral } from '../utils/type';
 import { Constructor } from '../utils/class';
+import { DiffTracker } from '../diffing/tracker';
 
 export namespace ObjectMapper {
-  class ObjectMapperBuilder<T> {
+  class ObjectMapperBuilder<T = any> {
     private _entryType: Constructor<T>;
     private _jsonData: ObjectLiteral<any>;
 
@@ -21,9 +22,13 @@ export namespace ObjectMapper {
     build(): T[] {
       const instance: T | T[] = plainToClass(this._entryType as any, this._jsonData);
       if (Array.isArray(instance)) {
+        // Clear out the changelogs created by class transformer.
+        instance.forEach(i => DiffTracker.purgeInstance(i));
         return instance;
       }
 
+      // Clear out the changelogs created by class transformer.
+      DiffTracker.purgeInstance(instance);
       return [instance];
     }
   }

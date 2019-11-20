@@ -1,5 +1,6 @@
 import { Expose } from 'class-transformer';
 
+import { DiffTracker } from '../diffing/tracker';
 import { MetadataStorage } from '../metadata/storage';
 import { PropertyType, PropertyTypeUtils } from '../types/property';
 
@@ -7,7 +8,7 @@ import { PropertyType, PropertyTypeUtils } from '../types/property';
  * A decorator to annotate properties on a DGraph Node class. Only the properties
  * decorated with this decorator will be treated as a node property.
  */
-export function Property(options: Property.IOptions = {}) {
+export function Property(options: Property.IOptions = {}): PropertyDecorator {
   return function(target: Object, propertyName: string): void {
     const { type, isArray } = Private.sanitizePropertyType(options, target, propertyName);
     if (!type || !Private.isPropertyType(type)) {
@@ -26,6 +27,9 @@ export function Property(options: Property.IOptions = {}) {
       Expose({ name, toClassOnly: true })(target, propertyName);
     }
 
+    // Attach a diff tracker to the property.
+    DiffTracker.trackProperty(target, propertyName);
+
     MetadataStorage.Instance.addPropertyMetadata({
       type,
       name,
@@ -33,6 +37,7 @@ export function Property(options: Property.IOptions = {}) {
       target,
       propertyName
     });
+
   };
 }
 
