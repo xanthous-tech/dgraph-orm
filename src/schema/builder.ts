@@ -38,7 +38,7 @@ export namespace SchemaBuilder {
 
   function buildNodeSchema(nodeName: string, predicates: PredicateMetadata.IArgs[]): string {
     return `type ${nodeName} {
-${predicates.map(p => `  ${p.name}: ${p.isArray ? toArrayType(p.type) : p.type}`).join('\n')}  
+${predicates.map(p => `  ${p.name}: ${p.isArray ? toArrayType(p.type) : p.type}`).join('\n')}
 }
 `;
   }
@@ -46,8 +46,7 @@ ${predicates.map(p => `  ${p.name}: ${p.isArray ? toArrayType(p.type) : p.type}`
   function buildPredicateSchema(predicate: PredicateMetadata.IArgs): string {
     const parts = [];
     parts.push(`${predicate.name}:${predicate.isArray ? toArrayType(predicate.type) : predicate.type}`);
-    parts.push('\n');
-    return parts.join(' ');
+    return parts.join(' ') + '\n';
   }
 
   function toArrayType(type: PredicateType | 'node'): string {

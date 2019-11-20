@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 
 import { MetadataStorage } from '../metadata/storage';
 import { PredicateType, PredicateTypeUtils } from '../types/predicate_type';
@@ -25,12 +25,21 @@ export function Predicate(options: Predicate.IOptions = {}) {
       Type(() => type as Function)(target, propertyName);
     }
 
+    let name = options.name;
+    if (!name) {
+      name = `${target.constructor.name}.${propertyName}`;
+      // When we load data into the class, we will have a new property
+      // defined as the auto-generated name, we need to make sure property with predicate
+      // decorator returns the correct value.
+      Expose({ name, toClassOnly: true })(target, propertyName);
+    }
+
     MetadataStorage.Instance.addPredicateMetadata({
       type: Private.isPredicateType(type) ? type : 'node',
+      name,
       isArray,
       target,
-      propertyName,
-      name: options.name || `${target.constructor.name}.${propertyName}`
+      propertyName
     });
   };
 }

@@ -23,7 +23,19 @@ describe('Global schema', () => {
     Private.noopClass(Person);
     Private.noopClass(Work);
 
-    console.log(SchemaBuilder.build());
+    const expectedSchema = `type Work {
+  Work.name: string
+}
+type Person {
+  name: string
+  Person.hobbies: [string]
+}
+Work.name:string
+name:string
+Person.hobbies:[string]
+`;
+
+    expect(SchemaBuilder.build()).toEqual(expectedSchema);
   });
 });
 
