@@ -1,4 +1,4 @@
-import { Node, Predicate, Uid, PredicateType, SchemaBuilder } from '../src';
+import { Node, Predicate, Property, Uid, PropertyType, SchemaBuilder } from '../src';
 import { MetadataStorageUtils } from '../src/metadata/storage';
 
 describe('Global schema', () => {
@@ -10,7 +10,7 @@ describe('Global schema', () => {
       @Uid()
       id: string;
 
-      @Predicate()
+      @Property()
       name: string;
     }
 
@@ -19,10 +19,10 @@ describe('Global schema', () => {
       @Uid()
       id: string;
 
-      @Predicate({ name: 'name' })
+      @Property({ name: 'name' })
       name: string;
 
-      @Predicate({ type: [PredicateType.String] })
+      @Property({ type: [PropertyType.String] })
       hobbies: string[];
 
       @Predicate({ type: [Work] })

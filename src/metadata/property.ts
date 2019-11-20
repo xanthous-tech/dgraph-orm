@@ -1,12 +1,12 @@
-import { Constructor } from '../utils/class';
+import { PropertyType } from '..';
 
-export class PredicateMetadata {
-  constructor(readonly args: PredicateMetadata.IArgs) {
+export class PropertyMetadata {
+  constructor(readonly args: PropertyMetadata.IArgs) {
     //
   }
 }
 
-export namespace PredicateMetadata {
+export namespace PropertyMetadata {
   export interface IArgs {
     /**
      * Target object which the metadata is attached to.
@@ -30,7 +30,7 @@ export namespace PredicateMetadata {
      * 'node' types are the transformed properties
      * which will convert into a value by the class-transformer when loading data.
      */
-    type: Constructor;
+    type: PropertyType;
 
     /**
      * Is the predicate an array type.

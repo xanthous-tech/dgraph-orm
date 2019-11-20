@@ -2,7 +2,7 @@ import { ObjectLiteral } from '../utils/type';
 
 // TODO: dgraph type enums
 
-export enum PredicateType {
+export enum PropertyType {
   Default = 'default',
   Int = 'int',
   Float = 'float',
@@ -14,20 +14,20 @@ export enum PredicateType {
   Uid = 'uid',
 }
 
-const REFLECTED_TYPE_TO_PREDICATE_TYPE: ObjectLiteral<PredicateType> = {
-  string: PredicateType.String,
-  boolean: PredicateType.Bool,
-  number: PredicateType.Float // infer number to float.
+const REFLECTED_TYPE_TO_PREDICATE_TYPE: ObjectLiteral<PropertyType> = {
+  string: PropertyType.String,
+  boolean: PropertyType.Bool,
+  number: PropertyType.Float // infer number to float.
 };
 
 /**
  * Utility namespace for operating predicate types.
  */
-export namespace PredicateTypeUtils {
+export namespace PropertyTypeUtils {
   /**
    * Convert a reflected type to dgraph predicate type.
    */
-  export function convertReflectedToPredicateType(reflected: string): PredicateType {
+  export function convertReflectedToPropertyType(reflected: string): PropertyType {
     return REFLECTED_TYPE_TO_PREDICATE_TYPE[reflected];
   }
 }

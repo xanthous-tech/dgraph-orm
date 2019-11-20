@@ -4,6 +4,7 @@
 import { NodeMetadata } from './node';
 import { PredicateMetadata } from './predicate';
 import { FacetMetadata } from './facet';
+import { PropertyMetadata } from './property';
 
 /**
  * Internal utilities namespace.
@@ -27,6 +28,7 @@ export namespace MetadataStorageUtils {
 
 class MetadataStorageImpl {
   readonly nodes = new Map<string, NodeMetadata>();
+  readonly properties = new Map<string, PropertyMetadata>();
   readonly predicates = new Map<string, PredicateMetadata>();
   readonly facets = new Map<string, FacetMetadata[]>();
 
@@ -75,6 +77,18 @@ class MetadataStorageImpl {
     }
 
     this.predicates.set(args.name, new PredicateMetadata(args));
+  }
+
+  /**
+   * Define a new property metadata.
+   */
+  addPropertyMetadata(args: PropertyMetadata.IArgs): void {
+    const existingMetadata = this.properties.get(args.name);
+    if (existingMetadata && existingMetadata.args.type === args.type) {
+      throw new Error(`Conflicting property definition '${args.name}'`);
+    }
+
+    this.properties.set(args.name, new PropertyMetadata(args));
   }
 }
 

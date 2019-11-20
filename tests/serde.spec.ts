@@ -1,4 +1,4 @@
-import {Facet, Node, Predicate, Uid} from '../src';
+import {Facet, Node, Predicate, Property, Uid} from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
@@ -35,7 +35,7 @@ describe('Serialize deserialize', () => {
       @Uid()
       id: string;
 
-      @Predicate()
+      @Property()
       name: string;
 
       @Facet()
@@ -47,7 +47,7 @@ describe('Serialize deserialize', () => {
       @Uid()
       id: string;
 
-      @Predicate()
+      @Property()
       name: string;
 
       @Predicate({ type: [Work] })
