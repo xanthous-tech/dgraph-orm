@@ -11,6 +11,12 @@ export function Predicate(options: Predicate.IOptions = {}) {
   return function(target: Object, propertyName: string): void {
     const isArray = Array.isArray(options.type);
     const type = Private.sanitizePredicateType(options, target, propertyName);
+    if (!type) {
+      throw new Error(
+        `Cannot infer the type for property '${propertyName}' on node '${target.constructor.name}'. ` +
+          'Please try to explicitly define a type in the property options'
+      );
+    }
 
     let name = options.name;
     if (!name) {
@@ -25,29 +31,30 @@ export function Predicate(options: Predicate.IOptions = {}) {
     // This will also be threat as a connection edge when building
     // queries.
     Type(() => type as Function)(target, propertyName);
-    const facet = MetadataStorage.Instance.facets.get((type as Function).name);
 
     // Here we register a transformer on the predicate decorator for each facet defined on the predicate.
     // This will allow us to transform child properties facet values on runtime.
     // TODO: We need to check if we can do this more performant way.
-    //  Currently, this is adding O(n) complexity to the predicate field where n is number of properties.
+    //  Currently, this is adding O(n x m) complexity to the predicate field where n is number of facets
+    //  and m is number of properties.
     //
     // TODO: Make sure we can handle late references to predicate. Meaning is, if we define a class with predicate
     //  first, and then define a Facet, it should still be able to handle the facet conversion.
     //  I think currently, it poops.
-    if (facet) {
-      facet.forEach(f => {
-        const facetPropertyName = `${name}|${f.args.propertyName}`;
-        Transform((value: any[]) => {
-          value.forEach(v => {
-            v[f.args.propertyName] = v[facetPropertyName];
-            delete v[facetPropertyName];
-          });
+    Transform((value: any[]) => {
+      const facet = MetadataStorage.Instance.facets.get((type as Function).name);
+      value &&
+        value.forEach(v => {
+          facet &&
+            facet.forEach(f => {
+              const facetPropertyName = `${name}|${f.args.propertyName}`;
+              v[f.args.propertyName] = v[facetPropertyName];
+              delete v[facetPropertyName];
+            });
+        });
 
-          return value;
-        })(target, propertyName);
-      });
-    }
+      return value;
+    })(target, propertyName);
 
     MetadataStorage.Instance.addPredicateMetadata({
       type,

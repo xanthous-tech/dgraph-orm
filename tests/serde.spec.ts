@@ -1,4 +1,4 @@
-import {Facet, Node, Predicate, Property, Uid} from '../src';
+import { Facet, Node, Predicate, Property, Uid } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
@@ -9,7 +9,7 @@ describe('Serialize deserialize', () => {
   it('should map json to objects correctly', function() {
     @Node()
     class Work {
-      @Predicate()
+      @Property()
       name: string;
     }
 
@@ -40,6 +40,9 @@ describe('Serialize deserialize', () => {
 
       @Facet()
       salary: number;
+
+      @Facet()
+      years: number;
     }
 
     @Node()
@@ -62,17 +65,59 @@ describe('Serialize deserialize', () => {
           {
             uid: '0x2',
             'Work.name': 'Space Engineer',
-            'Person.works|salary': 1200
+            'Person.works|salary': 1200,
+            'Person.works|years': 10
           }
         ]
       }
     ];
 
-    const instances = ObjectMapper.newBuilder()
+    const instances = ObjectMapper.newBuilder<Person>()
       .addEntryType(Person)
       .addJsonData(data)
       .build();
 
-    console.log(JSON.stringify(instances, null, 2));
+    expect(instances[0].name).toEqual(data[0]["Person.name"]);
+    expect(instances[0].works).toHaveLength(1);
+  });
+
+  it('should handle circulars correctly', function() {
+    @Node()
+    class Person {
+      @Uid()
+      id: string;
+
+      @Property()
+      name: string;
+
+      @Facet()
+      familiarity: number;
+
+      @Predicate({ type: [Person] })
+      friends: Person[];
+    }
+
+    const data = [
+      {
+        uid: '0x1',
+        'Person.name': 'John',
+        'Person.friends': [
+          {
+            uid: '0x2',
+            'Person.friends|familiarity': 9999,
+            'Person.name': 'Jane'
+          }
+        ]
+      }
+    ];
+
+    const instances = ObjectMapper.newBuilder<Person>()
+      .addEntryType(Person)
+      .addJsonData(data)
+      .build();
+
+    expect(instances[0].name).toEqual(data[0]["Person.name"]);
+    expect(instances[0].friends).toHaveLength(1);
+    expect(instances[0].friends[0].name).toEqual(data[0]["Person.friends"][0]["Person.name"])
   });
 });

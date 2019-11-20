@@ -4,11 +4,11 @@ import { ObjectLiteral } from '../utils/type';
 import { Constructor } from '../utils/class';
 
 export namespace ObjectMapper {
-  class ObjectMapperBuilder<T = Constructor> {
-    private _entryType: T;
+  class ObjectMapperBuilder<T> {
+    private _entryType: Constructor<T>;
     private _jsonData: ObjectLiteral<any>;
 
-    addEntryType(type: T) {
+    addEntryType(type: Constructor<T>) {
       this._entryType = type;
       return this;
     }
@@ -28,7 +28,7 @@ export namespace ObjectMapper {
     }
   }
 
-  export function newBuilder() {
-    return new ObjectMapperBuilder();
+  export function newBuilder<T = any>() {
+    return new ObjectMapperBuilder<T>();
   }
 }

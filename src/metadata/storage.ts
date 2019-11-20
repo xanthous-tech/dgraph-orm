@@ -38,6 +38,7 @@ class MetadataStorageImpl {
       this.nodes.clear();
       this.predicates.clear();
       this.facets.clear();
+      this.properties.clear();
     };
   }
 
