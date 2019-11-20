@@ -1,59 +1,29 @@
-import { Node, Predicate, getGlobalDgraphSchema } from '../src';
-import { clearAllStorage } from '../src/storage';
+import { Node, Predicate, PredicateType, SchemaBuilder } from '../src';
 
 describe('Global schema', () => {
-  beforeEach(() => {
-    clearAllStorage();
-  });
-
-  it('should generate correct schema', function() {
-    const baselineSchema = `type Person {
-  Person.name: string
-}
-type Work {
-  Work.name: string
-}
-Person.name: string .
-Work.name: string .`;
-
-    @Node()
-    class Person {
-      @Predicate()
-      name: string;
-    }
-
+  it('should build the correct schema', function() {
     @Node()
     class Work {
       @Predicate()
       name: string;
     }
 
-    expect(getGlobalDgraphSchema() === baselineSchema);
-
-    Private.noopClass(Person);
-    Private.noopClass(Work);
-  });
-
-  it('should complain if predicates collide', function() {
     @Node()
     class Person {
       @Predicate({ name: 'name' })
       name: string;
+
+      @Predicate({ type: [PredicateType.String] })
+      hobbies: string[];
+
+      @Predicate({ type: [Work] })
+      works: Work[]
     }
 
-    const collider = () => {
-      @Node()
-      class Work {
-        @Predicate({ name: 'name' })
-        name: boolean;
-      }
-
-      Private.noopClass(Work);
-    };
-
-    expect(collider).toThrow();
-
     Private.noopClass(Person);
+    Private.noopClass(Work);
+
+    console.log(SchemaBuilder.build());
   });
 });
 
