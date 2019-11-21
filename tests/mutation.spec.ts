@@ -1,4 +1,4 @@
-import { Node, Predicate, Property, Uid } from '../src';
+import {Facet, Node, Predicate, Property, Uid} from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
@@ -64,6 +64,9 @@ describe('Serialize deserialize', () => {
       @Property()
       name: string;
 
+      @Facet()
+      familiarity: number;
+
       @Predicate({ type: [Person] })
       friends: Person[];
     }
@@ -76,9 +79,11 @@ describe('Serialize deserialize', () => {
           {
             uid: '0x2',
             'Person.name': 'Jane',
+            'Person.friends|familiarity': 999,
             'Person.friends': [
               {
                 uid: '0x3',
+                'Person.friends|familiarity': 999,
                 'Person.name': 'Kamil'
               }
             ]
@@ -94,6 +99,7 @@ describe('Serialize deserialize', () => {
 
     instances[0].name = 'New John';
     instances[0].friends[0].name = 'New Jane';
+    instances[0].friends[0].familiarity = 99;
     instances[0].friends[0].friends[0].name = 'New Kamil';
 
     // After New year resolution....
@@ -104,9 +110,11 @@ describe('Serialize deserialize', () => {
 
     const jane = new Person();
     jane.name = 'Jane';
+    jane.familiarity = 99;
 
     const kamil = new Person();
     kamil.name = 'Kamil';
+    kamil.familiarity = 42;
 
     jane.friends = [kamil];
     john.friends = [jane];

@@ -5,7 +5,7 @@ export class DiffValue<T> {
   private _value: T | undefined;
   private _dirty = false;
 
-  constructor(readonly key: string) {
+  constructor(readonly key: string, readonly type: 'property' | 'facet') {
     //
   }
 

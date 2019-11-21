@@ -40,7 +40,7 @@ export function Predicate(options: Predicate.IOptions = {}) {
     //  Currently, this is adding O(n x m) complexity to the predicate field where n is number of facets
     //  and m is number of properties.
     Transform((value: any[]) => {
-      const facet = MetadataStorage.Instance.facets.get((type as Function).name);
+      const facet = MetadataStorage.Instance.facets.get(target.constructor.name);
       value &&
         value.forEach(v => {
           facet &&

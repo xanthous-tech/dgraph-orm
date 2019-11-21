@@ -10,16 +10,16 @@ export namespace DiffTracker {
   /**
    * Register an instance for tracking.
    */
-  export function trackProperty(target: Object, propertyName: string, diffKey?: string): Object {
+  export function trackProperty(target: Object, propertyName: string, type: 'property' | 'facet', diffKey?: string): Object {
     Reflect.defineProperty(target, propertyName, {
       configurable: true,
       enumerable: true,
       set: function(value: any) {
-        ensureInstance(this, propertyName, diffKey || propertyName);
+        ensureInstance(this, propertyName, diffKey || propertyName, type);
         instances.get(this)![propertyName].set(value);
       },
       get: function() {
-        ensureInstance(this, propertyName, diffKey || propertyName);
+        ensureInstance(this, propertyName, diffKey || propertyName, type);
         return instances.get(this)![propertyName].get();
       }
     });
@@ -82,13 +82,13 @@ export namespace DiffTracker {
   /**
    * Make sure the instance is in the weakmap
    */
-  function ensureInstance(instance: Object, propertyName: string, diffKey: string): void {
+  function ensureInstance(instance: Object, propertyName: string, diffKey: string, type: 'property' | 'facet'): void {
     if (!instances.has(instance)) {
       instances.set(instance, {});
     }
 
     if (!instances.get(instance)![propertyName]) {
-      instances.get(instance)![propertyName] = new DiffValue(diffKey);
+      instances.get(instance)![propertyName] = new DiffValue(diffKey, type);
     }
   }
 }

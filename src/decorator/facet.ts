@@ -8,7 +8,7 @@ export function Facet(): PropertyDecorator {
   return function(target: Object, propertyName: string): void {
 
     // Attach a diff tracker to the property.
-    DiffTracker.trackProperty(target, propertyName);
+    DiffTracker.trackProperty(target, propertyName, 'facet');
 
     MetadataStorage.Instance.addFacetMetadata({
       target,

@@ -17,6 +17,7 @@ export namespace MutationBuilder {
   import quad = DataFactory.quad;
   import namedNode = DataFactory.namedNode;
   import literal = DataFactory.literal;
+  import variable = DataFactory.variable;
 
   /**
    * Given a target object, returns set quads as string.
@@ -44,8 +45,14 @@ export namespace MutationBuilder {
           if (Util.isBlankNode(pn)) {
             // Create a new node
             quads.push(quad(pn, namedNode(DGRAPH_TYPE), literal(p.constructor.name)));
+
+            const facets = getFacetsForInstance(p)
+              .filter(f => getValueFromNode(p, f.args.propertyName) !== undefined)
+              .map(f => `[${f.args.propertyName}=${getValueFromNode(p, f.args.propertyName)}]`)
+              .join(',');
+
             // Create a relation between parent and predicate.
-            quads.push(quad(tn, namedNode(ps.key), pn));
+            quads.push(quad(tn, namedNode(ps.key), pn, variable(facets)));
           }
 
           // Set mutations
@@ -73,11 +80,18 @@ export namespace MutationBuilder {
     const changes = DiffTracker.getSets(target);
     if (changes.length > 0) {
       changes.forEach(c => {
-        quads.push(quad(targetNode, namedNode(c.key), literal(c.get())));
+        if (c.type === 'property') {
+          quads.push(quad(targetNode, namedNode(c.key), literal(c.get())));
+        }
       });
     }
 
     return quads;
+  }
+
+  function getFacetsForInstance(node: Object) {
+    const metadata = MetadataStorage.Instance.facets.get(node.constructor.name);
+    return metadata || [];
   }
 
   function getNodeForInstance(node: ObjectLiteral<any>) {
@@ -95,5 +109,9 @@ export namespace MutationBuilder {
   function getPredicatesOfNode(node: ObjectLiteral<any>) {
     const metadata = MetadataStorage.Instance.predicates.get(node.constructor.name);
     return !metadata ? [] : metadata.map(m => ({ predicates: node[m.args.propertyName], key: m.args.name }));
+  }
+
+  function getValueFromNode(target: ObjectLiteral<any>, propertyName: string) {
+    return target[propertyName];
   }
 }
