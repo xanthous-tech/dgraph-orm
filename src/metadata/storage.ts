@@ -5,6 +5,7 @@ import { NodeMetadata } from './node';
 import { PredicateMetadata } from './predicate';
 import { FacetMetadata } from './facet';
 import { PropertyMetadata } from './property';
+import { UidMetadata } from './uid';
 
 /**
  * Internal utilities namespace.
@@ -27,10 +28,13 @@ export namespace MetadataStorageUtils {
 }
 
 class MetadataStorageImpl {
+  // Metadata storage maps..
+  // Key of each map is the Node name which the metadata is defined on.
   readonly nodes = new Map<string, NodeMetadata>();
-  readonly properties = new Map<string, PropertyMetadata>();
-  readonly predicates = new Map<string, PredicateMetadata>();
+  readonly properties = new Map<string, PropertyMetadata[]>();
+  readonly predicates = new Map<string, PredicateMetadata[]>();
   readonly facets = new Map<string, FacetMetadata[]>();
+  readonly uids = new Map<string, UidMetadata[]>();
 
   constructor() {
     // Register a private flush method to utilities so we can use this to clear all storage during test.
@@ -39,6 +43,7 @@ class MetadataStorageImpl {
       this.predicates.clear();
       this.facets.clear();
       this.properties.clear();
+      this.uids.clear();
     };
   }
 
@@ -72,24 +77,49 @@ class MetadataStorageImpl {
    * Define a new predicate metadata.
    */
   addPredicateMetadata(args: PredicateMetadata.IArgs): void {
-    const existingMetadata = this.predicates.get(args.name);
-    if (existingMetadata && existingMetadata.args.type === args.type) {
+    const existingMetadata = this.predicates.get(args.target.constructor.name);
+    const checkConflict = (a: PredicateMetadata) => a.args.type === args.type && a.args.name === args.name;
+    if (existingMetadata && existingMetadata.some(m => checkConflict(m))) {
       throw new Error(`Conflicting predicate definition '${args.name}'`);
     }
 
-    this.predicates.set(args.name, new PredicateMetadata(args));
+    if (existingMetadata) {
+      existingMetadata.push(new PredicateMetadata(args));
+      return;
+    }
+
+    this.predicates.set(args.target.constructor.name, [new PredicateMetadata(args)]);
   }
 
   /**
    * Define a new property metadata.
    */
   addPropertyMetadata(args: PropertyMetadata.IArgs): void {
-    const existingMetadata = this.properties.get(args.name);
-    if (existingMetadata && existingMetadata.args.type === args.type) {
+    const existingMetadata = this.properties.get(args.target.constructor.name);
+    const checkConflict = (a: PropertyMetadata) => a.args.type === args.type && a.args.name === args.name;
+    if (existingMetadata && existingMetadata.some(m => checkConflict(m))) {
       throw new Error(`Conflicting property definition '${args.name}'`);
     }
 
-    this.properties.set(args.name, new PropertyMetadata(args));
+    if (existingMetadata) {
+      existingMetadata.push(new PropertyMetadata(args));
+      return;
+    }
+
+    this.properties.set(args.target.constructor.name, [new PropertyMetadata(args)]);
+  }
+
+  /**
+   * Define a new uid property metadata.
+   */
+  addUidMetadata(args: UidMetadata.IArgs): void {
+    const existingMetadata = this.uids.get(args.target.constructor.name);
+    if (existingMetadata) {
+      existingMetadata.push(new UidMetadata(args));
+      return;
+    }
+
+    this.uids.set(args.target.constructor.name, [new UidMetadata(args)]);
   }
 }
 

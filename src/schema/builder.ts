@@ -1,6 +1,7 @@
 import { MetadataStorage } from '../metadata/storage';
 import { PropertyMetadata } from '../metadata/property';
 import { PropertyType } from '..';
+import { Iterators } from '../utils/iterator';
 
 /**
  * Schema builder namespace for building global schema based on the metadata storage.
@@ -11,12 +12,10 @@ export namespace SchemaBuilder {
    */
   export function build(): string {
     const nodes = new Map<string, NodeSchemaDefinition>();
-    const properties: PropertyMetadata.IArgs[] = [];
-
     MetadataStorage.Instance.nodes.forEach(n => nodes.set(n.args.name, { name: n.args.name, properties: [] }));
-    MetadataStorage.Instance.properties.forEach(p => {
-      properties.push(p.args);
-      nodes.get(p.args.target.constructor.name)!.properties.push(p.args);
+    Iterators.forEach(MetadataStorage.Instance.properties.keys(), k => {
+      console.log(k);
+      nodes.get(k)!.properties = MetadataStorage.Instance.properties.get(k)!;
     });
 
     let schema = '';
@@ -24,16 +23,18 @@ export namespace SchemaBuilder {
       schema += buildNodeSchema(node.name, node.properties);
     }
 
-    for (let property of properties) {
-      schema += buildPropertySchema(property);
+    for (let node of nodes.values()) {
+      for (let property of node.properties) {
+        schema += buildPropertySchema(property.args);
+      }
     }
 
     return schema;
   }
 
-  function buildNodeSchema(nodeName: string, properties: PropertyMetadata.IArgs[]): string {
+  function buildNodeSchema(nodeName: string, properties: PropertyMetadata[]): string {
     return `type ${nodeName} {
-${properties.map(p => `  ${p.name}: ${p.isArray ? toArrayType(p.type) : p.type}`).join('\n')}
+${properties.map(p => `  ${p.args.name}: ${p.args.isArray ? toArrayType(p.args.type) : p.args.type}`).join('\n')}
 }
 `;
   }
@@ -59,6 +60,6 @@ ${properties.map(p => `  ${p.name}: ${p.isArray ? toArrayType(p.type) : p.type}`
    */
   interface NodeSchemaDefinition {
     name: string;
-    properties: PropertyMetadata.IArgs[];
+    properties: PropertyMetadata[];
   }
 }

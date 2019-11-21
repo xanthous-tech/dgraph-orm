@@ -2,7 +2,7 @@ import { Expose, Transform, Type } from 'class-transformer';
 
 import { MetadataStorage } from '../metadata/storage';
 import { Constructor } from '../utils/class';
-import { DiffTracker } from '../diffing/tracker';
+import { DiffTracker } from '../mutation/tracker';
 
 /**
  * A decorator to annotate properties on a DGraph Node class. Only the properties

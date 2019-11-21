@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 
-import { DiffTracker } from '../diffing/tracker';
+import { DiffTracker } from '../mutation/tracker';
 import { MetadataStorage } from '../metadata/storage';
 import { PropertyType, PropertyTypeUtils } from '../types/property';
 

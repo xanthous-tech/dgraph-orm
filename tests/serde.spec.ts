@@ -2,7 +2,8 @@ import { Facet, Node, Predicate, Property, Uid } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
-import {DiffTracker} from "../src/diffing/tracker";
+import { MutationBuilder } from '../src/mutation/builder';
+import {DiffTracker} from "../src/mutation/tracker";
 
 describe('Serialize deserialize', () => {
   beforeEach(() => MetadataStorageUtils.flush());
@@ -78,11 +79,11 @@ describe('Serialize deserialize', () => {
       .addJsonData(data)
       .build();
 
-    expect(instances[0].name).toEqual(data[0]["Person.name"]);
+    expect(instances[0].name).toEqual(data[0]['Person.name']);
     expect(instances[0].works).toHaveLength(1);
   });
 
-  it.only('should handle circulars correctly', function() {
+  it('should handle circulars correctly', function() {
     @Node()
     class Person {
       @Uid()
@@ -124,10 +125,11 @@ describe('Serialize deserialize', () => {
       .addJsonData(data)
       .build();
 
-    console.log(JSON.stringify(DiffTracker.getValues(instances[0].friends[0]), null, 2));
+    console.log(MutationBuilder.getSetNQuadsString(instances[0]));
+    console.log(JSON.stringify(DiffTracker.getValues(instances[0]), null, 2));
 
-    expect(instances[0].name).toEqual(data[0]["Person.name"]);
+    expect(instances[0].name).toEqual(data[0]['Person.name']);
     expect(instances[0].friends).toHaveLength(1);
-    expect(instances[0].friends[0].name).toEqual(data[0]["Person.friends"][0]["Person.name"])
+    expect(instances[0].friends[0].name).toEqual(data[0]['Person.friends'][0]['Person.name']);
   });
 });

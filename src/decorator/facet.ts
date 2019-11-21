@@ -1,5 +1,5 @@
 import { MetadataStorage } from '../metadata/storage';
-import {DiffTracker} from "../diffing/tracker";
+import {DiffTracker} from "../mutation/tracker";
 
 /**
  * Facet decorator to annotate a facet property on a node.

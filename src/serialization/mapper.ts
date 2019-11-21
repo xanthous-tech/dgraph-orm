@@ -2,7 +2,7 @@ import { plainToClass } from 'class-transformer';
 
 import { ObjectLiteral } from '../utils/type';
 import { Constructor } from '../utils/class';
-import { DiffTracker } from '../diffing/tracker';
+import { DiffTracker } from '../mutation/tracker';
 
 export namespace ObjectMapper {
   class ObjectMapperBuilder<T = any> {
