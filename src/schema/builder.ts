@@ -14,7 +14,6 @@ export namespace SchemaBuilder {
     const nodes = new Map<string, NodeSchemaDefinition>();
     MetadataStorage.Instance.nodes.forEach(n => nodes.set(n.args.name, { name: n.args.name, properties: [] }));
     Iterators.forEach(MetadataStorage.Instance.properties.keys(), k => {
-      console.log(k);
       nodes.get(k)!.properties = MetadataStorage.Instance.properties.get(k)!;
     });
 

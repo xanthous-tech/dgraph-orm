@@ -1,7 +1,9 @@
 import * as UUID from 'instauuid';
-import { DataFactory, Quad, Writer, Util } from '@xanthous/n3';
+import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous/n3';
+
 import { MetadataStorage } from '../metadata/storage';
-import {ObjectLiteral} from "../utils/type";
+import { ObjectLiteral } from '../utils/type';
+import { DiffTracker } from './tracker';
 
 /**
  * Dgraph type prefix to add on the new nodes.
@@ -28,9 +30,51 @@ export namespace MutationBuilder {
    */
   export function getSetNQuads(target: Object) {
     const quads: Quad[] = [];
-    const node = getNodeForInstance(target);
-    if (Util.isBlankNode(node)) {
-      quads.push(quad(node, namedNode(DGRAPH_TYPE), literal(target.constructor.name)));
+
+    const recursePredicates = (t: Object, tn: BlankNode | NamedNode): void => {
+      const predicates = getPredicatesOfNode(t);
+
+      predicates.forEach(ps => {
+        if (!ps.predicates || ps.predicates.length < 1) {
+          return;
+        }
+
+        ps.predicates.forEach((p: Object) => {
+          const pn = getNodeForInstance(p);
+          if (Util.isBlankNode(pn)) {
+            // Create a new node
+            quads.push(quad(pn, namedNode(DGRAPH_TYPE), literal(p.constructor.name)));
+            // Create a relation between parent and predicate.
+            quads.push(quad(tn, namedNode(ps.key), pn));
+          }
+
+          // Set mutations
+          quads.push.apply(quads, getSetChangeQuads(p, pn));
+          recursePredicates(p, pn);
+        });
+      });
+    };
+
+    const targetNode = getNodeForInstance(target);
+    if (Util.isBlankNode(targetNode)) {
+      // Create a new node
+      quads.push(quad(targetNode, namedNode(DGRAPH_TYPE), literal(target.constructor.name)));
+    }
+
+    // Set mutations
+    quads.push.apply(quads, getSetChangeQuads(target, targetNode));
+    recursePredicates(target, targetNode);
+
+    return quads;
+  }
+
+  function getSetChangeQuads(target: Object, targetNode: NamedNode | BlankNode) {
+    const quads: Quad[] = [];
+    const changes = DiffTracker.getSets(target);
+    if (changes.length > 0) {
+      changes.forEach(c => {
+        quads.push(quad(targetNode, namedNode(c.key), literal(c.get())));
+      });
     }
 
     return quads;
@@ -40,14 +84,16 @@ export namespace MutationBuilder {
     const metadata = MetadataStorage.Instance.uids.get(node.constructor.name);
     if (metadata && metadata.length > 0) {
       const uid = node[metadata[0].args.propertyName];
-      return DataFactory.namedNode(uid);
+      if (uid) {
+        return DataFactory.namedNode(uid);
+      }
     }
 
     return DataFactory.blankNode(UUID('hex').toString());
   }
 
-  // function getPredicatesOfNode(node: ObjectLiteral<any>) {
-  //   const metadata = MetadataStorage.Instance.predicates.get(node.constructor.name);
-  //   console.log(metadata);
-  // }
+  function getPredicatesOfNode(node: ObjectLiteral<any>) {
+    const metadata = MetadataStorage.Instance.predicates.get(node.constructor.name);
+    return !metadata ? [] : metadata.map(m => ({ predicates: node[m.args.propertyName], key: m.args.name }));
+  }
 }

@@ -2,8 +2,6 @@ import { Facet, Node, Predicate, Property, Uid } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
-import { MutationBuilder } from '../src/mutation/builder';
-import {DiffTracker} from "../src/mutation/tracker";
 
 describe('Serialize deserialize', () => {
   beforeEach(() => MetadataStorageUtils.flush());
@@ -124,9 +122,6 @@ describe('Serialize deserialize', () => {
       .addEntryType(Person)
       .addJsonData(data)
       .build();
-
-    console.log(MutationBuilder.getSetNQuadsString(instances[0]));
-    console.log(JSON.stringify(DiffTracker.getValues(instances[0]), null, 2));
 
     expect(instances[0].name).toEqual(data[0]['Person.name']);
     expect(instances[0].friends).toHaveLength(1);
