@@ -31,6 +31,12 @@ export namespace MutationBuilder {
    */
   export function getSetNQuads(target: Object) {
     const quads: Quad[] = [];
+    const connections: Quad[] = [];
+
+    const created = new WeakMap<Object, boolean>();
+
+    const visited = new WeakMap<Object, WeakMap<Object, boolean>>();
+    const isVisited = (t: Object, p: Object) => visited.has(t) && visited.get(t)!.get(p);
 
     const recursePredicates = (t: Object, tn: BlankNode | NamedNode): void => {
       const predicates = Private.getPredicatesOfNode(t);
@@ -41,22 +47,35 @@ export namespace MutationBuilder {
         }
 
         ps.predicates.forEach((p: Object) => {
-          const pn = Private.getNodeForInstance(p);
-          if (Util.isBlankNode(pn)) {
-            // Create a new node
-            quads.push(quad(pn, namedNode(DGRAPH_TYPE), literal(p.constructor.name)));
-
-            const facets = Private.getFacetsForInstance(p)
-              .filter(f => Private.getValueFromNode(p, f.args.propertyName) !== undefined)
-              .map(f => `[${f.args.propertyName}=${Private.getValueFromNode(p, f.args.propertyName)}]`)
-              .join(',');
-
-            // Create a relation between parent and predicate.
-            quads.push(quad(tn, namedNode(ps.key), pn, variable(facets)));
+          if (isVisited(t, p)) {
+            return;
           }
 
-          // Set mutations
-          quads.push.apply(quads, Private.getSetChangeQuads(p, pn));
+          const pn = Private.getNodeForInstance(p);
+          if (!created.get(p)) {
+            if (Util.isBlankNode(pn)) {
+              // Create a new node
+              quads.push(quad(pn, namedNode(DGRAPH_TYPE), literal(p.constructor.name)));
+            }
+            // Set mutations
+            quads.push.apply(quads, Private.getSetChangeQuads(p, pn));
+            created.set(p, true);
+          }
+
+          const facets = Private.getFacetsForInstance(p)
+            .filter(f => Private.getValueFromNode(p, f.args.propertyName) !== undefined)
+            .map(f => `[${f.args.propertyName}=${Private.getValueFromNode(p, f.args.propertyName)}]`)
+            .join(',');
+
+          // Create a relation between parent and predicate.
+          connections.push(quad(tn, namedNode(ps.key), pn, variable(facets)));
+
+          if (!visited.has(t)) {
+            visited.set(t, new WeakMap<Object, boolean>());
+          }
+
+          visited.get(t)!.set(p, true);
+
           recursePredicates(p, pn);
         });
       });
@@ -70,9 +89,10 @@ export namespace MutationBuilder {
 
     // Set mutations
     quads.push.apply(quads, Private.getSetChangeQuads(target, targetNode));
-    recursePredicates(target, targetNode);
+    created.set(target, true);
 
-    return quads;
+    recursePredicates(target, targetNode);
+    return quads.concat(connections);
   }
 }
 

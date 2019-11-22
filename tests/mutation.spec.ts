@@ -131,24 +131,28 @@ describe('Serialize deserialize', () => {
       @Property()
       name: string;
 
-      @Facet()
-      familiarity: number;
-
       @Predicate({ type: [Person] })
       friends: Person[];
     }
 
+    const lola = new Person();
+    lola.name = 'Lola';
+
     const john = new Person();
     john.name = 'John';
-    john.familiarity = 42;
 
     const jane = new Person();
     jane.name = 'Jane';
-    jane.familiarity = 666;
 
-    john.friends = [jane];
-    // jane.friends = [john];
+    const kamil = new Person();
+    kamil.name = 'Kamil';
+
+    john.friends = [jane, lola];
+    jane.friends = [kamil, lola];
+    kamil.friends = [john, lola];
+    lola.friends = [jane, kamil, john];
 
     console.log(MutationBuilder.getSetNQuadsString(john));
+    console.log(MutationBuilder.getSetNQuadsString(lola));
   });
 });
