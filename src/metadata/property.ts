@@ -38,3 +38,28 @@ export namespace PropertyMetadata {
     isArray: boolean;
   }
 }
+
+export class IndexMetadata {
+  constructor(readonly args: IndexMetadata.IArgs) {
+    //
+  }
+}
+
+export namespace IndexMetadata {
+  export interface IArgs {
+    /**
+     * Type of the index.
+     */
+    type: string;
+
+    /**
+     * Target object which the metadata is attached to.
+     */
+    target: Object;
+
+    /**
+     * PropertyType name which the decorator is applied to.
+     */
+    propertyName: string;
+  }
+}

@@ -1,4 +1,4 @@
-import { Node, Predicate, Property, Uid, PropertyType, SchemaBuilder } from '../src';
+import { Node, Predicate, Property, Uid, PropertyType, SchemaBuilder, Index } from '../src';
 import { MetadataStorageUtils } from '../src/metadata/storage';
 
 describe('Global schema', () => {
@@ -19,6 +19,7 @@ describe('Global schema', () => {
       @Uid()
       id: string;
 
+      @Index({ type: 'hash' })
       @Property({ name: 'name' })
       name: string;
 
@@ -40,7 +41,7 @@ type Person {
   Person.hobbies: [string]
 }
 Work.name:string
-name:string
+@index(hash) name:string
 Person.hobbies:[string]
 `;
 

@@ -4,7 +4,7 @@
 import { NodeMetadata } from './node';
 import { PredicateMetadata } from './predicate';
 import { FacetMetadata } from './facet';
-import { PropertyMetadata } from './property';
+import {IndexMetadata, PropertyMetadata} from './property';
 import { UidMetadata } from './uid';
 
 /**
@@ -35,6 +35,7 @@ class MetadataStorageImpl {
   readonly predicates = new Map<string, PredicateMetadata[]>();
   readonly facets = new Map<string, FacetMetadata[]>();
   readonly uids = new Map<string, UidMetadata[]>();
+  readonly indices = new Map<string, IndexMetadata[]>();
 
   constructor() {
     // Register a private flush method to utilities so we can use this to clear all storage during test.
@@ -44,6 +45,7 @@ class MetadataStorageImpl {
       this.facets.clear();
       this.properties.clear();
       this.uids.clear();
+      this.indices.clear();
     };
   }
 
@@ -120,6 +122,19 @@ class MetadataStorageImpl {
     }
 
     this.uids.set(args.target.constructor.name, [new UidMetadata(args)]);
+  }
+
+  /**
+   * Define a new index property metadata.
+   */
+  addIndexMetadata(args: IndexMetadata.IArgs): void {
+    const existingMetadata = this.indices.get(args.target.constructor.name);
+    if (existingMetadata) {
+      existingMetadata.push(new IndexMetadata(args));
+      return;
+    }
+
+    this.indices.set(args.target.constructor.name, [new IndexMetadata(args)]);
   }
 }
 

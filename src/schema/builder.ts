@@ -1,5 +1,5 @@
 import { MetadataStorage } from '../metadata/storage';
-import { PropertyMetadata } from '../metadata/property';
+import {IndexMetadata, PropertyMetadata} from '../metadata/property';
 import { PropertyType } from '..';
 import { Iterators } from '../utils/iterator';
 
@@ -12,9 +12,14 @@ export namespace SchemaBuilder {
    */
   export function build(): string {
     const nodes = new Map<string, NodeSchemaDefinition>();
-    MetadataStorage.Instance.nodes.forEach(n => nodes.set(n.args.name, { name: n.args.name, properties: [] }));
+    MetadataStorage.Instance.nodes.forEach(n => nodes.set(n.args.name, { name: n.args.name, properties: [], indices: [] }));
+
     Iterators.forEach(MetadataStorage.Instance.properties.keys(), k => {
       nodes.get(k)!.properties = MetadataStorage.Instance.properties.get(k)!;
+    });
+
+    Iterators.forEach(MetadataStorage.Instance.indices.keys(), k => {
+      nodes.get(k)!.indices = MetadataStorage.Instance.indices.get(k)!;
     });
 
     let schema = '';
@@ -24,7 +29,7 @@ export namespace SchemaBuilder {
 
     for (let node of nodes.values()) {
       for (let property of node.properties) {
-        schema += buildPropertySchema(property.args);
+        schema += buildPropertySchema(node, property.args);
       }
     }
 
@@ -38,8 +43,14 @@ ${properties.map(p => `  ${p.args.name}: ${p.args.isArray ? toArrayType(p.args.t
 `;
   }
 
-  function buildPropertySchema(property: PropertyMetadata.IArgs): string {
+  function buildPropertySchema(node: NodeSchemaDefinition, property: PropertyMetadata.IArgs): string {
     const parts = [];
+
+    const index = node.indices.find(i => i.args.propertyName === property.propertyName);
+    if (index) {
+      parts.push(`@index(${index.args.type})`);
+    }
+
     parts.push(`${property.name}:${property.isArray ? toArrayType(property.type) : property.type}`);
     return parts.join(' ') + '\n';
   }
@@ -60,5 +71,6 @@ ${properties.map(p => `  ${p.args.name}: ${p.args.isArray ? toArrayType(p.args.t
   interface NodeSchemaDefinition {
     name: string;
     properties: PropertyMetadata[];
+    indices: IndexMetadata[];
   }
 }

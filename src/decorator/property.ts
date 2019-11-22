@@ -5,6 +5,33 @@ import { MetadataStorage } from '../metadata/storage';
 import { PropertyType, PropertyTypeUtils } from '../types/property';
 
 /**
+ * Default type for index created using @Index decorator.
+ */
+const DEFAULT_INDEX_TYPE = 'string';
+
+/**
+ * A decorator to annotate properties to index on.
+ */
+export function Index(options: Index.IOptions): PropertyDecorator {
+  return function(target: Object, propertyName: string): void {
+    MetadataStorage.Instance.addIndexMetadata({
+      type: (options && options.type) || DEFAULT_INDEX_TYPE,
+      target,
+      propertyName
+    });
+  }
+}
+
+export namespace Index {
+  /**
+   * Options for the `Index` decorator.
+   */
+  export interface IOptions {
+    type: string;
+  }
+}
+
+/**
  * A decorator to annotate properties on a DGraph Node class. Only the properties
  * decorated with this decorator will be treated as a node property.
  */
@@ -37,7 +64,6 @@ export function Property(options: Property.IOptions = {}): PropertyDecorator {
       target,
       propertyName
     });
-
   };
 }
 
