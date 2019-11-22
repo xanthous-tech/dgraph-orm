@@ -33,7 +33,7 @@ export namespace MutationBuilder {
     const quads: Quad[] = [];
 
     const recursePredicates = (t: Object, tn: BlankNode | NamedNode): void => {
-      const predicates = getPredicatesOfNode(t);
+      const predicates = Private.getPredicatesOfNode(t);
 
       predicates.forEach(ps => {
         if (!ps.predicates || ps.predicates.length < 1) {
@@ -41,14 +41,14 @@ export namespace MutationBuilder {
         }
 
         ps.predicates.forEach((p: Object) => {
-          const pn = getNodeForInstance(p);
+          const pn = Private.getNodeForInstance(p);
           if (Util.isBlankNode(pn)) {
             // Create a new node
             quads.push(quad(pn, namedNode(DGRAPH_TYPE), literal(p.constructor.name)));
 
-            const facets = getFacetsForInstance(p)
-              .filter(f => getValueFromNode(p, f.args.propertyName) !== undefined)
-              .map(f => `[${f.args.propertyName}=${getValueFromNode(p, f.args.propertyName)}]`)
+            const facets = Private.getFacetsForInstance(p)
+              .filter(f => Private.getValueFromNode(p, f.args.propertyName) !== undefined)
+              .map(f => `[${f.args.propertyName}=${Private.getValueFromNode(p, f.args.propertyName)}]`)
               .join(',');
 
             // Create a relation between parent and predicate.
@@ -56,45 +56,45 @@ export namespace MutationBuilder {
           }
 
           // Set mutations
-          quads.push.apply(quads, getSetChangeQuads(p, pn));
+          quads.push.apply(quads, Private.getSetChangeQuads(p, pn));
           recursePredicates(p, pn);
         });
       });
     };
 
-    const targetNode = getNodeForInstance(target);
+    const targetNode = Private.getNodeForInstance(target);
     if (Util.isBlankNode(targetNode)) {
       // Create a new node
       quads.push(quad(targetNode, namedNode(DGRAPH_TYPE), literal(target.constructor.name)));
     }
 
     // Set mutations
-    quads.push.apply(quads, getSetChangeQuads(target, targetNode));
+    quads.push.apply(quads, Private.getSetChangeQuads(target, targetNode));
     recursePredicates(target, targetNode);
 
     return quads;
   }
+}
 
-  function getSetChangeQuads(target: Object, targetNode: NamedNode | BlankNode) {
-    const quads: Quad[] = [];
-    const changes = DiffTracker.getSets(target);
-    if (changes.length > 0) {
-      changes.forEach(c => {
-        if (c.type === 'property') {
-          quads.push(quad(targetNode, namedNode(c.key), literal(c.get())));
-        }
-      });
-    }
-
-    return quads;
+/**
+ * Module private statics
+ */
+namespace Private {
+  export function getValueFromNode(target: ObjectLiteral<any>, propertyName: string) {
+    return target[propertyName];
   }
 
-  function getFacetsForInstance(node: Object) {
+  export function getPredicatesOfNode(node: ObjectLiteral<any>) {
+    const metadata = MetadataStorage.Instance.predicates.get(node.constructor.name);
+    return !metadata ? [] : metadata.map(m => ({ predicates: node[m.args.propertyName], key: m.args.name }));
+  }
+
+  export function getFacetsForInstance(node: Object) {
     const metadata = MetadataStorage.Instance.facets.get(node.constructor.name);
     return metadata || [];
   }
 
-  function getNodeForInstance(node: ObjectLiteral<any>) {
+  export function getNodeForInstance(node: ObjectLiteral<any>) {
     const metadata = MetadataStorage.Instance.uids.get(node.constructor.name);
     if (metadata && metadata.length > 0) {
       const uid = node[metadata[0].args.propertyName];
@@ -106,12 +106,17 @@ export namespace MutationBuilder {
     return DataFactory.blankNode(UUID('hex').toString());
   }
 
-  function getPredicatesOfNode(node: ObjectLiteral<any>) {
-    const metadata = MetadataStorage.Instance.predicates.get(node.constructor.name);
-    return !metadata ? [] : metadata.map(m => ({ predicates: node[m.args.propertyName], key: m.args.name }));
-  }
+  export function getSetChangeQuads(target: Object, targetNode: NamedNode | BlankNode) {
+    const quads: Quad[] = [];
+    const changes = DiffTracker.getSets(target);
+    if (changes.length > 0) {
+      changes.forEach(c => {
+        if (c.type === 'property') {
+          quads.push(DataFactory.quad(targetNode, DataFactory.namedNode(c.key), DataFactory.literal(c.get())));
+        }
+      });
+    }
 
-  function getValueFromNode(target: ObjectLiteral<any>, propertyName: string) {
-    return target[propertyName];
+    return quads;
   }
 }

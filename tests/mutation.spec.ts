@@ -121,4 +121,34 @@ describe('Serialize deserialize', () => {
 
     console.log(MutationBuilder.getSetNQuadsString(john));
   });
+
+  it.only('should be able to handle reverse edges', function() {
+    @Node()
+    class Person {
+      @Uid()
+      id: string;
+
+      @Property()
+      name: string;
+
+      @Facet()
+      familiarity: number;
+
+      @Predicate({ type: [Person] })
+      friends: Person[];
+    }
+
+    const john = new Person();
+    john.name = 'John';
+    john.familiarity = 42;
+
+    const jane = new Person();
+    jane.name = 'Jane';
+    jane.familiarity = 666;
+
+    john.friends = [jane];
+    // jane.friends = [john];
+
+    console.log(MutationBuilder.getSetNQuadsString(john));
+  });
 });
