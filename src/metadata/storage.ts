@@ -37,9 +37,7 @@ class MetadataStorageImpl {
   readonly uids = new Map<string, UidMetadata[]>();
   readonly indices = new Map<string, IndexMetadata[]>();
   readonly withFacets = new Map<string, WithFacetMetadata[]>();
-
-  // Facet constructors
-  readonly facets = new WeakMap<Function, FacetMetadata>();
+  readonly  facets = new Map<string, FacetMetadata[]>();
 
   constructor() {
     // Register a private flush method to utilities so we can use this to clear all storage during test.
@@ -50,6 +48,7 @@ class MetadataStorageImpl {
       this.properties.clear();
       this.uids.clear();
       this.indices.clear();
+      this.facets.clear();
     };
   }
 
@@ -83,11 +82,14 @@ class MetadataStorageImpl {
    * Define a new facet definition.
    */
   addFacetMetadata(args: FacetMetadata.IArgs): void {
-    if (this.facets.has(args.target)) {
-      throw new Error(`Facet definition ${args.target.name} is already defined.`);
+    const metadata = new FacetMetadata(args);
+
+    if (this.facets.has(args.target.constructor.name)) {
+      this.facets.get(args.target.constructor.name)!.push(metadata)
+      return;
     }
 
-    this.facets.set(args.target, new FacetMetadata(args));
+    this.facets.set(args.target.constructor.name, [metadata]);
   }
 
   /**

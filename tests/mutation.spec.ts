@@ -1,9 +1,9 @@
-import {Facet, Node, Predicate, Property, Uid} from '../src';
+import { Facet, Node, Predicate, Property, Uid } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
 import { MutationBuilder } from '../src/mutation/builder';
-import {WithFacet} from "../src/decorator/with-facet";
+import { WithFacet } from '../src/decorator/with-facet';
 
 describe('Serialize deserialize', () => {
   beforeEach(() => MetadataStorageUtils.flush());
@@ -27,7 +27,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: [Hobby] })
-      hobbies: Hobby[];
+      hobbies: Predicate<Hobby>;
     }
 
     const data = [
@@ -44,7 +44,7 @@ describe('Serialize deserialize', () => {
       .build();
 
     existing[0].name = 'New Name';
-    existing[0].hobbies[0].name = 'New Hobby Name';
+    existing[0].hobbies.get()[0].name = 'New Hobby Name';
     console.log(MutationBuilder.getSetNQuadsString(existing[0]));
 
     const hobby = new Hobby();
@@ -52,13 +52,13 @@ describe('Serialize deserialize', () => {
 
     const person = new Person();
     person.name = 'Testing';
-    person.hobbies = [hobby];
+    person.hobbies.add(hobby);
     console.log(MutationBuilder.getSetNQuadsString(person));
   });
 
   it('should handle circulars correctly', function() {
-    @Facet()
     class PersonKnows {
+      @Facet()
       familiarity: number;
     }
 
@@ -72,7 +72,7 @@ describe('Serialize deserialize', () => {
 
       @WithFacet(PersonKnows)
       @Predicate({ type: [Person] })
-      friends: Person[];
+      friends: Predicate<Person, PersonKnows>;
     }
 
     const data = [
@@ -102,9 +102,11 @@ describe('Serialize deserialize', () => {
       .build();
 
     instances[0].name = 'New John';
-    instances[0].friends[0].name = 'New Jane';
-    instances[0].friends[0].familiarity = 99;
-    instances[0].friends[0].friends[0].name = 'New Kamil';
+    const friends = instances[0].friends;
+
+    friends.get()[0].name = 'New Jane';
+    friends.getFacet(friends.get()[0])!.familiarity = 99;
+    instances[0].friends.get()[0].friends.get()[0].name = 'New Kamil';
 
     // After New year resolution....
     console.log(MutationBuilder.getSetNQuadsString(instances[0]));
@@ -114,19 +116,17 @@ describe('Serialize deserialize', () => {
 
     const jane = new Person();
     jane.name = 'Jane';
-    jane.familiarity = 99;
 
     const kamil = new Person();
     kamil.name = 'Kamil';
-    kamil.familiarity = 42;
 
-    jane.friends = [kamil];
-    john.friends = [jane];
+    jane.friends.withFacet({ familiarity: 99 }).add(jane);
+    john.friends.withFacet({ familiarity: 42 }).add(kamil);
 
     console.log(MutationBuilder.getSetNQuadsString(john));
   });
 
-  it.only('should be able to handle reverse edges', function() {
+  it('should be able to handle reverse edges', function() {
     @Node()
     class Person {
       @Uid()

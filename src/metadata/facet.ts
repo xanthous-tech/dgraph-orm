@@ -9,6 +9,11 @@ export namespace FacetMetadata {
     /**
      * Target class which the facet is added to.
      */
-    target: Function;
+    target: Object;
+
+    /**
+     * key of the decorated property.
+     */
+    propertyName: string;
   }
 }

@@ -31,10 +31,12 @@ describe('Serialize deserialize', () => {
   });
 
   it('should map withFacets correctly', function() {
-    @Facet()
     class PersonWorks {
-      salary: number;
-      years: number;
+      @Facet()
+      public years: number;
+
+      @Facet()
+      public salary: number;
     }
 
     @Node()
@@ -68,7 +70,13 @@ describe('Serialize deserialize', () => {
             uid: '0x1',
             'Person.name': 'John Doe',
             'Work.people|salary': 1200,
-            'Work.people|years': 10,
+            'Work.people|years': 10
+          },
+          {
+            uid: '0x3',
+            'Person.name': 'Jane Doe',
+            'Work.people|salary': 1201,
+            'Work.people|years': 11
           }
         ]
       }
@@ -79,22 +87,19 @@ describe('Serialize deserialize', () => {
       .addJsonData(data)
       .build();
 
-    console.log(
-      instances[0].people.get().forEach(w => {
-        console.log(w);
-        console.log(instances[0].people);
-        console.log(instances[0].people.getFacet(w));
-      })
-    );
+    const people = instances[0].people.get();
 
     expect(instances[0].name).toEqual(data[0]['Work.name']);
-    expect(instances[0].people.get()).toHaveLength(1);
-    expect(instances[0].people.getFacet(instances[0].people.get()[0]))
+    expect(people).toHaveLength(2);
+
+    // Has correct facet values.
+    expect(instances[0].people.getFacet(people[0])).toEqual({ salary: 1200, years: 10 });
+    expect(instances[0].people.getFacet(people[1])).toEqual({ salary: 1201, years: 11 });
   });
 
   it('should handle circulars correctly', function() {
-    @Facet()
     class PersonKnows {
+      @Facet()
       familiarity: number;
     }
 

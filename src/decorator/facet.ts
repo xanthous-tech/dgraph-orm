@@ -3,10 +3,11 @@ import { MetadataStorage } from '../metadata/storage';
 /**
  * Facet decorator to annotate a facet definition class.
  */
-export function Facet(options: Facet.IOptions = {}): ClassDecorator {
-  return function(target: Function): void {
+export function Facet(options: Facet.IOptions = {}): PropertyDecorator {
+  return function(target: Object, propertyKey: string): void {
     MetadataStorage.Instance.addFacetMetadata({
-      target
+      target,
+      propertyName: propertyKey
     });
   };
 }

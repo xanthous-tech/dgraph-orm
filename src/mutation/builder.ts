@@ -4,6 +4,7 @@ import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous
 import { MetadataStorage } from '../metadata/storage';
 import { ObjectLiteral } from '../utils/type';
 import { DiffTracker } from './tracker';
+import { Predicate } from '..';
 
 /**
  * Dgraph type prefix to add on the new nodes.
@@ -40,13 +41,14 @@ export namespace MutationBuilder {
 
     const recursePredicates = (t: Object, tn: BlankNode | NamedNode): void => {
       const predicates = Private.getPredicatesOfNode(t);
+      console.log(predicates);
 
       predicates.forEach(ps => {
-        if (!ps.predicates || ps.predicates.length < 1) {
+        if (!ps.predicates || ps.predicates.get().length < 1) {
           return;
         }
 
-        ps.predicates.forEach((p: Object) => {
+        ps.predicates.get().forEach((p: Object) => {
           if (isVisited(t, p)) {
             return;
           }
@@ -106,7 +108,9 @@ namespace Private {
 
   export function getPredicatesOfNode(node: ObjectLiteral<any>) {
     const metadata = MetadataStorage.Instance.predicates.get(node.constructor.name);
-    return !metadata ? [] : metadata.map(m => ({ predicates: node[m.args.propertyName], key: m.args.name }));
+    return !metadata
+      ? []
+      : metadata.map(m => ({ predicates: node[m.args.propertyName] as Predicate<any, any>, key: m.args.name }));
   }
 
   export function getFacetsForInstance(node: Object) {

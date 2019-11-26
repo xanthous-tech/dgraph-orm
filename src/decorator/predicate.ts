@@ -2,7 +2,7 @@ import { Expose, Transform, Type } from 'class-transformer';
 
 import { MetadataStorage } from '../metadata/storage';
 import { Constructor } from '../utils/class';
-import { DiffTracker } from '../mutation/tracker';
+import {FacetStorage} from "../facet";
 
 /**
  * A decorator to annotate properties on a DGraph Node class. Only the properties
@@ -33,30 +33,7 @@ export function Predicate(options: Predicate.IOptions = {}) {
     // queries.
     Type(() => type as Function)(target, propertyName);
 
-    // Here we register a transformer on the predicate decorator for each facet defined on the predicate.
-    // This will allow us to transform child properties facet values on runtime.
-    //
-    // TODO: We need to check if we can do this more performant way.
-    //  Currently, this is adding O(n x m) complexity to the predicate field where n is number of withFacets
-    //  and m is number of properties.
-    Transform((value: any[]) => {
-      const facet = MetadataStorage.Instance.withFacets.get(target.constructor.name);
-      value &&
-        value.forEach(v => {
-          facet &&
-            facet.forEach(f => {
-              const facetPropertyName = `${name}|${f.args.propertyName}`;
-              v[f.args.propertyName] = v[facetPropertyName];
-              delete v[facetPropertyName];
-
-              // Purge all of the changelogs to clear out any change log created by the
-              // class transformer.
-              DiffTracker.purgeInstance(v);
-            });
-        });
-
-      return new Private.PredicateImpl(value);
-    })(target, propertyName);
+    Transform((value: any[]) => new Private.PredicateImpl(target, value))(target, propertyName);
 
     MetadataStorage.Instance.addPredicateMetadata({
       type,
@@ -98,7 +75,7 @@ export interface Predicate<T, U = void> {
   /**
    * Get an attached facet value of a node.
    */
-  getFacet(node: T): U;
+  getFacet(node: T): U | undefined;
 
   /**
    * Add a new node to the connection.
@@ -109,6 +86,12 @@ export interface Predicate<T, U = void> {
    * Get all nodes on the connection.
    */
   get(): ReadonlyArray<T>;
+
+  /**
+   * Tag a node for removal.
+   * This will also remove the connection between parent and child.
+   */
+  remove(node: T): void;
 }
 
 /**
@@ -143,24 +126,41 @@ namespace Private {
    * Node definition overrides the predicate types.
    */
   export class PredicateImpl<T = any, U = any> implements Predicate<T, U> {
-    constructor(private readonly _data: T[]) {
+    private _facet: U | null = null;
+
+    constructor(private readonly _parent: Object, private readonly _data: T[]) {
       //
     }
 
     withFacet(facet: U): Predicate<T, U> {
+      this._facet = facet;
       return this;
     }
 
-    getFacet(node: T): U {
-      return {} as any;
+    getFacet(node: T): U | undefined {
+      return FacetStorage.get(this._parent, node);
     }
 
     add(node: T): void {
-      //
+      if (this._facet) {
+        FacetStorage.attach(this._parent, node, this._facet);
+        this._facet = null;
+      }
+
+      this._data.push(node);
     }
 
     get(): ReadonlyArray<T> {
       return Object.freeze(this._data);
+    }
+
+    remove(node: T): void {
+      const index = this._data.findIndex(d => d !== node);
+      if (index < 0) {
+        return;
+      }
+
+      this._data.splice(index, 1);
     }
   }
 }
