@@ -6,6 +6,7 @@ import { PredicateMetadata } from './predicate';
 import { FacetMetadata } from './facet';
 import { IndexMetadata, PropertyMetadata } from './property';
 import { UidMetadata } from './uid';
+import { WithFacetMetadata } from './with-facet';
 
 /**
  * Internal utilities namespace.
@@ -33,16 +34,19 @@ class MetadataStorageImpl {
   readonly nodes = new Map<string, NodeMetadata>();
   readonly properties = new Map<string, PropertyMetadata[]>();
   readonly predicates = new Map<string, PredicateMetadata[]>();
-  readonly facets = new Map<string, FacetMetadata[]>();
   readonly uids = new Map<string, UidMetadata[]>();
   readonly indices = new Map<string, IndexMetadata[]>();
+  readonly withFacets = new Map<string, WithFacetMetadata[]>();
+
+  // Facet constructors
+  readonly facets = new WeakMap<Function, FacetMetadata>();
 
   constructor() {
     // Register a private flush method to utilities so we can use this to clear all storage during test.
     MetadataStorageUtils.flushClosure = () => {
       this.nodes.clear();
       this.predicates.clear();
-      this.facets.clear();
+      this.withFacets.clear();
       this.properties.clear();
       this.uids.clear();
       this.indices.clear();
@@ -61,18 +65,29 @@ class MetadataStorageImpl {
   }
 
   /**
-   * Define a new facet metadata.
+   * Define a facet information of a predicate.
    */
-  addWithFacetMetadata(args: FacetMetadata.IArgs): void {
+  addWithFacetMetadata(args: WithFacetMetadata.IArgs): void {
     const key = args.target.constructor.name;
-    const metadata = new FacetMetadata(args);
+    const metadata = new WithFacetMetadata(args);
 
-    if (this.facets.has(key)) {
-      this.facets.get(key)!.push(metadata);
+    if (this.withFacets.has(key)) {
+      this.withFacets.get(key)!.push(metadata);
       return;
     }
 
-    this.facets.set(key, [metadata]);
+    this.withFacets.set(key, [metadata]);
+  }
+
+  /**
+   * Define a new facet definition.
+   */
+  addFacetMetadata(args: FacetMetadata.IArgs): void {
+    if (this.facets.has(args.target)) {
+      throw new Error(`Facet definition ${args.target.name} is already defined.`);
+    }
+
+    this.facets.set(args.target, new FacetMetadata(args));
   }
 
   /**

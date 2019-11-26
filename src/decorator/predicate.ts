@@ -37,10 +37,10 @@ export function Predicate(options: Predicate.IOptions = {}) {
     // This will allow us to transform child properties facet values on runtime.
     //
     // TODO: We need to check if we can do this more performant way.
-    //  Currently, this is adding O(n x m) complexity to the predicate field where n is number of facets
+    //  Currently, this is adding O(n x m) complexity to the predicate field where n is number of withFacets
     //  and m is number of properties.
     Transform((value: any[]) => {
-      const facet = MetadataStorage.Instance.facets.get(target.constructor.name);
+      const facet = MetadataStorage.Instance.withFacets.get(target.constructor.name);
       value &&
         value.forEach(v => {
           facet &&

@@ -110,7 +110,7 @@ namespace Private {
   }
 
   export function getFacetsForInstance(node: Object) {
-    const metadata = MetadataStorage.Instance.facets.get(node.constructor.name);
+    const metadata = MetadataStorage.Instance.withFacets.get(node.constructor.name);
     return metadata || [];
   }
 

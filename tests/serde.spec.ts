@@ -30,7 +30,7 @@ describe('Serialize deserialize', () => {
     expect(work.name).toEqual(data[0]['Work.name']);
   });
 
-  it('should map facets correctly', function() {
+  it('should map withFacets correctly', function() {
     @Facet()
     class PersonWorks {
       salary: number;
