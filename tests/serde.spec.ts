@@ -2,6 +2,7 @@ import { Facet, Node, Predicate, Property, Uid } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
+import { WithFacet } from '../src/decorator/with-facet';
 
 describe('Serialize deserialize', () => {
   beforeEach(() => MetadataStorageUtils.flush());
@@ -30,18 +31,9 @@ describe('Serialize deserialize', () => {
   });
 
   it('should map facets correctly', function() {
-    @Node()
-    class Work {
-      @Uid()
-      id: string;
-
-      @Property()
-      name: string;
-
-      @Facet()
+    @Facet()
+    class PersonWorks {
       salary: number;
-
-      @Facet()
       years: number;
     }
 
@@ -52,36 +44,60 @@ describe('Serialize deserialize', () => {
 
       @Property()
       name: string;
+    }
 
-      @Predicate({ type: [Work] })
-      works: Work[];
+    @Node()
+    class Work {
+      @Uid()
+      id: string;
+
+      @Property()
+      name: string;
+
+      @WithFacet(PersonWorks)
+      @Predicate({ type: [Person] })
+      people: Predicate<Person, PersonWorks>;
     }
 
     const data = [
       {
-        uid: '0x1',
-        'Person.name': 'John Doe',
-        'Person.works': [
+        uid: '0x2',
+        'Work.name': 'Space Engineer',
+        'Work.people': [
           {
-            uid: '0x2',
-            'Work.name': 'Space Engineer',
-            'Person.works|salary': 1200,
-            'Person.works|years': 10
+            uid: '0x1',
+            'Person.name': 'John Doe',
+            'Work.people|salary': 1200,
+            'Work.people|years': 10,
           }
         ]
       }
     ];
 
-    const instances = ObjectMapper.newBuilder<Person>()
-      .addEntryType(Person)
+    const instances = ObjectMapper.newBuilder<Work>()
+      .addEntryType(Work)
       .addJsonData(data)
       .build();
 
-    expect(instances[0].name).toEqual(data[0]['Person.name']);
-    expect(instances[0].works).toHaveLength(1);
+    console.log(
+      instances[0].people.get().forEach(w => {
+        console.log(w);
+        console.log(instances[0].people);
+        console.log(instances[0].people.getFacet(w));
+      })
+    );
+
+    expect(instances[0].name).toEqual(data[0]['Work.name']);
+    expect(instances[0].people.get()).toHaveLength(1);
+    expect(instances[0].people.getFacet(instances[0].people.get()[0]))
   });
 
   it('should handle circulars correctly', function() {
+    @Facet()
+    class PersonKnows {
+      familiarity: number;
+    }
+
     @Node()
     class Person {
       @Uid()
@@ -90,11 +106,9 @@ describe('Serialize deserialize', () => {
       @Property()
       name: string;
 
-      @Facet()
-      familiarity: number;
-
+      @WithFacet(PersonKnows)
       @Predicate({ type: [Person] })
-      friends: Person[];
+      friends: Predicate<Person, PersonKnows>;
     }
 
     const data = [
@@ -124,7 +138,7 @@ describe('Serialize deserialize', () => {
       .build();
 
     expect(instances[0].name).toEqual(data[0]['Person.name']);
-    expect(instances[0].friends).toHaveLength(1);
-    expect(instances[0].friends[0].name).toEqual(data[0]['Person.friends'][0]['Person.name']);
+    expect(instances[0].friends.get()).toHaveLength(1);
+    expect(instances[0].friends.get()[0].name).toEqual(data[0]['Person.friends'][0]['Person.name']);
   });
 });

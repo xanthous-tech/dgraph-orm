@@ -4,7 +4,7 @@
 import { NodeMetadata } from './node';
 import { PredicateMetadata } from './predicate';
 import { FacetMetadata } from './facet';
-import {IndexMetadata, PropertyMetadata} from './property';
+import { IndexMetadata, PropertyMetadata } from './property';
 import { UidMetadata } from './uid';
 
 /**
@@ -63,7 +63,7 @@ class MetadataStorageImpl {
   /**
    * Define a new facet metadata.
    */
-  addFacetMetadata(args: FacetMetadata.IArgs): void {
+  addWithFacetMetadata(args: FacetMetadata.IArgs): void {
     const key = args.target.constructor.name;
     const metadata = new FacetMetadata(args);
 

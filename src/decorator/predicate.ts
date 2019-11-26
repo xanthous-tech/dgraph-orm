@@ -55,7 +55,7 @@ export function Predicate(options: Predicate.IOptions = {}) {
             });
         });
 
-      return value;
+      return new Private.PredicateImpl(value);
     })(target, propertyName);
 
     MetadataStorage.Instance.addPredicateMetadata({
@@ -87,6 +87,31 @@ export namespace Predicate {
 }
 
 /**
+ * Type definition of the predicate.
+ */
+export interface Predicate<T, U = void> {
+  /**
+   * Attach a facet to a node connection.
+   */
+  withFacet(facet: U): Predicate<T, U>;
+
+  /**
+   * Get an attached facet value of a node.
+   */
+  getFacet(node: T): U;
+
+  /**
+   * Add a new node to the connection.
+   */
+  add(node: T): void;
+
+  /**
+   * Get all nodes on the connection.
+   */
+  get(): ReadonlyArray<T>;
+}
+
+/**
  * Private module statics.
  */
 namespace Private {
@@ -109,5 +134,33 @@ namespace Private {
       Reflect && Reflect.getMetadata ? Reflect.getMetadata('design:type', target, propertyName) : undefined;
 
     return type || reflected;
+  }
+
+  /**
+   * Concrete implementation of the Predicate interface.
+   *
+   * ### NOTE
+   * Node definition overrides the predicate types.
+   */
+  export class PredicateImpl<T = any, U = any> implements Predicate<T, U> {
+    constructor(private readonly _data: T[]) {
+      //
+    }
+
+    withFacet(facet: U): Predicate<T, U> {
+      return this;
+    }
+
+    getFacet(node: T): U {
+      return {} as any;
+    }
+
+    add(node: T): void {
+      //
+    }
+
+    get(): ReadonlyArray<T> {
+      return Object.freeze(this._data);
+    }
   }
 }

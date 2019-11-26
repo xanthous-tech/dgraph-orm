@@ -3,6 +3,7 @@ import {Facet, Node, Predicate, Property, Uid} from '../src';
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
 import { MutationBuilder } from '../src/mutation/builder';
+import {WithFacet} from "../src/decorator/with-facet";
 
 describe('Serialize deserialize', () => {
   beforeEach(() => MetadataStorageUtils.flush());
@@ -56,6 +57,11 @@ describe('Serialize deserialize', () => {
   });
 
   it('should handle circulars correctly', function() {
+    @Facet()
+    class PersonKnows {
+      familiarity: number;
+    }
+
     @Node()
     class Person {
       @Uid()
@@ -64,9 +70,7 @@ describe('Serialize deserialize', () => {
       @Property()
       name: string;
 
-      @Facet()
-      familiarity: number;
-
+      @WithFacet(PersonKnows)
       @Predicate({ type: [Person] })
       friends: Person[];
     }
