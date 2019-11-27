@@ -1,7 +1,8 @@
 import { MetadataStorage } from '../metadata/storage';
-import {IndexMetadata, PropertyMetadata} from '../metadata/property';
+import { IndexMetadata, PropertyMetadata } from '../metadata/property';
 import { PropertyType } from '..';
 import { Iterators } from '../utils/iterator';
+import { PredicateMetadata } from '../metadata/predicate';
 
 /**
  * Schema builder namespace for building global schema based on the metadata storage.
@@ -12,7 +13,13 @@ export namespace SchemaBuilder {
    */
   export function build(): string {
     const nodes = new Map<string, NodeSchemaDefinition>();
-    MetadataStorage.Instance.nodes.forEach(n => nodes.set(n.args.name, { name: n.args.name, properties: [], indices: [] }));
+    MetadataStorage.Instance.nodes.forEach(n =>
+      nodes.set(n.args.name, { name: n.args.name, properties: [], indices: [], predicates: [] })
+    );
+
+    Iterators.forEach(MetadataStorage.Instance.predicates.keys(), k => {
+      nodes.get(k)!.predicates = MetadataStorage.Instance.predicates.get(k)!;
+    });
 
     Iterators.forEach(MetadataStorage.Instance.properties.keys(), k => {
       nodes.get(k)!.properties = MetadataStorage.Instance.properties.get(k)!;
@@ -24,7 +31,7 @@ export namespace SchemaBuilder {
 
     let schema = '';
     for (let node of nodes.values()) {
-      schema += buildNodeSchema(node.name, node.properties);
+      schema += buildNodeSchema(node.name, node.properties, node.predicates);
     }
 
     for (let node of nodes.values()) {
@@ -36,9 +43,14 @@ export namespace SchemaBuilder {
     return schema;
   }
 
-  function buildNodeSchema(nodeName: string, properties: PropertyMetadata[]): string {
+  function buildNodeSchema(nodeName: string, properties: PropertyMetadata[], predicates: PredicateMetadata[]): string {
+    const _predicates = predicates.map(p => `  ${p.args.name}: [${p.args.type().name}]`);
+    const _properties = properties.map(
+      p => `  ${p.args.name}: ${p.args.isArray ? toArrayType(p.args.type) : p.args.type}`
+    );
+
     return `type ${nodeName} {
-${properties.map(p => `  ${p.args.name}: ${p.args.isArray ? toArrayType(p.args.type) : p.args.type}`).join('\n')}
+${_properties.concat(_predicates).join('\n')}
 }
 `;
   }
@@ -47,13 +59,13 @@ ${properties.map(p => `  ${p.args.name}: ${p.args.isArray ? toArrayType(p.args.t
     const parts = [];
 
     const index = node.indices.find(i => i.args.propertyName === property.propertyName);
-    parts.push(`${property.name}:${property.isArray ? toArrayType(property.type) : property.type}`);
+    parts.push(`${property.name}: ${property.isArray ? toArrayType(property.type) : property.type}`);
 
     if (index) {
       parts.push(`@index(${index.args.type})`);
     }
 
-    return parts.join(' ') + '\n';
+    return parts.join(' ') + ' .\n';
   }
 
   function toArrayType(type: PropertyType | 'node'): string {
@@ -71,6 +83,7 @@ ${properties.map(p => `  ${p.args.name}: ${p.args.isArray ? toArrayType(p.args.t
    */
   interface NodeSchemaDefinition {
     name: string;
+    predicates: PredicateMetadata[];
     properties: PropertyMetadata[];
     indices: IndexMetadata[];
   }

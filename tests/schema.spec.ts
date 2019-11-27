@@ -39,10 +39,11 @@ describe('Global schema', () => {
 type Person {
   name: string
   Person.hobbies: [string]
+  Person.works: [Work]
 }
-Work.name:string
-@index(hash) name:string
-Person.hobbies:[string]
+Work.name: string .
+name: string @index(hash) .
+Person.hobbies: [string] .
 `;
 
     expect(SchemaBuilder.build()).toEqual(expectedSchema);
