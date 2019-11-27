@@ -47,11 +47,12 @@ ${properties.map(p => `  ${p.args.name}: ${p.args.isArray ? toArrayType(p.args.t
     const parts = [];
 
     const index = node.indices.find(i => i.args.propertyName === property.propertyName);
+    parts.push(`${property.name}:${property.isArray ? toArrayType(property.type) : property.type}`);
+
     if (index) {
       parts.push(`@index(${index.args.type})`);
     }
 
-    parts.push(`${property.name}:${property.isArray ? toArrayType(property.type) : property.type}`);
     return parts.join(' ') + '\n';
   }
 
