@@ -129,6 +129,11 @@ export namespace Predicate {
 export interface Predicate<T, U = void> {
   /**
    * Attach a facet to a node connection.
+   *
+   * ## Note
+   * Facet value must be a concrete instance of the facet definition.
+   * While it is possible to satisfy to type using a plain object,
+   * it breaks the behaviour of the mapper.
    */
   withFacet(facet: U): Predicate<T, U>;
 
@@ -141,6 +146,21 @@ export interface Predicate<T, U = void> {
    * Add a new node to the connection.
    */
   add(node: T): Predicate<T, U>;
+
+  /**
+   * Used for updating a facet on a predicate connection.
+   * If the connection does not already exist, use `add` instead.
+   * @example
+   *
+   * ```
+   *    // Add a new facet to existing connection.
+   *    parent.withFacet(new MyFacet(42)).update(child);
+   *
+   *    // Remove a facet from a connection.
+   *    parent.withFacet(null).update(child);
+   * ```
+   */
+  update(node: T): Predicate<T, U>;
 
   /**
    * Get all nodes on the connection.

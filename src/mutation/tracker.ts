@@ -9,6 +9,9 @@ export namespace DiffTracker {
 
   /**
    * Register an instance for tracking.
+   *
+   * ### NOTE
+   * Attaching a tracker on a property will make that property enumerable.
    */
   export function trackProperty(target: Object, propertyName: string, diffKey?: string): Object {
     Reflect.defineProperty(target, propertyName, {

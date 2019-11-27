@@ -1,5 +1,14 @@
-import { Node, Predicate, Property, Uid } from '../../src';
+import { Node, Predicate, Property, Uid, Facet } from '../../src';
 import { Cell } from './cell';
+
+export class ColumnCellTestFacet {
+  constructor(value: string) {
+    this.value = value;
+  }
+
+  @Facet()
+  value: string;
+}
 
 @Node()
 export class Column {
@@ -24,6 +33,6 @@ export class Column {
   @Predicate({ name: 'from_formula_column', type: () => Column })
   from_formula_column: Predicate<Column>;
 
-  @Predicate({ name: 'has_cell', type: () => Cell })
-  has_cell: Predicate<Cell>;
+  @Predicate({ name: 'has_cell', type: () => Cell, facet: ColumnCellTestFacet })
+  has_cell: Predicate<Cell, ColumnCellTestFacet>;
 }

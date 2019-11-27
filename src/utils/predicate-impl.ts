@@ -17,7 +17,7 @@ export class PredicateImpl<T = any, U = any> implements Predicate<T, U> {
     //
   }
 
-  withFacet(facet: U): Predicate<T, U> {
+  withFacet(facet: U | null): Predicate<T, U> {
     this._facet = facet;
     return this;
   }
@@ -34,6 +34,16 @@ export class PredicateImpl<T = any, U = any> implements Predicate<T, U> {
 
     this._data.push(node);
     this._diff.add(node);
+    return this;
+  }
+
+  update(node: T): Predicate<T, U> {
+    if (!this._facet) {
+      FacetStorage.detach(this._namespace, this._parent, node);
+      return this;
+    }
+
+    FacetStorage.attach(this._namespace, this._parent, node, this._facet);
     return this;
   }
 
