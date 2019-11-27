@@ -1,13 +1,21 @@
 import { ObjectMapper } from '../src/serialization/mapper';
+import { MutationBuilder } from '../src/mutation/builder';
+import { SchemaBuilder } from '../src';
+
 import { data } from './treelab/data';
 import { Column, ColumnCellTestFacet } from './treelab/column';
-import { MutationBuilder } from '../src/mutation/builder';
+
+test('Should build correct schema', () => {
+  console.log(SchemaBuilder.build());
+});
 
 test('Should work', () => {
+  console.time('Object built time');
   const instances = ObjectMapper.newBuilder<Column>()
     .addEntryType(Column)
     .addJsonData(data.data.allColumnData)
     .build();
+  console.timeEnd('Object built time');
 
   const column = instances[0];
   const cell = column.has_cell.get()[0];
