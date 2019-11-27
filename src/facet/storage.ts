@@ -2,47 +2,60 @@
  * Global statics for tracking facet values attach on node pairs.
  */
 export namespace FacetStorage {
-  const _storage = new WeakMap<Object, WeakMap<Object, any>>();
+  type WNode = Object;
+  type VNode = Object;
+
+  type FacetValue<T extends Object> = WeakMap<T, any>;
+  type FacetsNamespace<T> = Map<string, T>;
+
+  /**
+   * Data structure for storing namespaced facets between two object instances.
+   */
+  const _storage = new WeakMap<VNode, FacetsNamespace<FacetValue<WNode>>>();
 
   /**
    * Attach a facet value on a connection.
    */
-  export function attach(v: Object, w: Object, value: any): void {
+  export function attach(namespace: string, v: VNode, w: WNode, value: any): void {
     if (!_storage.has(v)) {
-      _storage.set(v, new WeakMap<Object, any>([[w, value]]));
-      return;
+      const ns = new Map<string, FacetValue<WNode>>();
+      _storage.set(v, ns);
     }
 
-    _storage.get(v)!.set(w, value);
+    if (!_storage.get(v)!.has(namespace)) {
+      _storage.get(v)!.set(namespace, new WeakMap<Object, any>());
+    }
+
+    _storage.get(v)!.get(namespace)!.set(w, value);
   }
 
   /**
    * Detach a facet value from a connection.
    */
-  export function detach(v: Object, w: Object): void {
+  export function detach(namespace: string, v: Object, w: Object): void {
     if (!_storage.has(v)) {
       return;
     }
 
-    if (!_storage.get(v)!.get(w)) {
+    if (!_storage.get(v)!.has(namespace)) {
       return;
     }
 
-    _storage.get(v)!.delete(w);
+    _storage.get(v)!.get(namespace)!.delete(w);
   }
 
   /**
    * Get a facet value.
    */
-  export function get(v: Object, w: Object): any {
+  export function get(namespace: string, v: Object, w: Object): any | undefined {
     if (!_storage.has(v)) {
       return;
     }
 
-    if (!_storage.get(v)!.get(w)) {
+    if (!_storage.get(v)!.has(namespace)) {
       return;
     }
 
-    return _storage.get(v)!.get(w);
+    return _storage.get(v)!.get(namespace)!.get(w);
   }
 }

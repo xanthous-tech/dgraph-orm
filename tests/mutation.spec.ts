@@ -95,9 +95,9 @@ describe('Serialize deserialize', () => {
     ];
 
     const instances = ObjectMapper.newBuilder<Person>()
-      .addEntryType(Person)
-      .addJsonData(data)
-      .build();
+    .addEntryType(Person)
+    .addJsonData(data)
+    .build();
 
     instances[0].name = 'New John';
     const friends = instances[0].friends;
@@ -107,6 +107,25 @@ describe('Serialize deserialize', () => {
 
     //
     console.log(MutationBuilder.getSetNQuadsString(instances[0]));
+  });
+
+  it('should handle circulars correctly for fresh instances', function() {
+    class PersonKnows {
+      @Facet()
+      familiarity: number;
+    }
+
+    @Node()
+    class Person {
+      @Uid()
+      id: string;
+
+      @Property()
+      name: string;
+
+      @Predicate({ type: [Person], facet: PersonKnows })
+      friends: Predicate<Person, PersonKnows>;
+    }
 
     const john = new Person();
     john.name = 'John';
@@ -117,8 +136,8 @@ describe('Serialize deserialize', () => {
     const kamil = new Person();
     kamil.name = 'Kamil';
 
-    kamil.friends.withFacet({ familiarity: 99 }).add(john);
     kamil.friends.withFacet({ familiarity: 42 }).add(jane);
+    kamil.friends.withFacet({ familiarity: 99 }).add(john);
 
     //
     console.log(MutationBuilder.getSetNQuadsString(kamil));

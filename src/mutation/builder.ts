@@ -5,6 +5,7 @@ import { MetadataStorage } from '../metadata/storage';
 import { ObjectLiteral } from '../utils/type';
 import { DiffTracker } from './tracker';
 import { Predicate } from '..';
+import { FacetStorage } from '../facet';
 
 /**
  * Dgraph type prefix to add on the new nodes.
@@ -63,9 +64,10 @@ export namespace MutationBuilder {
             created.set(p, true);
           }
 
-          const facets = Private.getFacetsForInstance(t)
-            .filter(f => Private.getValueFromNode(p, f.args.propertyName) !== undefined)
-            .map(f => `[${f.args.propertyName}=${Private.getValueFromNode(p, f.args.propertyName)}]`)
+          const facetValue = Private.getFacetValue(ps.propertyName, t, p)
+          const facets = Object.keys(facetValue)
+            .map(key => ({ key, value: facetValue[key] }))
+            .map(kv => `[${kv.key}=${kv.value}]`)
             .join(',');
 
           // Create a relation between parent and predicate.
@@ -101,15 +103,19 @@ export namespace MutationBuilder {
  * Module private statics
  */
 namespace Private {
-  export function getValueFromNode(target: ObjectLiteral<any>, propertyName: string) {
-    return target[propertyName];
+  export function getFacetValue(propertyName: string, v: Object, w: Object) {
+    return FacetStorage.get(propertyName, v, w) || {};
   }
 
   export function getPredicatesOfNode(node: ObjectLiteral<any>) {
     const metadata = MetadataStorage.Instance.predicates.get(node.constructor.name);
     return !metadata
       ? []
-      : metadata.map(m => ({ predicates: node[m.args.propertyName] as Predicate<any, any>, key: m.args.name }));
+      : metadata.map(m => ({
+          predicates: node[m.args.propertyName] as Predicate<any, any>,
+          key: m.args.name,
+          propertyName: m.args.propertyName
+        }));
   }
 
   export function getFacetsForInstance(node: Object) {

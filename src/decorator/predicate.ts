@@ -45,13 +45,13 @@ export function Predicate(options: Predicate.IOptions = {}) {
 
       get(): any {
         if (!values.get(this)) {
-          values.set(this, new Private.PredicateImpl(this, []));
+          values.set(this, new Private.PredicateImpl(propertyName, this, []));
         }
         return values.get(this)!;
       },
       set(value: any): void {
         if (!value || Array.isArray(value)) {
-          value = new Private.PredicateImpl(this, value || []);
+          value = new Private.PredicateImpl(propertyName, this, value || []);
         }
 
         // Facet value transformer section.
@@ -76,7 +76,7 @@ export function Predicate(options: Predicate.IOptions = {}) {
                 {} as ObjectLiteral<any>
               );
 
-              FacetStorage.attach(this, v, plainToClass(options.facet!, plain));
+              FacetStorage.attach(propertyName, this, v, plainToClass(options.facet!, plain));
             }
           });
         }
@@ -191,7 +191,7 @@ namespace Private {
   export class PredicateImpl<T = any, U = any> implements Predicate<T, U> {
     private _facet: U | null = null;
 
-    constructor(private readonly _parent: Object, private readonly _data: T[]) {
+    constructor(private readonly _namespace: string, private readonly _parent: Object, private readonly _data: T[]) {
       //
     }
 
@@ -201,12 +201,12 @@ namespace Private {
     }
 
     getFacet(node: T): U | undefined {
-      return FacetStorage.get(this._parent, node);
+      return FacetStorage.get(this._namespace, this._parent, node);
     }
 
     add(node: T): Predicate<T, U> {
       if (this._facet) {
-        FacetStorage.attach(this._parent, node, this._facet);
+        FacetStorage.attach(this._namespace, this._parent, node, this._facet);
         this._facet = null;
       }
 
