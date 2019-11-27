@@ -22,5 +22,13 @@ test('Should work', () => {
   console.timeEnd('Mutation built time');
 
   // Render it.
+  console.log('Yes facet');
+  console.log(MutationBuilder.getSetNQuadsString(column));
+
+  // Remove the facet
+  column.has_cell.withFacet(null).update(cell);
+
+  // Render it again without the facet part.
+  console.log('No facet');
   console.log(MutationBuilder.getSetNQuadsString(column));
 });

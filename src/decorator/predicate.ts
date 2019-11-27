@@ -135,7 +135,7 @@ export interface Predicate<T, U = void> {
    * While it is possible to satisfy to type using a plain object,
    * it breaks the behaviour of the mapper.
    */
-  withFacet(facet: U): Predicate<T, U>;
+  withFacet(facet: U | null): Predicate<T, U>;
 
   /**
    * Get an attached facet value of a node.
