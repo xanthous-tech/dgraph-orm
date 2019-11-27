@@ -44,6 +44,7 @@ type Person {
 Work.name: string .
 name: string @index(hash) .
 Person.hobbies: [string] .
+Person.works: [uid] @count .
 `;
 
     expect(SchemaBuilder.build()).toEqual(expectedSchema);

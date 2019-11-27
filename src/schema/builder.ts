@@ -38,6 +38,10 @@ export namespace SchemaBuilder {
       for (let property of node.properties) {
         schema += buildPropertySchema(node, property.args);
       }
+
+      for (let predicate of node.predicates) {
+        schema += buildPredicateSchema(predicate.args);
+      }
     }
 
     return schema;
@@ -68,12 +72,19 @@ ${_properties.concat(_predicates).join('\n')}
     return parts.join(' ') + ' .\n';
   }
 
-  function toArrayType(type: PropertyType | 'node'): string {
-    if (type === 'node') {
-      // Should never arrive. Just conforming the to type definition.
-      throw new Error("Bad property type 'node'. Cannot use non-primitive internal type in schema");
+  function buildPredicateSchema(predicate: PredicateMetadata.IArgs): string {
+    const parts = [];
+
+    parts.push(`${predicate.name}: ${toArrayType('uid')}`);
+
+    if (predicate.count) {
+      parts.push(`@count`);
     }
 
+    return parts.join(' ') + ' .\n';
+  }
+
+  function toArrayType(type: PropertyType | string): string {
     return `[${type}]`;
   }
 

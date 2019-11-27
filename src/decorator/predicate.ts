@@ -80,12 +80,13 @@ export function Predicate(options: Predicate.IOptions) {
     });
 
     MetadataStorage.Instance.addPredicateMetadata({
+      count: options.count !== undefined ? options.count : true,
       type: options.type,
-      // TODO:
-      isArray: true,
       name,
       target,
-      propertyName
+      propertyName,
+      // TODO:
+      isArray: true
     });
 
     if (options.facet) {
@@ -118,6 +119,11 @@ export namespace Predicate {
      * Facet definition to attach to the connection.
      */
     facet?: Constructor<any>;
+
+    /**
+     * Should dgraph count the number of edges out of each node.
+     */
+    count?: boolean;
   }
 }
 

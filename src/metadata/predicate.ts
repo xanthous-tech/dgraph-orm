@@ -36,5 +36,10 @@ export namespace PredicateMetadata {
      * Is the predicate an array type.
      */
     isArray: boolean;
+
+    /**
+     * Should dgraph count the number of edges out of each node.
+     */
+    count: boolean;
   }
 }
