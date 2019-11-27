@@ -92,6 +92,14 @@ export function Predicate(options: Predicate.IOptions = {}) {
       target,
       propertyName
     });
+
+    if (options.facet) {
+      MetadataStorage.Instance.addWithFacetMetadata({
+        target,
+        propertyName,
+        constructor: options.facet
+      });
+    }
   };
 }
 

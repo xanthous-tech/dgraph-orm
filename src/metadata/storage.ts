@@ -37,7 +37,7 @@ class MetadataStorageImpl {
   readonly uids = new Map<string, UidMetadata[]>();
   readonly indices = new Map<string, IndexMetadata[]>();
   readonly withFacets = new Map<string, WithFacetMetadata[]>();
-  readonly  facets = new Map<string, FacetMetadata[]>();
+  readonly facets = new Map<string, FacetMetadata[]>();
 
   constructor() {
     // Register a private flush method to utilities so we can use this to clear all storage during test.
@@ -85,7 +85,7 @@ class MetadataStorageImpl {
     const metadata = new FacetMetadata(args);
 
     if (this.facets.has(args.target.constructor.name)) {
-      this.facets.get(args.target.constructor.name)!.push(metadata)
+      this.facets.get(args.target.constructor.name)!.push(metadata);
       return;
     }
 

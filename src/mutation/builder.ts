@@ -63,7 +63,7 @@ export namespace MutationBuilder {
             created.set(p, true);
           }
 
-          const facets = Private.getFacetsForInstance(p)
+          const facets = Private.getFacetsForInstance(t)
             .filter(f => Private.getValueFromNode(p, f.args.propertyName) !== undefined)
             .map(f => `[${f.args.propertyName}=${Private.getValueFromNode(p, f.args.propertyName)}]`)
             .join(',');

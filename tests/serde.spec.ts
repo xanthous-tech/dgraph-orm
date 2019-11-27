@@ -2,7 +2,6 @@ import { Facet, Node, Predicate, Property, Uid } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
-import { WithFacet } from '../src/decorator/with-facet';
 
 describe('Serialize deserialize', () => {
   beforeEach(() => MetadataStorageUtils.flush());
@@ -56,8 +55,7 @@ describe('Serialize deserialize', () => {
       @Property()
       name: string;
 
-      @WithFacet(PersonWorks)
-      @Predicate({ type: [Person] })
+      @Predicate({ type: [Person], facet: PersonWorks })
       people: Predicate<Person, PersonWorks>;
     }
 
@@ -111,8 +109,7 @@ describe('Serialize deserialize', () => {
       @Property()
       name: string;
 
-      @WithFacet(PersonKnows)
-      @Predicate({ type: [Person] })
+      @Predicate({ type: [Person], facet: PersonKnows })
       friends: Predicate<Person, PersonKnows>;
     }
 
