@@ -9,3 +9,4 @@ export * from './decorator/node';
 export { PropertyType } from './types/property';
 export { SchemaBuilder } from './schema/builder';
 export { MutationBuilder } from './mutation/builder';
+export { ObjectMapper } from './serialization/mapper';

@@ -4,10 +4,14 @@ import { Cell } from './cell';
 export class ColumnCellTestFacet {
   constructor(value: string) {
     this.value = value;
+    this.something = value;
   }
 
   @Facet()
   value: string;
+
+  @Facet()
+  something: string;
 }
 
 @Node()

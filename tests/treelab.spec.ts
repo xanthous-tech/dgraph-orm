@@ -1,6 +1,5 @@
+import { SchemaBuilder, MutationBuilder } from '../src';
 import { ObjectMapper } from '../src/serialization/mapper';
-import { MutationBuilder } from '../src/mutation/builder';
-import { SchemaBuilder } from '../src';
 
 import { data } from './treelab/data';
 import { Column, ColumnCellTestFacet } from './treelab/column';
@@ -15,6 +14,7 @@ test('Should work', () => {
     .addEntryType(Column)
     .addJsonData(data.data.allColumnData)
     .build();
+
   console.timeEnd('Object built time');
 
   const column = instances[0];
