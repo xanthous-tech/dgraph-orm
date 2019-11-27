@@ -41,7 +41,6 @@ export namespace MutationBuilder {
 
     const recursePredicates = (t: Object, tn: BlankNode | NamedNode): void => {
       const predicates = Private.getPredicatesOfNode(t);
-      console.log(predicates);
 
       predicates.forEach(ps => {
         if (!ps.predicates || ps.predicates.get().length < 1) {

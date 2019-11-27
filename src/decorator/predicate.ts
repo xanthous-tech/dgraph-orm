@@ -1,14 +1,18 @@
-import { Expose, Transform, Type } from 'class-transformer';
+import { Expose, plainToClass, Type } from 'class-transformer';
 
 import { MetadataStorage } from '../metadata/storage';
 import { Constructor } from '../utils/class';
-import {FacetStorage} from "../facet";
+import { FacetStorage } from '../facet';
+import { ObjectLiteral } from '../utils/type';
 
 /**
  * A decorator to annotate properties on a DGraph Node class. Only the properties
  * decorated with this decorator will be treated as a node property.
  */
 export function Predicate(options: Predicate.IOptions = {}) {
+  // Value envelope to store values of the decorated property.
+  const values = new WeakMap<Object, Predicate<any, any>>();
+
   return function(target: Object, propertyName: string): void {
     const isArray = Array.isArray(options.type);
     const type = Private.sanitizePredicateType(options, target, propertyName);
@@ -33,7 +37,53 @@ export function Predicate(options: Predicate.IOptions = {}) {
     // queries.
     Type(() => type as Function)(target, propertyName);
 
-    Transform((value: any[]) => new Private.PredicateImpl(target, value))(target, propertyName);
+    // We define get/set on the class so we can access to the class instances.
+    // this will also handle wrapping raw data into predicate type.
+    Object.defineProperty(target, propertyName, {
+      enumerable: true,
+      configurable: true,
+
+      get(): any {
+        if (!values.get(this)) {
+          values.set(this, new Private.PredicateImpl(this, []));
+        }
+        return values.get(this)!;
+      },
+      set(value: any): void {
+        if (!value || Array.isArray(value)) {
+          value = new Private.PredicateImpl(this, value || []);
+        }
+
+        // Facet value transformer section.
+        if (options.facet) {
+          const facets = MetadataStorage.Instance.facets.get(options.facet.name);
+          const { name } = MetadataStorage.Instance.predicates
+            .get(target.constructor.name)!
+            .find(p => p.args.propertyName === propertyName)!.args;
+
+          value.get().forEach((v: any) => {
+            if (facets) {
+              const plain = facets.reduce<ObjectLiteral<any>>(
+                (acc, f) => {
+                  const facetPropertyName = `${name}|${f.args.propertyName}`;
+
+                  // Move data to facet object and remove it from the node object.
+                  acc[f.args.propertyName] = v[facetPropertyName];
+                  delete v[facetPropertyName];
+
+                  return acc;
+                },
+                {} as ObjectLiteral<any>
+              );
+
+              FacetStorage.attach(this, v, plainToClass(options.facet!, plain));
+            }
+          });
+        }
+
+        values.set(this, value);
+      }
+    });
 
     MetadataStorage.Instance.addPredicateMetadata({
       type,
@@ -60,6 +110,11 @@ export namespace Predicate {
      * property lets user to reuse a global predicate between different nodes.
      */
     name?: string;
+
+    /**
+     * Facet definition to attach to the connection.
+     */
+    facet?: Constructor<any>;
   }
 }
 
@@ -80,7 +135,7 @@ export interface Predicate<T, U = void> {
   /**
    * Add a new node to the connection.
    */
-  add(node: T): void;
+  add(node: T): Predicate<T, U>;
 
   /**
    * Get all nodes on the connection.
@@ -141,17 +196,18 @@ namespace Private {
       return FacetStorage.get(this._parent, node);
     }
 
-    add(node: T): void {
+    add(node: T): Predicate<T, U> {
       if (this._facet) {
         FacetStorage.attach(this._parent, node, this._facet);
         this._facet = null;
       }
 
       this._data.push(node);
+      return this;
     }
 
     get(): ReadonlyArray<T> {
-      return Object.freeze(this._data);
+      return this._data;
     }
 
     remove(node: T): void {

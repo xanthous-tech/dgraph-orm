@@ -3,7 +3,6 @@ import { Facet, Node, Predicate, Property, Uid } from '../src';
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
 import { MutationBuilder } from '../src/mutation/builder';
-import { WithFacet } from '../src/decorator/with-facet';
 
 describe('Serialize deserialize', () => {
   beforeEach(() => MetadataStorageUtils.flush());
@@ -70,8 +69,7 @@ describe('Serialize deserialize', () => {
       @Property()
       name: string;
 
-      @WithFacet(PersonKnows)
-      @Predicate({ type: [Person] })
+      @Predicate({ type: [Person], facet: PersonKnows })
       friends: Predicate<Person, PersonKnows>;
     }
 
@@ -103,12 +101,11 @@ describe('Serialize deserialize', () => {
 
     instances[0].name = 'New John';
     const friends = instances[0].friends;
-
     friends.get()[0].name = 'New Jane';
     friends.getFacet(friends.get()[0])!.familiarity = 99;
     instances[0].friends.get()[0].friends.get()[0].name = 'New Kamil';
 
-    // After New year resolution....
+    //
     console.log(MutationBuilder.getSetNQuadsString(instances[0]));
 
     const john = new Person();
@@ -120,10 +117,11 @@ describe('Serialize deserialize', () => {
     const kamil = new Person();
     kamil.name = 'Kamil';
 
-    jane.friends.withFacet({ familiarity: 99 }).add(jane);
-    john.friends.withFacet({ familiarity: 42 }).add(kamil);
+    kamil.friends.withFacet({ familiarity: 99 }).add(john);
+    kamil.friends.withFacet({ familiarity: 42 }).add(jane);
 
-    console.log(MutationBuilder.getSetNQuadsString(john));
+    //
+    console.log(MutationBuilder.getSetNQuadsString(kamil));
   });
 
   it('should be able to handle reverse edges', function() {
@@ -136,7 +134,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: [Person] })
-      friends: Person[];
+      friends: Predicate<Person>;
     }
 
     const lola = new Person();
@@ -151,10 +149,13 @@ describe('Serialize deserialize', () => {
     const kamil = new Person();
     kamil.name = 'Kamil';
 
-    john.friends = [jane, lola];
-    jane.friends = [kamil, lola];
-    kamil.friends = [john, lola];
-    lola.friends = [jane, kamil, john];
+    john.friends.add(jane).add(lola);
+    jane.friends.add(kamil).add(lola);
+    kamil.friends.add(john).add(lola);
+    lola.friends
+      .add(jane)
+      .add(kamil)
+      .add(john);
 
     console.log(MutationBuilder.getSetNQuadsString(john));
     console.log(MutationBuilder.getSetNQuadsString(lola));
