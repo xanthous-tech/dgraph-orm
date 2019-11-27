@@ -18,11 +18,11 @@ test('Should work', () => {
   console.timeEnd('Object built time');
 
   const column = instances[0];
-  const cell = column.has_cell.get()[0];
+  const cell = column.hasCell.get()[0];
 
   column.columnType = 'COLUMN_NEW_TYPE';
   cell.cellType = 'TEST_NEW_TYPE';
-  column.has_cell.withFacet(new ColumnCellTestFacet('42')).update(cell);
+  column.hasCell.withFacet(new ColumnCellTestFacet('42')).update(cell);
 
   // Time it.
   console.time('Mutation built time');
@@ -34,7 +34,7 @@ test('Should work', () => {
   console.log(MutationBuilder.getSetNQuadsString(column));
 
   // Remove the facet
-  column.has_cell.withFacet(null).update(cell);
+  column.hasCell.withFacet(null).update(cell);
 
   // Render it again without the facet part.
   console.log('No facet');

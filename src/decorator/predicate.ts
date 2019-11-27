@@ -19,11 +19,12 @@ export function Predicate(options: Predicate.IOptions) {
     let name = options.name;
     if (!name) {
       name = `${target.constructor.name}.${propertyName}`;
-      // When we load data into the class, we will have a new property
-      // defined as the auto-generated name, we need to make sure property with predicate
-      // decorator returns the correct value.
-      Expose({ name, toClassOnly: true })(target, propertyName);
     }
+
+    // When we load data into the class, we will have a new property
+    // defined as the auto-generated name, we need to make sure property with predicate
+    // decorator returns the correct value.
+    Expose({ name, toClassOnly: true })(target, propertyName);
 
     // Setup class transformer for node type of properties.
     // This will also be threat as a connection edge when building
@@ -48,9 +49,6 @@ export function Predicate(options: Predicate.IOptions) {
         }
 
         const facets = MetadataStorage.Instance.facets.get((options.facet && options.facet.name) || '') || [];
-        const { name } = MetadataStorage.Instance.predicates
-          .get(target.constructor.name)!
-          .find(p => p.args.propertyName === propertyName)!.args;
 
         // Here we setup facets and clean up the class-transformer artifacts of on the instance.
         value.get().forEach((v: any) => {

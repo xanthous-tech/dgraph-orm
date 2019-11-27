@@ -34,5 +34,5 @@ export class Column {
   from_formula_column: Predicate<Column>;
 
   @Predicate({ name: 'has_cell', type: () => Cell, facet: ColumnCellTestFacet })
-  has_cell: Predicate<Cell, ColumnCellTestFacet>;
+  hasCell: Predicate<Cell, ColumnCellTestFacet>;
 }
