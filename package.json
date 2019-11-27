@@ -1,9 +1,16 @@
 {
   "name": "@xanthous/dgraph-orm",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "dgraph ORM in TypeScript",
   "main": "dist/src/index.js",
   "author": "Simon Liang <simon@x-tech.io>",
+  "contributors": [
+    {
+      "name": "Osman Mesut Ozcan",
+      "email": "osman@x-tech.io",
+      "url": "omos.space"
+    }
+  ],
   "license": "MIT",
   "scripts": {
     "clean": "rimraf dist",
