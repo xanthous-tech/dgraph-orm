@@ -4,8 +4,8 @@ import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous
 import { MetadataStorage } from '../metadata/storage';
 import { ObjectLiteral } from '../utils/type';
 import { DiffTracker } from './tracker';
-import { Predicate } from '..';
 import { FacetStorage } from '../facet';
+import { PredicateImpl } from '../utils/predicate-impl';
 
 /**
  * Dgraph type prefix to add on the new nodes.
@@ -64,14 +64,17 @@ export namespace MutationBuilder {
             created.set(p, true);
           }
 
-          const facetValue = Private.getFacetValue(ps.propertyName, t, p)
+          const facetValue = Private.getFacetValue(ps.propertyName, t, p);
           const facets = Object.keys(facetValue)
             .map(key => ({ key, value: facetValue[key] }))
             .map(kv => `[${kv.key}=${kv.value}]`)
             .join(',');
 
-          // Create a relation between parent and predicate.
-          connections.push(quad(tn, namedNode(ps.key), pn, variable(facets)));
+          // Create a relation between parent and predicate
+          //   or update the existing with new facet values.
+          if (ps.predicates.getDiff().has(p) || DiffTracker.getSets(p).length > 0) {
+            connections.push(quad(tn, namedNode(ps.key), pn, variable(facets)));
+          }
 
           if (!visited.has(t)) {
             visited.set(t, new WeakMap<Object, boolean>());
@@ -112,7 +115,7 @@ namespace Private {
     return !metadata
       ? []
       : metadata.map(m => ({
-          predicates: node[m.args.propertyName] as Predicate<any, any>,
+          predicates: node[m.args.propertyName] as PredicateImpl,
           key: m.args.name,
           propertyName: m.args.propertyName
         }));

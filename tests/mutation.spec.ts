@@ -15,6 +15,9 @@ describe('Serialize deserialize', () => {
 
       @Property()
       name: string;
+
+      @Property()
+      type: string;
     }
 
     @Node()
@@ -25,7 +28,7 @@ describe('Serialize deserialize', () => {
       @Property()
       name: string;
 
-      @Predicate({ type: [Hobby] })
+      @Predicate({ type: () => Hobby })
       hobbies: Predicate<Hobby>;
     }
 
@@ -33,7 +36,7 @@ describe('Serialize deserialize', () => {
       {
         uid: '0x1',
         'Person.name': 'John',
-        'Person.hobbies': [{ uid: '0x2', 'Hobby.name': 'games' }]
+        'Person.hobbies': [{ uid: '0x2', 'Hobby.type': 'outdoor', 'Hobby.name': 'games' }]
       }
     ];
 
@@ -42,7 +45,6 @@ describe('Serialize deserialize', () => {
       .addJsonData(data)
       .build();
 
-    existing[0].name = 'New Name';
     existing[0].hobbies.get()[0].name = 'New Hobby Name';
     console.log(MutationBuilder.getSetNQuadsString(existing[0]));
 
@@ -69,7 +71,7 @@ describe('Serialize deserialize', () => {
       @Property()
       name: string;
 
-      @Predicate({ type: [Person], facet: PersonKnows })
+      @Predicate({ type: () => Person, facet: PersonKnows })
       friends: Predicate<Person, PersonKnows>;
     }
 
@@ -95,9 +97,9 @@ describe('Serialize deserialize', () => {
     ];
 
     const instances = ObjectMapper.newBuilder<Person>()
-    .addEntryType(Person)
-    .addJsonData(data)
-    .build();
+      .addEntryType(Person)
+      .addJsonData(data)
+      .build();
 
     instances[0].name = 'New John';
     const friends = instances[0].friends;
@@ -109,7 +111,7 @@ describe('Serialize deserialize', () => {
     console.log(MutationBuilder.getSetNQuadsString(instances[0]));
   });
 
-  it('should handle circulars correctly for fresh instances', function() {
+  it.only('should handle circulars correctly for fresh instances', function() {
     class PersonKnows {
       @Facet()
       familiarity: number;
@@ -123,7 +125,7 @@ describe('Serialize deserialize', () => {
       @Property()
       name: string;
 
-      @Predicate({ type: [Person], facet: PersonKnows })
+      @Predicate({ type: () => Person, facet: PersonKnows })
       friends: Predicate<Person, PersonKnows>;
     }
 
@@ -152,7 +154,7 @@ describe('Serialize deserialize', () => {
       @Property()
       name: string;
 
-      @Predicate({ type: [Person] })
+      @Predicate({ type: () => Person })
       friends: Predicate<Person>;
     }
 

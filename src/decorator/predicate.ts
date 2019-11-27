@@ -1,28 +1,21 @@
 import { Expose, plainToClass, Type } from 'class-transformer';
 
 import { MetadataStorage } from '../metadata/storage';
+import { DiffTracker } from '../mutation/tracker';
 import { Constructor } from '../utils/class';
-import { FacetStorage } from '../facet';
 import { ObjectLiteral } from '../utils/type';
+import { PredicateImpl } from '../utils/predicate-impl';
+import { FacetStorage } from '../facet';
 
 /**
  * A decorator to annotate properties on a DGraph Node class. Only the properties
  * decorated with this decorator will be treated as a node property.
  */
-export function Predicate(options: Predicate.IOptions = {}) {
+export function Predicate(options: Predicate.IOptions) {
   // Value envelope to store values of the decorated property.
   const values = new WeakMap<Object, Predicate<any, any>>();
 
   return function(target: Object, propertyName: string): void {
-    const isArray = Array.isArray(options.type);
-    const type = Private.sanitizePredicateType(options, target, propertyName);
-    if (!type) {
-      throw new Error(
-        `Cannot infer the type for property '${propertyName}' on node '${target.constructor.name}'. ` +
-          'Please try to explicitly define a type in the property options'
-      );
-    }
-
     let name = options.name;
     if (!name) {
       name = `${target.constructor.name}.${propertyName}`;
@@ -35,7 +28,7 @@ export function Predicate(options: Predicate.IOptions = {}) {
     // Setup class transformer for node type of properties.
     // This will also be threat as a connection edge when building
     // queries.
-    Type(() => type as Function)(target, propertyName);
+    Type(options.type)(target, propertyName);
 
     // We define get/set on the class so we can access to the class instances.
     // this will also handle wrapping raw data into predicate type.
@@ -45,49 +38,51 @@ export function Predicate(options: Predicate.IOptions = {}) {
 
       get(): any {
         if (!values.get(this)) {
-          values.set(this, new Private.PredicateImpl(propertyName, this, []));
+          values.set(this, new PredicateImpl(propertyName, this, []));
         }
         return values.get(this)!;
       },
       set(value: any): void {
         if (!value || Array.isArray(value)) {
-          value = new Private.PredicateImpl(propertyName, this, value || []);
+          value = new PredicateImpl(propertyName, this, value || []);
         }
 
-        // Facet value transformer section.
-        if (options.facet) {
-          const facets = MetadataStorage.Instance.facets.get(options.facet.name);
-          const { name } = MetadataStorage.Instance.predicates
-            .get(target.constructor.name)!
-            .find(p => p.args.propertyName === propertyName)!.args;
+        const facets = MetadataStorage.Instance.facets.get((options.facet && options.facet.name) || '') || [];
+        const { name } = MetadataStorage.Instance.predicates
+          .get(target.constructor.name)!
+          .find(p => p.args.propertyName === propertyName)!.args;
 
-          value.get().forEach((v: any) => {
-            if (facets) {
-              const plain = facets.reduce<ObjectLiteral<any>>(
-                (acc, f) => {
-                  const facetPropertyName = `${name}|${f.args.propertyName}`;
+        // Here we setup facets and clean up the class-transformer artifacts of on the instance.
+        value.get().forEach((v: any) => {
+          if (facets) {
+            const plain = facets.reduce<ObjectLiteral<any>>(
+              (acc, f) => {
+                const facetPropertyName = `${name}|${f.args.propertyName}`;
 
-                  // Move data to facet object and remove it from the node object.
-                  acc[f.args.propertyName] = v[facetPropertyName];
-                  delete v[facetPropertyName];
+                // Move data to facet object and remove it from the node object.
+                acc[f.args.propertyName] = v[facetPropertyName];
+                delete v[facetPropertyName];
 
-                  return acc;
-                },
-                {} as ObjectLiteral<any>
-              );
+                return acc;
+              },
+              {} as ObjectLiteral<any>
+            );
 
-              FacetStorage.attach(propertyName, this, v, plainToClass(options.facet!, plain));
-            }
-          });
-        }
+            FacetStorage.attach(propertyName, this, v, plainToClass(options.facet!, plain));
+          }
+
+          // Clean up the diff on the instance.
+          DiffTracker.purgeInstance(v);
+        });
 
         values.set(this, value);
       }
     });
 
     MetadataStorage.Instance.addPredicateMetadata({
-      type,
-      isArray,
+      type: options.type,
+      // TODO:
+      isArray: true,
       name,
       target,
       propertyName
@@ -111,7 +106,7 @@ export namespace Predicate {
     /**
      * Dgraph type of the predicate.
      */
-    type?: Constructor | Constructor[];
+    type: () => Constructor;
 
     /**
      * Name of the predicate that is created in DGraph. Setting name
@@ -155,76 +150,4 @@ export interface Predicate<T, U = void> {
    * This will also remove the connection between parent and child.
    */
   remove(node: T): void;
-}
-
-/**
- * Private module statics.
- */
-namespace Private {
-  /**
-   * Find out the type of the predicate based on user defined type or reflected type
-   * and create additional metadata to help building correct serialization/deserialization on
-   * nodes.
-   */
-  export function sanitizePredicateType(options: Predicate.IOptions, target: Object, propertyName: string) {
-    let type = options.type;
-    if (type && (Array.isArray(type) && type.length !== 1)) {
-      throw new Error(`Predicate array type for ${propertyName} must contain exactly one type.`);
-    }
-
-    if (Array.isArray(type)) {
-      type = type[0];
-    }
-
-    const reflected =
-      Reflect && Reflect.getMetadata ? Reflect.getMetadata('design:type', target, propertyName) : undefined;
-
-    return type || reflected;
-  }
-
-  /**
-   * Concrete implementation of the Predicate interface.
-   *
-   * ### NOTE
-   * Node definition overrides the predicate types.
-   */
-  export class PredicateImpl<T = any, U = any> implements Predicate<T, U> {
-    private _facet: U | null = null;
-
-    constructor(private readonly _namespace: string, private readonly _parent: Object, private readonly _data: T[]) {
-      //
-    }
-
-    withFacet(facet: U): Predicate<T, U> {
-      this._facet = facet;
-      return this;
-    }
-
-    getFacet(node: T): U | undefined {
-      return FacetStorage.get(this._namespace, this._parent, node);
-    }
-
-    add(node: T): Predicate<T, U> {
-      if (this._facet) {
-        FacetStorage.attach(this._namespace, this._parent, node, this._facet);
-        this._facet = null;
-      }
-
-      this._data.push(node);
-      return this;
-    }
-
-    get(): ReadonlyArray<T> {
-      return this._data;
-    }
-
-    remove(node: T): void {
-      const index = this._data.findIndex(d => d !== node);
-      if (index < 0) {
-        return;
-      }
-
-      this._data.splice(index, 1);
-    }
-  }
 }

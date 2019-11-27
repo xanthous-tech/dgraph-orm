@@ -19,7 +19,7 @@ export function Index(options: Index.IOptions): PropertyDecorator {
       target,
       propertyName
     });
-  }
+  };
 }
 
 export namespace Index {

@@ -30,7 +30,7 @@ export namespace PredicateMetadata {
      * 'node' types are the transformed properties
      * which will convert into a value by the class-transformer when loading data.
      */
-    type: Constructor;
+    type: () => Constructor;
 
     /**
      * Is the predicate an array type.
