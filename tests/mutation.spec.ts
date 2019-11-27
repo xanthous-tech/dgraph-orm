@@ -57,7 +57,7 @@ describe('Serialize deserialize', () => {
     console.log(MutationBuilder.getSetNQuadsString(person));
   });
 
-  it('should handle circulars correctly', function() {
+  it.only('should handle circulars correctly', function() {
     class PersonKnows {
       @Facet()
       familiarity: number;
@@ -103,15 +103,16 @@ describe('Serialize deserialize', () => {
 
     instances[0].name = 'New John';
     const friends = instances[0].friends;
+
     friends.get()[0].name = 'New Jane';
-    friends.getFacet(friends.get()[0])!.familiarity = 99;
     instances[0].friends.get()[0].friends.get()[0].name = 'New Kamil';
+    friends.getFacet(friends.get()[0])!.familiarity = 666;
 
     //
     console.log(MutationBuilder.getSetNQuadsString(instances[0]));
   });
 
-  it.only('should handle circulars correctly for fresh instances', function() {
+  it('should handle circulars correctly for fresh instances', function() {
     class PersonKnows {
       @Facet()
       familiarity: number;

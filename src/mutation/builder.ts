@@ -65,14 +65,14 @@ export namespace MutationBuilder {
           }
 
           const facetValue = Private.getFacetValue(ps.propertyName, t, p);
-          const facets = Object.keys(facetValue)
-            .map(key => ({ key, value: facetValue[key] }))
-            .map(kv => `[${kv.key}=${kv.value}]`)
-            .join(',');
-
           // Create a relation between parent and predicate
           //   or update the existing with new facet values.
-          if (ps.predicates.getDiff().has(p) || DiffTracker.getSets(p).length > 0) {
+          if (ps.predicates.getDiff().has(p) || DiffTracker.getSets(facetValue).length > 0) {
+            const facets = DiffTracker.getTrackedProperties(facetValue)
+              .map(key => ({ key, value: Reflect.get(facetValue, key) }))
+              .map(kv => `[${kv.key}=${kv.value}]`)
+              .join(',');
+
             connections.push(quad(tn, namedNode(ps.key), pn, variable(facets)));
           }
 
@@ -142,11 +142,9 @@ namespace Private {
     const quads: Quad[] = [];
     const changes = DiffTracker.getSets(target);
     if (changes.length > 0) {
-      changes.forEach(c => {
-        if (c.type === 'property') {
-          quads.push(DataFactory.quad(targetNode, DataFactory.namedNode(c.key), DataFactory.literal(c.get())));
-        }
-      });
+      changes.forEach(c =>
+        quads.push(DataFactory.quad(targetNode, DataFactory.namedNode(c.key), DataFactory.literal(c.get())))
+      );
     }
 
     return quads;

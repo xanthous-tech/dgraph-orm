@@ -55,7 +55,7 @@ export function Property(options: Property.IOptions = {}): PropertyDecorator {
     }
 
     // Attach a diff tracker to the property.
-    DiffTracker.trackProperty(target, propertyName, 'property', name);
+    DiffTracker.trackProperty(target, propertyName, name);
 
     MetadataStorage.Instance.addPropertyMetadata({
       type,

@@ -68,7 +68,9 @@ export function Predicate(options: Predicate.IOptions) {
               {} as ObjectLiteral<any>
             );
 
-            FacetStorage.attach(propertyName, this, v, plainToClass(options.facet!, plain));
+            const instance = plainToClass(options.facet!, plain);
+            FacetStorage.attach(propertyName, this, v, instance);
+            DiffTracker.purgeInstance(instance);
           }
 
           // Clean up the diff on the instance.

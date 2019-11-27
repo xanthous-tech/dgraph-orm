@@ -1,5 +1,5 @@
-import { ObjectLiteral } from '../utils/type';
-import { DiffValue } from './value';
+import {ObjectLiteral} from '../utils/type';
+import {DiffValue} from './value';
 
 export namespace DiffTracker {
   /**
@@ -10,16 +10,16 @@ export namespace DiffTracker {
   /**
    * Register an instance for tracking.
    */
-  export function trackProperty(target: Object, propertyName: string, type: 'property' | 'facet', diffKey?: string): Object {
+  export function trackProperty(target: Object, propertyName: string, diffKey?: string): Object {
     Reflect.defineProperty(target, propertyName, {
       configurable: true,
       enumerable: true,
       set: function(value: any) {
-        ensureInstance(this, propertyName, diffKey || propertyName, type);
+        ensureInstance(this, propertyName, diffKey || propertyName);
         instances.get(this)![propertyName].set(value);
       },
       get: function() {
-        ensureInstance(this, propertyName, diffKey || propertyName, type);
+        ensureInstance(this, propertyName, diffKey || propertyName);
         return instances.get(this)![propertyName].get();
       }
     });
@@ -39,6 +39,18 @@ export namespace DiffTracker {
     for (let value of Object.values(envelope)) {
       value.clear();
     }
+  }
+
+  /**
+   * Get all tracked properties of an instance.
+   */
+  export function getTrackedProperties(target: Object): string[] {
+    const t = instances.get(target);
+    if (!t) {
+      return [];
+    }
+
+    return Object.keys(t);
   }
 
   /**
@@ -82,13 +94,13 @@ export namespace DiffTracker {
   /**
    * Make sure the instance is in the weakmap
    */
-  function ensureInstance(instance: Object, propertyName: string, diffKey: string, type: 'property' | 'facet'): void {
+  function ensureInstance(instance: Object, propertyName: string, diffKey: string): void {
     if (!instances.has(instance)) {
       instances.set(instance, {});
     }
 
     if (!instances.get(instance)![propertyName]) {
-      instances.get(instance)![propertyName] = new DiffValue(diffKey, type);
+      instances.get(instance)![propertyName] = new DiffValue(diffKey);
     }
   }
 }
