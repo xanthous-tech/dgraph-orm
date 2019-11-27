@@ -55,7 +55,7 @@ describe('Serialize deserialize', () => {
       @Property()
       name: string;
 
-      @Predicate({ type: [Person], facet: PersonWorks })
+      @Predicate({ type: () => Person, facet: PersonWorks })
       people: Predicate<Person, PersonWorks>;
     }
 
@@ -91,8 +91,11 @@ describe('Serialize deserialize', () => {
     expect(people).toHaveLength(2);
 
     // Has correct facet values.
-    expect(instances[0].people.getFacet(people[0])).toEqual({ salary: 1200, years: 10 });
-    expect(instances[0].people.getFacet(people[1])).toEqual({ salary: 1201, years: 11 });
+    expect(instances[0].people.getFacet(people[0])!.salary).toEqual(1200);
+    expect(instances[0].people.getFacet(people[0])!.years).toEqual(10);
+
+    expect(instances[0].people.getFacet(people[1])!.salary).toEqual(1201);
+    expect(instances[0].people.getFacet(people[1])!.years).toEqual(11);
   });
 
   it('should handle circulars correctly', function() {
@@ -109,7 +112,7 @@ describe('Serialize deserialize', () => {
       @Property()
       name: string;
 
-      @Predicate({ type: [Person], facet: PersonKnows })
+      @Predicate({ type: () => Person, facet: PersonKnows })
       friends: Predicate<Person, PersonKnows>;
     }
 

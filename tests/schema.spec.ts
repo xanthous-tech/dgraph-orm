@@ -26,7 +26,7 @@ describe('Global schema', () => {
       @Property({ type: [PropertyType.String] })
       hobbies: string[];
 
-      @Predicate({ type: [Work] })
+      @Predicate({ type: () => Work })
       works: Work[];
     }
 

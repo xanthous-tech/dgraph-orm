@@ -57,7 +57,7 @@ describe('Serialize deserialize', () => {
     console.log(MutationBuilder.getSetNQuadsString(person));
   });
 
-  it.only('should handle circulars correctly', function() {
+  it('should handle circulars correctly', function() {
     class PersonKnows {
       @Facet()
       familiarity: number;
