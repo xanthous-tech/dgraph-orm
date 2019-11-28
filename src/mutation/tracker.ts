@@ -1,5 +1,5 @@
-import {ObjectLiteral} from '../utils/type';
-import {DiffValue} from './value';
+import { ObjectLiteral } from '../utils/type';
+import { DiffValue } from './value';
 
 export namespace DiffTracker {
   /**
