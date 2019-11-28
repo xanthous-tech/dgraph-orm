@@ -6,6 +6,8 @@ export * from './decorator/predicate';
 export * from './decorator/property';
 export * from './decorator/node';
 
+export * from './utils/public';
+
 export { PropertyType } from './types/property';
 export { SchemaBuilder } from './schema/builder';
 export { MutationBuilder } from './mutation/builder';
