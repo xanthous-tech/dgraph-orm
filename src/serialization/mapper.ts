@@ -23,9 +23,7 @@ export namespace ObjectMapper {
     addResourceData(data: ObjectLiteral<any> | ObjectLiteral<any>[]) {
       if (data instanceof Array) {
         data.forEach(d => {
-          if (d.uid) {
-            this._resource.set(d.uid, d)
-          }
+          this.addResourceData(d)
         });
       } else {
         if (data.uid) {
@@ -36,8 +34,37 @@ export namespace ObjectMapper {
     }
 
     build(): T[] {
-      this.expand(this._jsonData);
-      const instance: T | T[] = plainToClass(this._entryType as any, this._jsonData);
+
+      const visited = new Set<string>();
+      // const isVisited = (t: Object, p: Object) => visited.has(t) && visited.get(t)!.get(p);
+
+
+      const expand = (source: ObjectLiteral) => {
+        console.log("EXPANDING", source);
+        if (this._resource.has(source.uid)) {
+          source = {...source, ...this._resource.get((source.uid))}
+        }
+        Object.keys(source).map(key => {
+          if (key === "dgraph.type") {
+            return
+          }
+          if (Array.isArray(source[key])) {
+            source[key] = source[key].map((node: any) => {
+              // TODO: tag source + key
+              const visitingKey = `${source.uid}+${key}+${node.uid}`;
+              if (visited.has(visitingKey)){
+                return
+              }
+              visited.add(visitingKey);
+              return expand(node)
+            })
+          }
+        });
+        return source
+      }
+
+      const expandedData = expand(this._jsonData);
+      const instance: T | T[] = plainToClass(this._entryType as any, expandedData);
       if (Array.isArray(instance)) {
         instance.forEach(i => DiffTracker.purgeInstance(i));
         return instance;
@@ -45,17 +72,6 @@ export namespace ObjectMapper {
 
       DiffTracker.purgeInstance(instance);
       return [instance];
-    }
-
-    private expand(source: ObjectLiteral) {
-      if (this._resource.has(source.uid)) {
-        source = {...source, ...this._resource.get((source.uid))}
-      }
-      Object.keys(source).map(key => {
-        if (source[key] instanceof Array) {
-          this.expand(source[key])
-        }
-      });
     }
   }
 
