@@ -30,7 +30,10 @@ export namespace Utils {
             // Convert predicates to plain object.
             Object.defineProperty(object, p.args.propertyName, {
               enumerable: true,
-              value: predicateNodes.get().reduce((acc, pn) => acc.concat(acc, [Utils.toObject(pn)]), [])
+              value: predicateNodes.get().reduce((acc, pn) => {
+                acc.push(Utils.toObject(pn));
+                return acc;
+              }, [])
             });
           }
         }

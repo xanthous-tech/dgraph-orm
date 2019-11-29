@@ -37,43 +37,16 @@ export namespace ObjectMapper {
     }
 
     build(): T[] {
-      const visited = new Set<string>();
-
-      const expand = (source: ObjectLiteral) => {
-        if (this._resource.has(source.uid)) {
-          source = { ...source, ...this._resource.get(source.uid) };
-        }
-
-        Object.keys(source).forEach(key => {
-          if (Array.isArray(source[key])) {
-            source[key] = source[key].map((node: any) => {
-              const visitingKey = `${source.uid}+${key}+${node.uid}`;
-
-              if (visited.has(visitingKey)) {
-                // TODO: Check if this appears in the
-                //  data after build.
-                return "CIRCULAR_STOP";
-              }
-
-              visited.add(visitingKey);
-              return expand(node);
-            });
-          }
-        });
-
-        return source;
-      };
-
       // Do not traverse the json tree if there is no
       // resource data.
-      let expandedJsonData = null;
       if (this._resource.size > 0) {
-        expandedJsonData = Array.isArray(this._jsonData)
-          ? this._jsonData.map(jd => expand(jd))
-          : expand(this._jsonData);
+        const visited = new Set<string>();
+        this._jsonData = Array.isArray(this._jsonData)
+          ? this._jsonData.map(jd => Private.expand(visited, this._resource, jd))
+          : Private.expand(visited, this._resource, this._jsonData);
       }
 
-      const instance: T | T[] = plainToClass(this._entryType as any, expandedJsonData || this._jsonData);
+      const instance: T | T[] = plainToClass(this._entryType as any, this._jsonData);
 
       if (Array.isArray(instance)) {
         instance.forEach(i => DiffTracker.purgeInstance(i));
@@ -87,5 +60,38 @@ export namespace ObjectMapper {
 
   export function newBuilder<T = any>() {
     return new ObjectMapperBuilder<T>();
+  }
+}
+
+/**
+ * Module private statics.
+ */
+namespace Private {
+  /**
+   * Walk down a tree recursively, matching node uid in the resource data and adding extra information.
+   */
+  export function expand(visited: Set<string>, resource: ObjectLiteral<any>, source: ObjectLiteral<any>) {
+    if (resource.has(source.uid)) {
+      source = { ...source, ...resource.get(source.uid) };
+    }
+
+    Object.keys(source).forEach(key => {
+      if (Array.isArray(source[key])) {
+        source[key] = source[key].map((node: any) => {
+          const visitingKey = `${source.uid}+${key}+${node.uid}`;
+
+          if (visited.has(visitingKey)) {
+            // TODO: Check if this appears in the
+            //  data after build.
+            return 'CIRCULAR_STOP';
+          }
+
+          visited.add(visitingKey);
+          return expand(visited, resource, node);
+        });
+      }
+    });
+
+    return source;
   }
 }

@@ -29,7 +29,7 @@ describe('Serialize deserialize', () => {
     expect(work.name).toEqual(data[0]['Work.name']);
   });
 
-  it.only('should map withFacets correctly', function() {
+  it('should map withFacets correctly', function() {
     class PersonWorks {
       @Facet()
       public years: number;
@@ -193,7 +193,7 @@ describe('Serialize deserialize', () => {
       .addResourceData(resource)
       .build();
 
-    console.log(Utils.toObject(instances[0]));
+    console.log(JSON.stringify(Utils.toObject(instances[0]), null, 2));
     expect(instances[0].has_child.get()[0].name).toEqual('Child 0x2');
   });
 });
