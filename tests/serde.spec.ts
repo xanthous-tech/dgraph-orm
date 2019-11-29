@@ -1,4 +1,4 @@
-import { Facet, Node, Predicate, Property, Uid } from '../src';
+import { Facet, Node, Predicate, Property, Uid, Utils } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
@@ -29,7 +29,7 @@ describe('Serialize deserialize', () => {
     expect(work.name).toEqual(data[0]['Work.name']);
   });
 
-  it('should map withFacets correctly', function() {
+  it.only('should map withFacets correctly', function() {
     class PersonWorks {
       @Facet()
       public years: number;
@@ -84,6 +84,8 @@ describe('Serialize deserialize', () => {
       .addEntryType(Work)
       .addJsonData(data)
       .build();
+
+    console.log(Utils.toObject(instances[0]));
 
     const people = instances[0].people.get();
 
@@ -145,5 +147,53 @@ describe('Serialize deserialize', () => {
     expect(instances[0].name).toEqual(data[0]['Person.name']);
     expect(instances[0].friends.get()).toHaveLength(1);
     expect(instances[0].friends.get()[0].name).toEqual(data[0]['Person.friends'][0]['Person.name']);
+  });
+
+  it('should be able to add resource', () => {
+    @Node()
+    class Parent {
+      @Property()
+      name: string;
+
+      @Predicate({ type: () => Parent })
+      has_child: Predicate<Parent>;
+    }
+
+    const data = [
+      {
+        uid: '0x1',
+        'Parent.name': 'Parent',
+        'Parent.has_child': [
+          {
+            uid: '0x2',
+            'Parent.has_child': [
+              {
+                uid: '0x3'
+              }
+            ]
+          }
+        ]
+      }
+    ];
+
+    const resource = [
+      {
+        uid: '0x2',
+        'Parent.name': 'Child 0x2'
+      },
+      {
+        uid: '0x3',
+        'Parent.name': 'Child 0x3'
+      }
+    ];
+
+    const instances = ObjectMapper.newBuilder<Parent>()
+      .addEntryType(Parent)
+      .addJsonData(data)
+      .addResourceData(resource)
+      .build();
+
+    console.log(Utils.toObject(instances[0]));
+    expect(instances[0].has_child.get()[0].name).toEqual('Child 0x2');
   });
 });

@@ -9,4 +9,14 @@ export namespace Iterators {
       idx++;
     }
   }
+
+  export function reduce<T, U = any>(iterator: IterableIterator<U>, fn: (acc: T, item: U, idx?: number) => T, initial?: T) {
+    let idx = 0;
+    let acc = initial;
+    for (let i of iterator) {
+      acc = fn(acc as any as T, i, idx);
+    }
+
+    return acc;
+  }
 }
