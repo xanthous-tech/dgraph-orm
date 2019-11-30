@@ -79,6 +79,10 @@ namespace Private {
     }
 
     Object.keys(source).forEach(key => {
+      if (key === 'dgraph.type') {
+        return;
+      }
+
       if (!Array.isArray(source[key])) {
         return;
       }

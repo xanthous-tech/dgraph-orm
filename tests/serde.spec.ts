@@ -149,7 +149,7 @@ describe('Serialize deserialize', () => {
     expect(instances[0].friends.get()[0].name).toEqual(data[0]['Person.friends'][0]['Person.name']);
   });
 
-  it('should be able to add resource', () => {
+  it('should be able to handle ', () => {
     @Node()
     class Parent {
       @Property()
@@ -159,31 +159,38 @@ describe('Serialize deserialize', () => {
       has_child: Predicate<Parent>;
     }
 
-    const data = [
-      {
-        uid: '0x1',
-        'Parent.name': 'Parent',
-        'Parent.has_child': [
-          {
-            uid: '0x2',
-            'Parent.has_child': [
-              {
-                uid: '0x3'
-              }
-            ]
-          }
-        ]
-      }
-    ];
+    const data = {
+      uid: '0x1',
+      'Parent.name': 'Parent',
+      'Parent.has_child': [] as any[] // will contain `rest`
+    };
+
+    const rest = {
+      uid: '0x2',
+      'Parent.has_child': [
+        {
+          uid: '0x3',
+          'Parent.has_child': [] as any[] // will contain `data`
+        }
+      ]
+    };
+
+    // Circularly reference each other.
+    rest['Parent.has_child'][0]['Parent.has_child'].push(data as any);
+    data['Parent.has_child'].push(rest as any);
 
     const resource = [
       {
+        uid: '0x1',
+        'Parent.name': 'Node 0x2'
+      },
+      {
         uid: '0x2',
-        'Parent.name': 'Child 0x2'
+        'Parent.name': 'Node 0x2'
       },
       {
         uid: '0x3',
-        'Parent.name': 'Child 0x3'
+        'Parent.name': 'Node 0x3'
       }
     ];
 
