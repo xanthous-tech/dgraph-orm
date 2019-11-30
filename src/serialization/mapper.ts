@@ -46,7 +46,9 @@ export namespace ObjectMapper {
           : Private.expand(visited, this._resource, this._jsonData);
       }
 
-      const instance: T | T[] = plainToClass(this._entryType as any, this._jsonData);
+      const instance: T | T[] = plainToClass(this._entryType as any, this._jsonData, {
+        enableCircularCheck: true
+      });
 
       if (Array.isArray(instance)) {
         instance.forEach(i => DiffTracker.purgeInstance(i));
