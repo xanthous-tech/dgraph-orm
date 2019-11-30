@@ -1,4 +1,4 @@
-import { plainToClass } from 'class-transformer';
+import { plainToClass } from '@xanthous/class-transformer';
 
 import { ObjectLiteral } from '../utils/type';
 import { Constructor } from '../utils/class';
