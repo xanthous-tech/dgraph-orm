@@ -967,10 +967,10 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@xanthous/class-transformer@^0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@xanthous/class-transformer/-/class-transformer-0.2.3.tgz#0f65e2fccb1acdb4e3ba473bebdc9cda2df17668"
-  integrity sha512-XNhqXslc1Yh7T0qJQPJYHeNBvTxkdqQ4QXbOw5bFGS0Gko3HV43QaCrPDpMLN/G07xiuIv2nq4My6s2Z6/l8WA==
+"@xanthous/class-transformer@0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@xanthous/class-transformer/-/class-transformer-0.2.4.tgz#f04419a250571aee9bce7a4bed1b37048bfc7670"
+  integrity sha512-wQpKgZcxTTREgWoE7yXW0o7T2w7RiXR+/8SEmwNRYTpJYA0d9zUwbOqSu2yzhPwnCtU1eymLmMNopHKIpREMpg==
 
 "@xanthous/n3@^1.3.1":
   version "1.3.1"

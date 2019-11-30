@@ -1,4 +1,4 @@
-import { Expose, plainToClass, Type } from 'class-transformer';
+import { Expose, plainToClass, Type } from '@xanthous/class-transformer';
 
 import { MetadataStorage } from '../metadata/storage';
 import { DiffTracker } from '../mutation/tracker';
