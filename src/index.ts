@@ -11,4 +11,5 @@ export * from './utils/public';
 export { PropertyType } from './types/property';
 export { SchemaBuilder } from './schema/builder';
 export { MutationBuilder } from './mutation/builder';
+export { QueryBuilder } from './query/builder';
 export { ObjectMapper } from './serialization/mapper';
