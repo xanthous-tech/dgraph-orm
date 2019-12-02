@@ -70,10 +70,11 @@ export namespace MutationBuilder {
           if (ps.predicates.getDiff().has(p) || DiffTracker.getSets(facetValue).length > 0) {
             const facets = DiffTracker.getTrackedProperties(facetValue)
               .map(key => ({ key, value: Reflect.get(facetValue, key) }))
-              .map(kv => `${kv.key}=${kv.value}`)
-              .join(',');
+              .map(kv => `${kv.key}=${kv.value}`);
 
-            connections.push(quad(tn, namedNode(ps.key), pn, variable(`(${facets})`)));
+            if (facets.length > 0) {
+              connections.push(quad(tn, namedNode(ps.key), pn, variable(`(${facets.join(',')})`)));
+            }
           }
 
           if (!visited.has(t)) {
