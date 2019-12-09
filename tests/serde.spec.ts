@@ -150,8 +150,7 @@ describe('Serialize deserialize', () => {
     expect(instances[0].friends.get()[0].name).toEqual(data[0]['Person.friends'][0]['Person.name']);
   });
 
-  // FIXME: Known bug
-  it.only('should be able to handle ', () => {
+  it('should be able to handle ', () => {
     @Node()
     class Parent {
       @Property()
