@@ -1,4 +1,4 @@
-import { Expose, plainToClass } from 'class-transformer';
+import { plainToClass, Exclude } from 'class-transformer';
 
 import { MetadataStorage } from '../metadata/storage';
 import { DiffTracker } from '../mutation/tracker';
@@ -21,10 +21,8 @@ export function Predicate(options: Predicate.IOptions) {
       name = `${target.constructor.name}.${propertyName}`;
     }
 
-    // When we load data into the class, we will have a new property
-    // defined as the auto-generated name, we need to make sure property with predicate
-    // decorator returns the correct value.
-    Expose({ name, toClassOnly: true })(target, propertyName);
+    // Exclude the predicates to prevent class-transformer from doing unnecessary stuff..
+    Exclude()(target, name);
 
     // We define get/set on the class so we can access to the class instances.
     // this will also handle wrapping raw data into predicate type.

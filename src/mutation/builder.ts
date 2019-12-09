@@ -47,11 +47,13 @@ export namespace MutationBuilder {
           return;
         }
 
-        ps.predicates.get().forEach((p: Object) => {
-          if (tracker.isVisited(t, p)) {
-            return;
-          }
+        // Handle circular
+        if (tracker.isVisited(t, ps.predicates)) {
+          return;
+        }
+        tracker.markVisited(t, ps.predicates);
 
+        ps.predicates.get().forEach((p: Object) => {
           const pn = Private.getNodeForInstance(p);
           if (!created.get(p)) {
             if (Util.isBlankNode(pn)) {
@@ -76,7 +78,6 @@ export namespace MutationBuilder {
             }
           }
 
-          tracker.markVisited(t, p);
           recursePredicates(p, pn);
         });
       });

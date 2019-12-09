@@ -3,7 +3,6 @@ import { ObjectLiteral } from '../utils/type';
 import { Constructor } from '../utils/class';
 import { DiffTracker } from '../mutation/tracker';
 import { MetadataStorage } from '../metadata/storage';
-import { CircularTracker } from '../utils/circular-tracker';
 
 export namespace ObjectMapper {
   class ObjectMapperBuilder<T = any> {
@@ -71,14 +70,13 @@ namespace Private {
    */
   export function transform<T extends Object, V>(cls: Constructor<T>, plain: V[]): T[] {
     const instanceStorage = new WeakMap();
-    const tracker = new CircularTracker();
-    return plainToClassExecutor(cls, plain, tracker, instanceStorage);
+    return plainToClassExecutor(cls, plain, instanceStorage);
   }
 
   /**
    * Given a data class definition and plain object return an instance of the data class.
    */
-  function plainToClassExecutor<T extends Object, V>(cls: Constructor<T>, plain: V[], tracker: CircularTracker, storage: WeakMap<Object, T[]>): T[] {
+  function plainToClassExecutor<T extends Object, V>(cls: Constructor<T>, plain: V[], storage: WeakMap<Object, T[]>): T[] {
 
     // Bail early if already converted.
     if (storage.has(plain)){
@@ -87,6 +85,7 @@ namespace Private {
 
     const instances: T[] = plainToClass(cls, plain, {
       enableCircularCheck: true,
+      strategy: "exposeAll"
     });
 
     // Keep reference to the instance so in case of circular we can simply get it from storage and complete the circle.
@@ -104,7 +103,7 @@ namespace Private {
         const _preds = (plain[idx] as any)[pred.args.name];
 
         if (_preds) {
-          (ins as any)[pred.args.propertyName] = plainToClassExecutor(pred.args.type(), _preds, tracker, storage);
+          (ins as any)[pred.args.propertyName] = plainToClassExecutor(pred.args.type(), _preds, storage);
         }
       });
     });
