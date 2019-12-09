@@ -161,7 +161,7 @@ describe('Serialize deserialize', () => {
       has_child: Predicate<Parent>;
     }
 
-    const data = {
+    const data = [{
       uid: '0x1',
       'Parent.name': 'Parent',
       'Parent.has_child': [
@@ -170,15 +170,15 @@ describe('Serialize deserialize', () => {
           'Parent.has_child': [
             {
               uid: '0x3',
-              'Parent.has_child': [] as any[]
+              'Parent.has_child': null,
             }
           ]
         }
       ] as any[]
-    };
+    }];
 
-    // Circularly reference each other.
-    data['Parent.has_child'][0]['Parent.has_child'][0]['Parent.has_child'].push(data as any);
+    // Circularly reference
+    data[0]['Parent.has_child'][0]['Parent.has_child'][0]['Parent.has_child'] = (data as any);
 
     const resource = [
       {
@@ -203,6 +203,27 @@ describe('Serialize deserialize', () => {
 
     Utils.printObject(instances[0]);
 
-    expect(instances[0].has_child.get()[0].name).toEqual('Node 0x2');
+    expect(
+      instances[0]
+        .has_child.get()[0].name
+    ).toEqual('Node 0x2');
+
+    expect(
+      instances[0]
+        .has_child.get()[0]
+        .has_child.get()[0]
+        .has_child.get()[0].name
+    ).toEqual('Node 0x1');
+
+    expect(
+      instances[0]
+
+      ===
+
+      instances[0]
+        .has_child.get()[0]
+        .has_child.get()[0]
+        .has_child.get()[0]
+    ).toBeTruthy()
   });
 });

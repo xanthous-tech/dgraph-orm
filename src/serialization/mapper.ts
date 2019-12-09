@@ -79,6 +79,12 @@ namespace Private {
    * Given a data class definition and plain object return an instance of the data class.
    */
   function plainToClassExecutor<T extends Object, V>(cls: Constructor<T>, plain: V[], tracker: CircularTracker, storage: WeakMap<Object, T[]>): T[] {
+
+    // Bail early if already converted.
+    if (storage.has(plain)){
+      return storage.get(plain)!;
+    }
+
     const instances: T[] = plainToClass(cls, plain, {
       enableCircularCheck: true,
     });
@@ -95,22 +101,10 @@ namespace Private {
       // FIXME: If the same uid is referenced in multiple places in the data, currently we will have 2 different instances
       //   of the same object. We need to make sure we share the instance.
       predicates.forEach(pred => {
-        const current = plain[idx];
         const _preds = (plain[idx] as any)[pred.args.name];
 
-        if (_preds && !tracker.isVisited(current, _preds)) {
-          // Mark the edge on plain data.
-          if (!tracker.isVisited(current, _preds)) {
-            // console.log('VISIT \n', current, '\n', _preds);
-            tracker.markVisited(plain[idx], (plain[idx] as any)[pred.args.name]);
-          }
-
-          (ins as any)[pred.args.propertyName] =
-            plainToClassExecutor(pred.args.type(), _preds, tracker, storage);
-        }
-
-        if (_preds && tracker.isVisited(current, _preds)) {
-          (ins as any)[pred.args.propertyName] = storage.get(_preds);
+        if (_preds) {
+          (ins as any)[pred.args.propertyName] = plainToClassExecutor(pred.args.type(), _preds, tracker, storage);
         }
       });
     });

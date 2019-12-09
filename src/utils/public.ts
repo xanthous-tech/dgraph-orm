@@ -14,7 +14,7 @@ export namespace Utils {
   }
 
   /**
-   * Print the tree using util inspect.
+   * Print the tree as object using util inspect.
    */
   export function printObject(instance: Object, options: IPrintOptions = {}): void {
     const inspection = util.inspect(
