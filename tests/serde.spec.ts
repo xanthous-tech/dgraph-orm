@@ -1,3 +1,4 @@
+
 import { Facet, Node, Predicate, Property, Uid, Utils } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
@@ -150,7 +151,7 @@ describe('Serialize deserialize', () => {
   });
 
   // FIXME: Known bug
-  it.skip('should be able to handle ', () => {
+  it.only('should be able to handle ', () => {
     @Node()
     class Parent {
       @Property()
@@ -163,27 +164,26 @@ describe('Serialize deserialize', () => {
     const data = {
       uid: '0x1',
       'Parent.name': 'Parent',
-      'Parent.has_child': [] as any[] // will contain `rest`
-    };
-
-    const rest = {
-      uid: '0x2',
       'Parent.has_child': [
         {
-          uid: '0x3',
-          'Parent.has_child': [] as any[] // will contain `data`
+          uid: '0x2',
+          'Parent.has_child': [
+            {
+              uid: '0x3',
+              'Parent.has_child': [] as any[]
+            }
+          ]
         }
-      ]
+      ] as any[]
     };
 
     // Circularly reference each other.
-    rest['Parent.has_child'][0]['Parent.has_child'].push(data as any);
-    data['Parent.has_child'].push(rest as any);
+    data['Parent.has_child'][0]['Parent.has_child'][0]['Parent.has_child'].push(data as any);
 
     const resource = [
       {
         uid: '0x1',
-        'Parent.name': 'Node 0x2'
+        'Parent.name': 'Node 0x1'
       },
       {
         uid: '0x2',
@@ -201,7 +201,8 @@ describe('Serialize deserialize', () => {
       .addResourceData(resource)
       .build();
 
-    console.log(JSON.stringify(Utils.toObject(instances[0]), null, 2));
-    expect(instances[0].has_child.get()[0].name).toEqual('Child 0x2');
+    Utils.printObject(instances[0]);
+
+    expect(instances[0].has_child.get()[0].name).toEqual('Node 0x2');
   });
 });

@@ -1,13 +1,14 @@
 import { plainToClass } from 'class-transformer';
-
 import { ObjectLiteral } from '../utils/type';
 import { Constructor } from '../utils/class';
 import { DiffTracker } from '../mutation/tracker';
+import { MetadataStorage } from '../metadata/storage';
+import { CircularTracker } from '../utils/circular-tracker';
 
 export namespace ObjectMapper {
   class ObjectMapperBuilder<T = any> {
     private _entryType: Constructor<T>;
-    private _jsonData: ObjectLiteral<any> | ObjectLiteral<any>[];
+    private _jsonData: ObjectLiteral<any>[];
     private _resource = new Map<string, ObjectLiteral<any>>();
 
     addEntryType(type: Constructor<T>) {
@@ -16,7 +17,7 @@ export namespace ObjectMapper {
     }
 
     addJsonData(data: ObjectLiteral<any> | ObjectLiteral<any>[]) {
-      this._jsonData = data;
+      this._jsonData = Array.isArray(data) ? data : [data];
       return this;
     }
 
@@ -46,15 +47,13 @@ export namespace ObjectMapper {
           : Private.expand(visited, this._resource, this._jsonData);
       }
 
-      const instance: T | T[] = plainToClass(this._entryType as any, this._jsonData);
-
-      if (Array.isArray(instance)) {
-        instance.forEach(i => DiffTracker.purgeInstance(i));
-        return instance;
+      if (!Array.isArray(this._jsonData)) {
+        this._jsonData = [this._jsonData];
       }
 
-      DiffTracker.purgeInstance(instance);
-      return [instance];
+      const instances = Private.transform(this._entryType, this._jsonData);
+      instances.forEach(i => DiffTracker.purgeInstance(i));
+      return instances;
     }
   }
 
@@ -67,6 +66,58 @@ export namespace ObjectMapper {
  * Module private statics.
  */
 namespace Private {
+  /**
+   *  Transform helper with circular handling.
+   */
+  export function transform<T extends Object, V>(cls: Constructor<T>, plain: V[]): T[] {
+    const instanceStorage = new WeakMap();
+    const tracker = new CircularTracker();
+    return plainToClassExecutor(cls, plain, tracker, instanceStorage);
+  }
+
+  /**
+   * Given a data class definition and plain object return an instance of the data class.
+   */
+  function plainToClassExecutor<T extends Object, V>(cls: Constructor<T>, plain: V[], tracker: CircularTracker, storage: WeakMap<Object, T[]>): T[] {
+    const instances: T[] = plainToClass(cls, plain, {
+      enableCircularCheck: true,
+    });
+
+    // Keep reference to the instance so in case of circular we can simply get it from storage and complete the circle.
+    storage.set(plain, instances);
+
+    instances.forEach((ins, idx) => {
+      const predicates = MetadataStorage.Instance.predicates.get(ins.constructor.name);
+      if (!predicates) {
+        return;
+      }
+
+      // FIXME: If the same uid is referenced in multiple places in the data, currently we will have 2 different instances
+      //   of the same object. We need to make sure we share the instance.
+      predicates.forEach(pred => {
+        const current = plain[idx];
+        const _preds = (plain[idx] as any)[pred.args.name];
+
+        if (_preds && !tracker.isVisited(current, _preds)) {
+          // Mark the edge on plain data.
+          if (!tracker.isVisited(current, _preds)) {
+            // console.log('VISIT \n', current, '\n', _preds);
+            tracker.markVisited(plain[idx], (plain[idx] as any)[pred.args.name]);
+          }
+
+          (ins as any)[pred.args.propertyName] =
+            plainToClassExecutor(pred.args.type(), _preds, tracker, storage);
+        }
+
+        if (_preds && tracker.isVisited(current, _preds)) {
+          (ins as any)[pred.args.propertyName] = storage.get(_preds);
+        }
+      });
+    });
+
+    return instances;
+  }
+
   /**
    * Visit all nodes in a tree recursively, matching node uid in the resource data and adding extra information.
    *

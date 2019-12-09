@@ -11,7 +11,9 @@ export namespace QueryBuilder {
     const properties = (propertiesMetadata || []).map(propertyMetadata => propertyMetadata.args.name);
     const predicates =  (predicateMetadata || []).map((item) => item.args.name);
     const fragmentItems = [...properties, ...predicates, ...uids].filter((key) => !((exclude as any) as string[]).includes(key));
+
     const handle = `${instance.name.toLowerCase()}DataFragment`;
+
     return {
       handle: `...${handle}`,
       fragment: Private.getFragmentString(handle, fragmentItems),

@@ -6,6 +6,7 @@ import { ObjectLiteral } from '../utils/type';
 import { DiffTracker } from './tracker';
 import { FacetStorage } from '../facet';
 import { PredicateImpl } from '../utils/predicate-impl';
+import { CircularTracker } from '../utils/circular-tracker';
 
 /**
  * Dgraph type prefix to add on the new nodes.
@@ -36,9 +37,7 @@ export namespace MutationBuilder {
     const connections: Quad[] = [];
 
     const created = new WeakMap<Object, boolean>();
-
-    const visited = new WeakMap<Object, WeakMap<Object, boolean>>();
-    const isVisited = (t: Object, p: Object) => visited.has(t) && visited.get(t)!.get(p);
+    const tracker = new CircularTracker();
 
     const recursePredicates = (t: Object, tn: BlankNode | NamedNode): void => {
       const predicates = Private.getPredicatesOfNode(t);
@@ -49,7 +48,7 @@ export namespace MutationBuilder {
         }
 
         ps.predicates.get().forEach((p: Object) => {
-          if (isVisited(t, p)) {
+          if (tracker.isVisited(t, p)) {
             return;
           }
 
@@ -77,12 +76,7 @@ export namespace MutationBuilder {
             }
           }
 
-          if (!visited.has(t)) {
-            visited.set(t, new WeakMap<Object, boolean>());
-          }
-
-          visited.get(t)!.set(p, true);
-
+          tracker.markVisited(t, p);
           recursePredicates(p, pn);
         });
       });

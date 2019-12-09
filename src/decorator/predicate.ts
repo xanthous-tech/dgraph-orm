@@ -1,4 +1,4 @@
-import { Expose, plainToClass, Type } from 'class-transformer';
+import { Expose, plainToClass } from 'class-transformer';
 
 import { MetadataStorage } from '../metadata/storage';
 import { DiffTracker } from '../mutation/tracker';
@@ -25,11 +25,6 @@ export function Predicate(options: Predicate.IOptions) {
     // defined as the auto-generated name, we need to make sure property with predicate
     // decorator returns the correct value.
     Expose({ name, toClassOnly: true })(target, propertyName);
-
-    // Setup class transformer for node type of properties.
-    // This will also be threat as a connection edge when building
-    // queries.
-    Type(options.type)(target, propertyName);
 
     // We define get/set on the class so we can access to the class instances.
     // this will also handle wrapping raw data into predicate type.
