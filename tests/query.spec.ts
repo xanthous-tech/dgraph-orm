@@ -19,7 +19,8 @@ test('Should work', () => {
     friends: Predicate<Person, PersonKnows>;
   }
 
-  const { handle, fragment } = QueryBuilder.buildFragment(Person);
+  const { handle, fragment } = QueryBuilder.buildFragment<Person>(Person, { exclude: ['friends'] });
+
   expect(handle).toEqual('...personDataFragment');
   expect(fragment.split('\n').length).toEqual(5)
 
