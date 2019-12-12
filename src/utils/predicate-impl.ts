@@ -34,6 +34,7 @@ export class PredicateImpl<T = any, U = any> implements Predicate<T, U> {
 
     this._data.push(node);
     this._diff.add(node);
+
     return this;
   }
 

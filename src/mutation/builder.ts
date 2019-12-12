@@ -66,6 +66,7 @@ export namespace MutationBuilder {
           }
 
           const facetValue = Private.getFacetValue(ps.propertyName, t, p);
+
           // Create a relation between parent and predicate
           //   or update the existing with new facet values.
           if (ps.predicates.getDiff().has(p) || DiffTracker.getSets(facetValue).length > 0) {
@@ -75,6 +76,8 @@ export namespace MutationBuilder {
 
             if (facets.length > 0) {
               connections.push(quad(tn, namedNode(ps.key), pn, variable(`(${facets.join(',')})`)));
+            } else {
+              connections.push(quad(tn, namedNode(ps.key), pn));
             }
           }
 
