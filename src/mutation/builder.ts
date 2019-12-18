@@ -26,17 +26,17 @@ export namespace MutationBuilder {
    * Given a target object, returns set quads as string.
    */
   export function getSetNQuadsString(target: Object) {
-    return new Writer({ format: 'N-Quads' }).quadsToString(getSetNQuads(target));
+    return new Writer({ format: 'N-Quads' }).quadsToString(getSetNQuads(target).quads);
   }
 
   /**
    * Given a target object, returns set quads.
    */
-  export function getSetNQuads(target: Object) {
+  export function getSetNQuads(target: Object): { quads: Quad[], nodeMap: WeakMap<Object, BlankNode | NamedNode> } {
     const quads: Quad[] = [];
     const connections: Quad[] = [];
 
-    const created = new WeakMap<Object, boolean>();
+    const created = new WeakMap<Object, BlankNode | NamedNode>();
     const tracker = new CircularTracker();
 
     const recursePredicates = (t: Object, tn: BlankNode | NamedNode): void => {
@@ -62,7 +62,7 @@ export namespace MutationBuilder {
             }
             // Set mutations
             quads.push.apply(quads, Private.getSetChangeQuads(p, pn));
-            created.set(p, true);
+            created.set(p, pn);
           }
 
           const facetValue = Private.getFacetValue(ps.propertyName, t, p);
@@ -94,10 +94,13 @@ export namespace MutationBuilder {
 
     // Set mutations
     quads.push.apply(quads, Private.getSetChangeQuads(target, targetNode));
-    created.set(target, true);
+    created.set(target, targetNode);
 
     recursePredicates(target, targetNode);
-    return quads.concat(connections);
+    return {
+      quads: quads.concat(connections),
+      nodeMap: created,
+    };
   }
 }
 
