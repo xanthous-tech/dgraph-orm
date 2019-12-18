@@ -23,16 +23,37 @@ export namespace MutationBuilder {
   import variable = DataFactory.variable;
 
   /**
-   * Given a target object, returns set quads as string.
+   * A generic type for built mutation value.
    */
-  export function getSetNQuadsString(target: Object) {
-    return new Writer({ format: 'N-Quads' }).quadsToString(getSetNQuads(target).quads);
+  export interface ISetMutation<T> {
+    quads: T;
+
+    /**
+     * Map of temporary uids created during the mutation build.
+     *
+     * ### Note
+     * If node is an already existing node, which means does not have an attached temporary uid,
+     *   nodeMap will not include uid info of this node.
+     */
+    nodeMap: WeakMap<Object, BlankNode | NamedNode>;
   }
 
   /**
-   * Given a target object, returns set quads.
+   * Given a target object, returns set mutation with quads as string.
    */
-  export function getSetNQuads(target: Object): { quads: Quad[], nodeMap: WeakMap<Object, BlankNode | NamedNode> } {
+  export function getSetNQuadsString(target: Object): ISetMutation<string> {
+    const { quads, nodeMap } = getSetNQuads(target);
+
+    return {
+      nodeMap,
+      quads: new Writer({ format: 'N-Quads' }).quadsToString(quads),
+    };
+  }
+
+  /**
+   * Given a target object, returns set mutation.
+   */
+  export function getSetNQuads(target: Object): ISetMutation<Quad[]> {
     const quads: Quad[] = [];
     const connections: Quad[] = [];
 
@@ -97,6 +118,7 @@ export namespace MutationBuilder {
     created.set(target, targetNode);
 
     recursePredicates(target, targetNode);
+
     return {
       quads: quads.concat(connections),
       nodeMap: created,
