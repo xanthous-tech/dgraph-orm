@@ -30,10 +30,6 @@ export namespace MutationBuilder {
 
     /**
      * Map of temporary uids created during the mutation build.
-     *
-     * ### Note
-     * If node is an already existing node, which means does not have an attached temporary uid,
-     *   nodeMap will not include uid info of this node.
      */
     nodeMap: WeakMap<Object, BlankNode | NamedNode>;
   }
