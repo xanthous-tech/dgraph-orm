@@ -35,6 +35,13 @@ export namespace MutationBuilder {
   }
 
   /**
+   * A data structure to attach uid to an object.
+   *
+   * TODO: Move this into transaction context when it is implemented.
+   */
+  const CREATED_MAP = new WeakMap<Object, BlankNode | NamedNode>();
+
+  /**
    * Given a target object, returns set mutation with quads as string.
    */
   export function getSetNQuadsString(target: Object): ISetMutation<string> {
@@ -53,7 +60,6 @@ export namespace MutationBuilder {
     const quads: Quad[] = [];
     const connections: Quad[] = [];
 
-    const created = new WeakMap<Object, BlankNode | NamedNode>();
     const tracker = new CircularTracker();
 
     const recursePredicates = (t: Object, tn: BlankNode | NamedNode): void => {
@@ -72,14 +78,14 @@ export namespace MutationBuilder {
 
         ps.predicates.get().forEach((p: Object) => {
           const pn = Private.getNodeForInstance(p);
-          if (!created.get(p)) {
+          if (!CREATED_MAP.get(p)) {
             if (Util.isBlankNode(pn)) {
               // Create a new node
               quads.push(quad(pn, namedNode(DGRAPH_TYPE), literal(p.constructor.name)));
             }
             // Set mutations
             quads.push.apply(quads, Private.getSetChangeQuads(p, pn));
-            created.set(p, pn);
+            CREATED_MAP.set(p, pn);
           }
 
           const facetValue = Private.getFacetValue(ps.propertyName, t, p);
@@ -111,13 +117,13 @@ export namespace MutationBuilder {
 
     // Set mutations
     quads.push.apply(quads, Private.getSetChangeQuads(target, targetNode));
-    created.set(target, targetNode);
+    CREATED_MAP.set(target, targetNode);
 
     recursePredicates(target, targetNode);
 
     return {
       quads: quads.concat(connections),
-      nodeMap: created,
+      nodeMap: CREATED_MAP,
     };
   }
 }
