@@ -1,3 +1,5 @@
+import { Writer } from '@xanthous/n3';
+
 import { Facet, Node, Predicate, Property, Uid } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
@@ -112,7 +114,7 @@ describe('Serialize deserialize', () => {
     console.log(MutationBuilder.getSetNQuadsString(instances[0]));
   });
 
-  it.only('should handle circulars correctly for fresh instances', function() {
+  it('should handle circulars correctly for fresh instances', function() {
     class PersonKnows {
       @Facet()
       familiarity: number;
@@ -181,5 +183,12 @@ describe('Serialize deserialize', () => {
 
     console.log(MutationBuilder.getSetNQuadsString(john));
     console.log(MutationBuilder.getSetNQuadsString(lola));
+
+    const { quads, nodeMap } = MutationBuilder.getSetNQuads(john);
+    console.log(nodeMap.get(john));
+
+    const string = new Writer({ format: 'N-Quads' }).quadsToString(quads);
+    console.log(string);
+
   });
 });

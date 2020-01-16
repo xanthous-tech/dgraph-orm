@@ -1,6 +1,6 @@
 {
   "name": "@xanthous/dgraph-orm",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "dgraph ORM in TypeScript",
   "main": "dist/index.js",
   "author": "Simon Liang <simon@x-tech.io>",
@@ -21,6 +21,10 @@
     "debug": "DEBUG=dgraph-orm:* DEBUG_DEPTH=10 ts-node --files -r tsconfig-paths/register src/index.ts",
     "test": "jest"
   },
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/xanthous-tech/dgraph-orm.git"
+  },
   "prettier": {
     "printWidth": 120,
     "singleQuote": true
@@ -40,7 +44,7 @@
   "dependencies": {
     "@types/debug": "^4.1.5",
     "@types/n3": "^1.1.1",
-    "@xanthous/n3": "^1.3.1",
+    "@xanthous/n3": "^1.3.5",
     "class-transformer": "^0.2.3",
     "class-validator": "^0.10.2",
     "debug": "^4.1.1",

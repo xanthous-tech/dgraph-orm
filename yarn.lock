@@ -967,10 +967,10 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@xanthous/n3@^1.3.1":
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/@xanthous/n3/-/n3-1.3.1.tgz#e8a55cef8041cdba6048a48b5b04b2e7def8cf5b"
-  integrity sha512-YOlFR8vHiEo+T1zWrTteG89pJXV/ijLkffV7TZI0Y2wGXyANw8R/JRKPuE2zPF4P4IaxOOS+Bgb09EzI3CDl4g==
+"@xanthous/n3@^1.3.5":
+  version "1.3.5"
+  resolved "https://registry.yarnpkg.com/@xanthous/n3/-/n3-1.3.5.tgz#c3b6504190966ef5bc422d81ad8f2ee10bf86700"
+  integrity sha512-bYJwIOO2maWn3qclu6o5N0VEHYVC5ECQEjhW1fuIDtkqkzqLuzFgdZB2rQQtPcsE6qH8amDZFKuzGLWeFVGBDg==
 
 abab@^2.0.0:
   version "2.0.3"
