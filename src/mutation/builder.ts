@@ -7,6 +7,7 @@ import { DiffTracker } from './tracker';
 import { FacetStorage } from '../facet';
 import { PredicateImpl } from '../utils/predicate-impl';
 import { CircularTracker } from '../utils/circular-tracker';
+import { PropertyTypeUtils } from '../types/property';
 
 /**
  * Dgraph type prefix to add on the new nodes.
@@ -164,13 +165,34 @@ namespace Private {
     return DataFactory.blankNode(UUID('hex').toString());
   }
 
-  export function getSetChangeQuads(target: Object, targetNode: NamedNode | BlankNode) {
+  export function getSetChangeQuads(target: Object, targetNode: NamedNode | BlankNode): Quad[] {
+    const metadata = MetadataStorage.Instance.properties.get(target.constructor.name);
+
+    if (!metadata) {
+      return []; // probably shouldn't happen
+    }
+
     const quads: Quad[] = [];
     const changes = DiffTracker.getSets(target);
     if (changes.length > 0) {
-      changes.forEach(c =>
-        quads.push(DataFactory.quad(targetNode, DataFactory.namedNode(c.key), DataFactory.literal(c.get())))
-      );
+      changes.forEach(c => {
+        const propertyMetadata = metadata.find(pm => pm.args.propertyName === c.key);
+
+        if (!propertyMetadata) {
+          return;
+        }
+
+        quads.push(
+          DataFactory.quad(
+            targetNode,
+            DataFactory.namedNode(c.key),
+            DataFactory.literal(
+              c.get(),
+              PropertyTypeUtils.getLiteralTypeNamedNode(propertyMetadata.args.type),
+            ),
+          ),
+        );
+      });
     }
 
     return quads;
