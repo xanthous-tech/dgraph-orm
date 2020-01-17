@@ -1,3 +1,5 @@
+import { NamedNode, DataFactory } from '@xanthous/n3';
+
 import { ObjectLiteral } from '../utils/type';
 
 // TODO: dgraph type enums
@@ -12,6 +14,17 @@ export enum PropertyType {
   Geo = 'geo',
   Password = 'password',
   Uid = 'uid',
+}
+
+export enum DataType {
+  Default = 'xs:string',
+  Int = 'xs:int',
+  Float = 'xs:float',
+  String = 'xs:string',
+  Bool = 'xs:bool',
+  DateTime = 'xs:dateTime',
+  Geo = 'xs:geo',
+  Password = 'xs:string',
 }
 
 const REFLECTED_TYPE_TO_PREDICATE_TYPE: ObjectLiteral<PropertyType> = {
@@ -29,5 +42,26 @@ export namespace PropertyTypeUtils {
    */
   export function convertReflectedToPropertyType(reflected: string): PropertyType {
     return REFLECTED_TYPE_TO_PREDICATE_TYPE[reflected];
+  }
+
+  export function getLiteralTypeNamedNode(propertyType: PropertyType): NamedNode {
+    switch (propertyType) {
+      case PropertyType.Default:
+        return DataFactory.namedNode(DataType.Default);
+      case PropertyType.Int:
+        return DataFactory.namedNode(DataType.Int);
+      case PropertyType.Float:
+        return DataFactory.namedNode(DataType.Float);
+      case PropertyType.Bool:
+        return DataFactory.namedNode(DataType.Bool);
+      case PropertyType.DateTime:
+        return DataFactory.namedNode(DataType.DateTime);
+      case PropertyType.Geo:
+        return DataFactory.namedNode(DataType.Geo);
+      case PropertyType.Password:
+        return DataFactory.namedNode(DataType.Password);
+      default:
+        return DataFactory.namedNode(DataType.Default);
+    }
   }
 }

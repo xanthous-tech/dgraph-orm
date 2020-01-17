@@ -21,6 +21,7 @@ test('Should work', () => {
   const cell = column.hasCell.get()[0];
 
   column.columnType = 'COLUMN_NEW_TYPE';
+  column.isDefault = true;
   cell.cellType = 'TEST_NEW_TYPE';
   column.hasCell.withFacet(new ColumnCellTestFacet('42')).update(cell);
 
