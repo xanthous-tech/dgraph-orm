@@ -36,13 +36,6 @@ export namespace MutationBuilder {
   }
 
   /**
-   * A data structure to attach uid to an object.
-   *
-   * TODO: Move this into transaction context when it is implemented.
-   */
-  const CREATED_MAP = new WeakMap<Object, BlankNode | NamedNode>();
-
-  /**
    * Given a target object, returns set mutation with quads as string.
    */
   export function getSetNQuadsString(target: Object): ISetMutation<string> {
@@ -61,6 +54,7 @@ export namespace MutationBuilder {
     const quads: Quad[] = [];
     const connections: Quad[] = [];
 
+    const created = new WeakMap<Object, BlankNode | NamedNode>();
     const tracker = new CircularTracker();
 
     const recursePredicates = (t: Object, tn: BlankNode | NamedNode): void => {
@@ -79,14 +73,14 @@ export namespace MutationBuilder {
 
         ps.predicates.get().forEach((p: Object) => {
           const pn = Private.getNodeForInstance(p);
-          if (!CREATED_MAP.get(p)) {
+          if (!created.get(p)) {
             if (Util.isBlankNode(pn)) {
               // Create a new node
               quads.push(quad(pn, namedNode(DGRAPH_TYPE), literal(p.constructor.name)));
             }
             // Set mutations
             quads.push.apply(quads, Private.getSetChangeQuads(p, pn));
-            CREATED_MAP.set(p, pn);
+            created.set(p, pn);
           }
 
           const facetValue = Private.getFacetValue(ps.propertyName, t, p);
@@ -118,13 +112,13 @@ export namespace MutationBuilder {
 
     // Set mutations
     quads.push.apply(quads, Private.getSetChangeQuads(target, targetNode));
-    CREATED_MAP.set(target, targetNode);
+    created.set(target, targetNode);
 
     recursePredicates(target, targetNode);
 
     return {
       quads: quads.concat(connections),
-      nodeMap: CREATED_MAP,
+      nodeMap: created,
     };
   }
 }
@@ -133,6 +127,13 @@ export namespace MutationBuilder {
  * Module private statics
  */
 namespace Private {
+  /**
+   * A data structure to attach uid to an object.
+   *
+   * TODO: Move this into transaction context when it is implemented.
+   */
+  const TEMP_ID_MAP = new WeakMap<Object, string>();
+
   export function getFacetValue(propertyName: string, v: Object, w: Object) {
     return FacetStorage.get(propertyName, v, w) || {};
   }
@@ -162,7 +163,13 @@ namespace Private {
       }
     }
 
-    return DataFactory.blankNode(UUID('hex').toString());
+    let tempID = TEMP_ID_MAP.get(node);
+    if (!tempID) {
+      tempID = UUID('hex').toString();
+      TEMP_ID_MAP.set(node, tempID);
+    }
+
+    return DataFactory.blankNode(tempID);
   }
 
   export function getSetChangeQuads(target: Object, targetNode: NamedNode | BlankNode): Quad[] {

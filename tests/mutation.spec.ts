@@ -148,6 +148,71 @@ describe('Serialize deserialize', () => {
     console.log(MutationBuilder.getSetNQuadsString(kamil));
   });
 
+  it('should use refer to same temporary uid for node', function() {
+    @Node()
+    class Person {
+      @Uid()
+      id: string;
+
+      @Property()
+      name: string;
+    }
+
+    const kamil = new Person();
+    kamil.name = 'Kamil';
+
+    expect(MutationBuilder.getSetNQuadsString(kamil))
+        .toEqual(MutationBuilder.getSetNQuadsString(kamil));
+  });
+
+  it('should support the same recursive ID', ()=>{
+    @Node()
+    class Cell{
+      @Uid()
+      uid: string;
+
+      @Predicate({ name: 'from_row', type: () => Row })
+      fromRow: Predicate<Row>;
+
+      @Predicate({ name: 'from_column', type: () => Column })
+      fromColumn: Predicate<Column>;
+    }
+
+    @Node()
+    class Row{
+      @Uid()
+      uid: string;
+
+      @Predicate({ name: 'has_cell', type: () => Cell })
+      hasCell:  Predicate<Cell>;
+    }
+
+    @Node()
+    class Column{
+      @Uid()
+      uid: string;
+
+      @Predicate({ name: 'has_cell', type: () => Cell })
+      hasCell:  Predicate<Cell>;
+    }
+
+    const cell = new Cell();
+    const row = new Row();
+    const column = new Column();
+
+    cell.fromRow.add(row);
+    cell.fromColumn.add(column);
+
+    row.hasCell.add(cell);
+
+    const mutation = MutationBuilder.getSetNQuads(row);
+
+    const rowId = mutation.nodeMap.get(row)!.value;
+    const fromRowId = mutation.quads.find(r=>r.predicate.id === 'from_row')!.object.value;
+
+    expect(rowId).toEqual(fromRowId);
+  });
+
   it('should be able to handle reverse edges', function() {
     @Node()
     class Person {
