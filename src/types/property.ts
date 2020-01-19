@@ -1,4 +1,4 @@
-import { NamedNode, DataFactory } from '@xanthous/n3';
+import { DataFactory, NamedNode } from '@xanthous/n3';
 
 import { ObjectLiteral } from '../utils/type';
 
@@ -21,10 +21,10 @@ export enum DataType {
   Int = 'xs:int',
   Float = 'xs:float',
   String = 'xs:string',
-  Bool = 'xs:bool',
+  Bool = 'xs:boolean',
   DateTime = 'xs:dateTime',
-  Geo = 'xs:geo',
-  Password = 'xs:string',
+  Geo = 'geo:geojson',
+  Password = 'xs:password',
 }
 
 const REFLECTED_TYPE_TO_PREDICATE_TYPE: ObjectLiteral<PropertyType> = {
