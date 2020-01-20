@@ -1,6 +1,6 @@
 {
   "name": "@xanthous/dgraph-orm",
-  "version": "0.1.14",
+  "version": "0.1.14-alpha2",
   "description": "dgraph ORM in TypeScript",
   "main": "dist/index.js",
   "author": "Simon Liang <simon@x-tech.io>",
@@ -22,8 +22,8 @@
     "test": "jest"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/xanthous-tech/dgraph-orm.git"
+    "type": "git",
+    "url": "https://github.com/xanthous-tech/dgraph-orm.git"
   },
   "prettier": {
     "printWidth": 120,
