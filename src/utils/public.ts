@@ -9,14 +9,14 @@ import { CircularTracker } from './circular-tracker';
  * Utility namespace.
  */
 export namespace Utils {
-  export interface PrintOptions {
+  export interface IPrintOptions {
     depth?: number;
   }
 
   /**
    * Print the tree as object using util inspect.
    */
-  export function printObject(instance: Object, options: PrintOptions = {}): void {
+  export function printObject(instance: Object, options: IPrintOptions = {}): void {
     const inspection = util.inspect(
       toObject(instance),
       {

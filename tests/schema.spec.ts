@@ -1,4 +1,4 @@
-import { Node, Predicate, Property, Uid, PropertyType, SchemaBuilder, Index } from '../src';
+import { Node, Property, Uid, PropertyType, SchemaBuilder, Index } from '../src';
 import { MetadataStorageUtils } from '../src/metadata/storage';
 
 describe('Global schema', () => {

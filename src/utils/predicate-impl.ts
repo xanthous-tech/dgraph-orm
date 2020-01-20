@@ -1,5 +1,5 @@
 import {FacetStorage} from "../facet";
-import {Predicate} from "..";
+import { IPredicate } from "..";
 
 /**
  * Concrete implementation of the Predicate interface.
@@ -7,7 +7,7 @@ import {Predicate} from "..";
  * ### NOTE
  * Node definition overrides the predicate types.
  */
-export class PredicateImpl<T = any, U = any> implements Predicate<T, U> {
+export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
   private _facet: U | null = null;
 
   // New items in the predicate.
@@ -17,7 +17,7 @@ export class PredicateImpl<T = any, U = any> implements Predicate<T, U> {
     //
   }
 
-  withFacet(facet: U | null): Predicate<T, U> {
+  withFacet(facet: U | null): IPredicate<T, U> {
     this._facet = facet;
     return this;
   }
@@ -26,7 +26,7 @@ export class PredicateImpl<T = any, U = any> implements Predicate<T, U> {
     return FacetStorage.get(this._namespace, this._parent, node);
   }
 
-  add(node: T): Predicate<T, U> {
+  add(node: T): IPredicate<T, U> {
     if (this._facet) {
       FacetStorage.attach(this._namespace, this._parent, node, this._facet);
       this._facet = null;
@@ -38,7 +38,7 @@ export class PredicateImpl<T = any, U = any> implements Predicate<T, U> {
     return this;
   }
 
-  update(node: T): Predicate<T, U> {
+  update(node: T): IPredicate<T, U> {
     if (!this._facet) {
       FacetStorage.detach(this._namespace, this._parent, node);
       return this;

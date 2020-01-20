@@ -2,7 +2,7 @@ import * as UUID from 'instauuid';
 import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous/n3';
 
 import { MetadataStorage } from '../metadata/storage';
-import { ObjectLiteral } from '../utils/type';
+import { IObjectLiteral } from '../utils/type';
 import { DiffTracker } from './tracker';
 import { FacetStorage } from '../facet';
 import { PredicateImpl } from '../utils/predicate-impl';
@@ -27,7 +27,7 @@ export namespace MutationBuilder {
   /**
    * A generic type for built mutation value.
    */
-  export interface SetMutation<T> {
+  export interface ISetMutation<T> {
     quads: T;
 
     /**
@@ -39,7 +39,7 @@ export namespace MutationBuilder {
   /**
    * Given a target object, returns set mutation with quads as string.
    */
-  export function getSetNQuadsString(target: Object): SetMutation<string> {
+  export function getSetNQuadsString(target: Object): ISetMutation<string> {
     const { quads, nodeMap } = getSetNQuads(target);
 
     return {
@@ -51,7 +51,7 @@ export namespace MutationBuilder {
   /**
    * Given a target object, returns set mutation.
    */
-  export function getSetNQuads(target: Object): SetMutation<Quad[]> {
+  export function getSetNQuads(target: Object): ISetMutation<Quad[]> {
     const quads: Quad[] = [];
     const connections: Quad[] = [];
 
@@ -140,7 +140,7 @@ namespace Private {
   }
 
   export function getPredicatesOfNode(
-    node: ObjectLiteral<any>,
+    node: IObjectLiteral<any>,
   ): Array<{ predicates: PredicateImpl; key: string; propertyName: string }> {
     const metadata = MetadataStorage.Instance.predicates.get(node.constructor.name);
     return !metadata
@@ -157,7 +157,7 @@ namespace Private {
     return metadata || [];
   }
 
-  export function getNodeForInstance(node: ObjectLiteral<any>): NamedNode | BlankNode {
+  export function getNodeForInstance(node: IObjectLiteral<any>): NamedNode | BlankNode {
     const metadata = MetadataStorage.Instance.uids.get(node.constructor.name);
     if (metadata && metadata.length > 0) {
       const uid = node[metadata[0].args.propertyName];

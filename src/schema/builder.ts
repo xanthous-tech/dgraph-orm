@@ -12,7 +12,7 @@ export namespace SchemaBuilder {
    * Build the DGraph schema based on the type definitions.
    */
   export function build(): string {
-    const nodes = new Map<string, NodeSchemaDefinition>();
+    const nodes = new Map<string, INodeSchemaDefinition>();
     MetadataStorage.Instance.nodes.forEach(n =>
       nodes.set(n.args.name, { name: n.args.name, properties: [], indices: [], predicates: [] })
     );
@@ -59,7 +59,7 @@ ${_properties.concat(_predicates).join('\n')}
 `;
   }
 
-  function buildPropertySchema(node: NodeSchemaDefinition, property: PropertyMetadata.Args): string {
+  function buildPropertySchema(node: INodeSchemaDefinition, property: PropertyMetadata.IArgs): string {
     const parts = [];
 
     const index = node.indices.find(i => i.args.propertyName === property.propertyName);
@@ -72,7 +72,7 @@ ${_properties.concat(_predicates).join('\n')}
     return parts.join(' ') + ' .\n';
   }
 
-  function buildPredicateSchema(predicate: PredicateMetadata.Args): string {
+  function buildPredicateSchema(predicate: PredicateMetadata.IArgs): string {
     const parts = [];
 
     parts.push(`${predicate.name}: ${toArrayType('uid')}`);
@@ -92,7 +92,7 @@ ${_properties.concat(_predicates).join('\n')}
    * Defines a temporary node schema definition used as an intermediate
    * representation of a node schema derived from the metadata storage.
    */
-  interface NodeSchemaDefinition {
+  interface INodeSchemaDefinition {
     name: string;
     predicates: PredicateMetadata[];
     properties: PropertyMetadata[];

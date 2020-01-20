@@ -1,11 +1,11 @@
-import { ObjectLiteral } from '../utils/type';
+import { IObjectLiteral } from '../utils/type';
 import { DiffValue } from './value';
 
 export namespace DiffTracker {
   /**
    * All instances tracked by the tracker.
    */
-  const instances = new WeakMap<Object, ObjectLiteral<DiffValue<any>>>();
+  const instances = new WeakMap<Object, IObjectLiteral<DiffValue<any>>>();
 
   /**
    * Register an instance for tracking.

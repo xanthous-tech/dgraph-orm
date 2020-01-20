@@ -12,7 +12,7 @@ const DEFAULT_INDEX_TYPE = 'string';
 /**
  * A decorator to annotate properties to index on.
  */
-export function Index(options: Index.Options): PropertyDecorator {
+export function Index(options: Index.IOptions): PropertyDecorator {
   return function(target: Object, propertyName: string): void {
     MetadataStorage.Instance.addIndexMetadata({
       type: (options && options.type) || DEFAULT_INDEX_TYPE,
@@ -26,7 +26,7 @@ export namespace Index {
   /**
    * Options for the `Index` decorator.
    */
-  export interface Options {
+  export interface IOptions {
     type: string;
   }
 }
@@ -35,7 +35,7 @@ export namespace Index {
  * A decorator to annotate properties on a DGraph Node class. Only the properties
  * decorated with this decorator will be treated as a node property.
  */
-export function Property(options: Property.Options = {}): PropertyDecorator {
+export function Property(options: Property.IOptions = {}): PropertyDecorator {
   return function(target: Object, propertyName: string): void {
     const { type, isArray } = Private.sanitizePropertyType(options, target, propertyName);
     if (!type || !Private.isPropertyType(type)) {
@@ -72,7 +72,7 @@ export namespace Property {
   /**
    * Options for the `PropertyType` decorator.
    */
-  export interface Options {
+  export interface IOptions {
     /**
      * Dgraph type of the predicate.
      */
@@ -100,7 +100,7 @@ namespace Private {
    * nodes.
    */
   export function sanitizePropertyType(
-    options: Property.Options,
+    options: Property.IOptions,
     target: Object,
     propertyName: string): { isArray: boolean; type: PropertyType } {
     let type = options.type;

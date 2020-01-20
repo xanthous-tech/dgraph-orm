@@ -3,7 +3,7 @@ import { plainToClass, Exclude } from 'class-transformer';
 import { MetadataStorage } from '../metadata/storage';
 import { DiffTracker } from '../mutation/tracker';
 import { Constructor } from '../utils/class';
-import { ObjectLiteral } from '../utils/type';
+import { IObjectLiteral } from '../utils/type';
 import { PredicateImpl } from '../utils/predicate-impl';
 import { FacetStorage } from '../facet';
 
@@ -11,7 +11,7 @@ import { FacetStorage } from '../facet';
  * A decorator to annotate properties on a DGraph Node class. Only the properties
  * decorated with this decorator will be treated as a node property.
  */
-export function Predicate(options: Predicate.Options): PropertyDecorator {
+export function Predicate(options: Predicate.IOptions): PropertyDecorator {
   // Value envelope to store values of the decorated property.
   const values = new WeakMap<Object, Predicate<any, any>>();
 
@@ -46,7 +46,7 @@ export function Predicate(options: Predicate.Options): PropertyDecorator {
         // Here we setup facets and clean up the class-transformer artifacts of on the instance.
         value.get().forEach((v: any) => {
           if (facets) {
-            const plain = facets.reduce<ObjectLiteral<any>>(
+            const plain = facets.reduce<IObjectLiteral<any>>(
               (acc, f) => {
                 const facetPropertyName = `${name}|${f.args.propertyName}`;
 
@@ -56,7 +56,7 @@ export function Predicate(options: Predicate.Options): PropertyDecorator {
 
                 return acc;
               },
-              {} as ObjectLiteral<any>
+              {} as IObjectLiteral<any>
             );
 
             const instance = plainToClass(options.facet!, plain);
@@ -96,7 +96,7 @@ export namespace Predicate {
   /**
    * Options for the `Predicate` decorator.
    */
-  export interface Options {
+  export interface IOptions {
     /**
      * Dgraph type of the predicate.
      */
@@ -123,7 +123,7 @@ export namespace Predicate {
 /**
  * Type definition of the predicate.
  */
-export interface Predicate<T, U = void> {
+export interface IPredicate<T, U = void> {
   /**
    * Attach a facet to a node connection.
    *
@@ -132,7 +132,7 @@ export interface Predicate<T, U = void> {
    * While it is possible to satisfy to type using a plain object,
    * it breaks the behaviour of the mapper.
    */
-  withFacet(facet: U | null): Predicate<T, U>;
+  withFacet(facet: U | null): IPredicate<T, U>;
 
   /**
    * Get an attached facet value of a node.
@@ -142,7 +142,7 @@ export interface Predicate<T, U = void> {
   /**
    * Add a new node to the connection.
    */
-  add(node: T): Predicate<T, U>;
+  add(node: T): IPredicate<T, U>;
 
   /**
    * Used for updating a facet on a predicate connection.
@@ -157,7 +157,7 @@ export interface Predicate<T, U = void> {
    *    parent.withFacet(null).update(child);
    * ```
    */
-  update(node: T): Predicate<T, U>;
+  update(node: T): IPredicate<T, U>;
 
   /**
    * Get all nodes on the connection.

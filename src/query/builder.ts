@@ -2,7 +2,7 @@ import {MetadataStorage} from "../metadata/storage";
 import { Constructor } from "src/utils/class";
 
 export namespace QueryBuilder {
-  export function buildFragment<T extends Object, K extends keyof T = keyof T>(instance: Constructor<T>, options?: BuildFragmentOptions<K>): Fragment {
+  export function buildFragment<T extends Object, K extends keyof T = keyof T>(instance: Constructor<T>, options?: IBuildFragmentOptions<K>): IFragment {
 
     const exclude= (options && options.exclude ) || [];
     const predicateMetadata =  MetadataStorage.Instance.predicates.get(instance.name);
@@ -22,13 +22,13 @@ export namespace QueryBuilder {
     }
   }
 
-  export interface Fragment {
+  export interface IFragment {
     fragment: string;
     handle: string;
 
   }
 
-  export interface BuildFragmentOptions<T> {
+  export interface IBuildFragmentOptions<T> {
     exclude?: T[];
   }
 }

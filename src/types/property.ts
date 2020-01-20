@@ -1,6 +1,6 @@
 import { DataFactory, NamedNode } from '@xanthous/n3';
 
-import { ObjectLiteral } from '../utils/type';
+import { IObjectLiteral } from '../utils/type';
 
 // TODO: dgraph type enums
 
@@ -27,7 +27,7 @@ export enum DataType {
   Password = 'xs:password',
 }
 
-const REFLECTED_TYPE_TO_PREDICATE_TYPE: ObjectLiteral<PropertyType> = {
+const REFLECTED_TYPE_TO_PREDICATE_TYPE: IObjectLiteral<PropertyType> = {
   string: PropertyType.String,
   boolean: PropertyType.Bool,
   number: PropertyType.Float // infer number to float.

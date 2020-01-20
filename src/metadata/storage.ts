@@ -56,7 +56,7 @@ class MetadataStorageImpl {
   /**
    * Define a new node metadata.
    */
-  addNodeMetadata(args: NodeMetadata.Args): void {
+  addNodeMetadata(args: NodeMetadata.IArgs): void {
     if (this.nodes.has(args.name)) {
       throw new Error(`Duplicate node '${args.name}' detected. Please verify each Node definition has a unique name.`);
     }
@@ -67,7 +67,7 @@ class MetadataStorageImpl {
   /**
    * Define a facet information of a predicate.
    */
-  addWithFacetMetadata(args: WithFacetMetadata.Args): void {
+  addWithFacetMetadata(args: WithFacetMetadata.IArgs): void {
     const key = args.target.constructor.name;
     const metadata = new WithFacetMetadata(args);
 
@@ -82,7 +82,7 @@ class MetadataStorageImpl {
   /**
    * Define a new facet definition.
    */
-  addFacetMetadata(args: FacetMetadata.Args): void {
+  addFacetMetadata(args: FacetMetadata.IArgs): void {
     const metadata = new FacetMetadata(args);
 
     if (this.facets.has(args.target.constructor.name)) {
@@ -96,7 +96,7 @@ class MetadataStorageImpl {
   /**
    * Define a new predicate metadata.
    */
-  addPredicateMetadata(args: PredicateMetadata.Args): void {
+  addPredicateMetadata(args: PredicateMetadata.IArgs): void {
     const existingMetadata = this.predicates.get(args.target.constructor.name);
     const checkConflict = (a: PredicateMetadata): boolean => a.args.type === args.type && a.args.name === args.name;
     if (existingMetadata && existingMetadata.some(m => checkConflict(m))) {
@@ -114,7 +114,7 @@ class MetadataStorageImpl {
   /**
    * Define a new property metadata.
    */
-  addPropertyMetadata(args: PropertyMetadata.Args): void {
+  addPropertyMetadata(args: PropertyMetadata.IArgs): void {
     const existingMetadata = this.properties.get(args.target.constructor.name);
     const checkConflict = (a: PropertyMetadata): boolean => a.args.type === args.type && a.args.name === args.name;
     if (existingMetadata && existingMetadata.some(m => checkConflict(m))) {
@@ -132,7 +132,7 @@ class MetadataStorageImpl {
   /**
    * Define a new uid property metadata.
    */
-  addUidMetadata(args: UidMetadata.Args): void {
+  addUidMetadata(args: UidMetadata.IArgs): void {
     const existingMetadata = this.uids.get(args.target.constructor.name);
     if (existingMetadata) {
       existingMetadata.push(new UidMetadata(args));
@@ -145,7 +145,7 @@ class MetadataStorageImpl {
   /**
    * Define a new index property metadata.
    */
-  addIndexMetadata(args: IndexMetadata.Args): void {
+  addIndexMetadata(args: IndexMetadata.IArgs): void {
     const existingMetadata = this.indices.get(args.target.constructor.name);
     if (existingMetadata) {
       existingMetadata.push(new IndexMetadata(args));

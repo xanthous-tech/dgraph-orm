@@ -3,7 +3,7 @@
  */
 import { MetadataStorage } from '../metadata/storage';
 
-export function Node(options: Node.Options = {}): Function {
+export function Node(options: Node.IOptions = {}): Function {
   return function(target: Function): void {
     MetadataStorage.Instance.addNodeMetadata({
       target,
@@ -16,7 +16,7 @@ export namespace Node {
   /**
    * Options for the `Node` decorator.
    */
-  export interface Options {
+  export interface IOptions {
     [key: string]: any;
   }
 }

@@ -1,13 +1,13 @@
 import { Constructor } from '../utils/class';
 
 export class PredicateMetadata {
-  constructor(readonly args: PredicateMetadata.Args) {
+  constructor(readonly args: PredicateMetadata.IArgs) {
     //
   }
 }
 
 export namespace PredicateMetadata {
-  export interface Args {
+  export interface IArgs {
     /**
      * Target object which the metadata is attached to.
      */
