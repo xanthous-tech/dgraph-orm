@@ -33,13 +33,13 @@ export namespace DiffTracker {
   /**
    * Purge all changelogs of an instance.
    */
-  export function purgeInstance(target: Object) {
+  export function purgeInstance(target: Object): void {
     const envelope = instances.get(target);
     if (!envelope) {
       return;
     }
 
-    for (let value of Object.values(envelope)) {
+    for (const value of Object.values(envelope)) {
       value.clear();
     }
   }

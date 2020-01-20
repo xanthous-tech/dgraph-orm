@@ -1,13 +1,13 @@
 import { Constructor } from '../utils/class';
 
 export class WithFacetMetadata {
-  constructor(readonly args: WithFacetMetadata.IArgs) {
+  constructor(readonly args: WithFacetMetadata.Args) {
     //
   }
 }
 
 export namespace WithFacetMetadata {
-  export interface IArgs {
+  export interface Args {
     /**
      * Target class which the facet is added to.
      */

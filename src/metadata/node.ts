@@ -1,11 +1,11 @@
 export class NodeMetadata {
-  constructor(readonly args: NodeMetadata.IArgs) {
+  constructor(readonly args: NodeMetadata.Args) {
     //
   }
 }
 
 export namespace NodeMetadata {
-  export interface IArgs {
+  export interface Args {
     /**
      * Target object which the metadata is attached to.
      */

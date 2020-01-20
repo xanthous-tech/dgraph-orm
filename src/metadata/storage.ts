@@ -18,13 +18,14 @@ export namespace MetadataStorageUtils {
    *
    * Use flush() instead.
    */
+  // eslint-disable-next-line prefer-const
   export let flushClosure: Function | null = null;
 
   /**
    * Flush all data.
    */
-  export function flush() {
-    MetadataStorageUtils.flushClosure && MetadataStorageUtils.flushClosure!();
+  export function flush(): void {
+    MetadataStorageUtils.flushClosure && MetadataStorageUtils.flushClosure();
   }
 }
 
@@ -41,7 +42,7 @@ class MetadataStorageImpl {
 
   constructor() {
     // Register a private flush method to utilities so we can use this to clear all storage during test.
-    MetadataStorageUtils.flushClosure = () => {
+    MetadataStorageUtils.flushClosure = (): void => {
       this.nodes.clear();
       this.predicates.clear();
       this.withFacets.clear();
@@ -55,7 +56,7 @@ class MetadataStorageImpl {
   /**
    * Define a new node metadata.
    */
-  addNodeMetadata(args: NodeMetadata.IArgs): void {
+  addNodeMetadata(args: NodeMetadata.Args): void {
     if (this.nodes.has(args.name)) {
       throw new Error(`Duplicate node '${args.name}' detected. Please verify each Node definition has a unique name.`);
     }
@@ -66,7 +67,7 @@ class MetadataStorageImpl {
   /**
    * Define a facet information of a predicate.
    */
-  addWithFacetMetadata(args: WithFacetMetadata.IArgs): void {
+  addWithFacetMetadata(args: WithFacetMetadata.Args): void {
     const key = args.target.constructor.name;
     const metadata = new WithFacetMetadata(args);
 
@@ -81,7 +82,7 @@ class MetadataStorageImpl {
   /**
    * Define a new facet definition.
    */
-  addFacetMetadata(args: FacetMetadata.IArgs): void {
+  addFacetMetadata(args: FacetMetadata.Args): void {
     const metadata = new FacetMetadata(args);
 
     if (this.facets.has(args.target.constructor.name)) {
@@ -95,9 +96,9 @@ class MetadataStorageImpl {
   /**
    * Define a new predicate metadata.
    */
-  addPredicateMetadata(args: PredicateMetadata.IArgs): void {
+  addPredicateMetadata(args: PredicateMetadata.Args): void {
     const existingMetadata = this.predicates.get(args.target.constructor.name);
-    const checkConflict = (a: PredicateMetadata) => a.args.type === args.type && a.args.name === args.name;
+    const checkConflict = (a: PredicateMetadata): boolean => a.args.type === args.type && a.args.name === args.name;
     if (existingMetadata && existingMetadata.some(m => checkConflict(m))) {
       throw new Error(`Conflicting predicate definition '${args.name}'`);
     }
@@ -113,9 +114,9 @@ class MetadataStorageImpl {
   /**
    * Define a new property metadata.
    */
-  addPropertyMetadata(args: PropertyMetadata.IArgs): void {
+  addPropertyMetadata(args: PropertyMetadata.Args): void {
     const existingMetadata = this.properties.get(args.target.constructor.name);
-    const checkConflict = (a: PropertyMetadata) => a.args.type === args.type && a.args.name === args.name;
+    const checkConflict = (a: PropertyMetadata): boolean => a.args.type === args.type && a.args.name === args.name;
     if (existingMetadata && existingMetadata.some(m => checkConflict(m))) {
       throw new Error(`Conflicting property definition '${args.name}'`);
     }
@@ -131,7 +132,7 @@ class MetadataStorageImpl {
   /**
    * Define a new uid property metadata.
    */
-  addUidMetadata(args: UidMetadata.IArgs): void {
+  addUidMetadata(args: UidMetadata.Args): void {
     const existingMetadata = this.uids.get(args.target.constructor.name);
     if (existingMetadata) {
       existingMetadata.push(new UidMetadata(args));
@@ -144,7 +145,7 @@ class MetadataStorageImpl {
   /**
    * Define a new index property metadata.
    */
-  addIndexMetadata(args: IndexMetadata.IArgs): void {
+  addIndexMetadata(args: IndexMetadata.Args): void {
     const existingMetadata = this.indices.get(args.target.constructor.name);
     if (existingMetadata) {
       existingMetadata.push(new IndexMetadata(args));

@@ -1,13 +1,13 @@
 import { PropertyType } from '..';
 
 export class PropertyMetadata {
-  constructor(readonly args: PropertyMetadata.IArgs) {
+  constructor(readonly args: PropertyMetadata.Args) {
     //
   }
 }
 
 export namespace PropertyMetadata {
-  export interface IArgs {
+  export interface Args {
     /**
      * Target object which the metadata is attached to.
      */
@@ -40,13 +40,13 @@ export namespace PropertyMetadata {
 }
 
 export class IndexMetadata {
-  constructor(readonly args: IndexMetadata.IArgs) {
+  constructor(readonly args: IndexMetadata.Args) {
     //
   }
 }
 
 export namespace IndexMetadata {
-  export interface IArgs {
+  export interface Args {
     /**
      * Type of the index.
      */

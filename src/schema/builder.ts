@@ -30,16 +30,16 @@ export namespace SchemaBuilder {
     });
 
     let schema = '';
-    for (let node of nodes.values()) {
+    for (const node of nodes.values()) {
       schema += buildNodeSchema(node.name, node.properties, node.predicates);
     }
 
-    for (let node of nodes.values()) {
-      for (let property of node.properties) {
+    for (const node of nodes.values()) {
+      for (const property of node.properties) {
         schema += buildPropertySchema(node, property.args);
       }
 
-      for (let predicate of node.predicates) {
+      for (const predicate of node.predicates) {
         schema += buildPredicateSchema(predicate.args);
       }
     }
@@ -59,7 +59,7 @@ ${_properties.concat(_predicates).join('\n')}
 `;
   }
 
-  function buildPropertySchema(node: NodeSchemaDefinition, property: PropertyMetadata.IArgs): string {
+  function buildPropertySchema(node: NodeSchemaDefinition, property: PropertyMetadata.Args): string {
     const parts = [];
 
     const index = node.indices.find(i => i.args.propertyName === property.propertyName);
@@ -72,7 +72,7 @@ ${_properties.concat(_predicates).join('\n')}
     return parts.join(' ') + ' .\n';
   }
 
-  function buildPredicateSchema(predicate: PredicateMetadata.IArgs): string {
+  function buildPredicateSchema(predicate: PredicateMetadata.Args): string {
     const parts = [];
 
     parts.push(`${predicate.name}: ${toArrayType('uid')}`);

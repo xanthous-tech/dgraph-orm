@@ -8,6 +8,7 @@ import { FacetStorage } from '../facet';
 import { PredicateImpl } from '../utils/predicate-impl';
 import { CircularTracker } from '../utils/circular-tracker';
 import { PropertyTypeUtils } from '../types/property';
+import { WithFacetMetadata } from 'src/metadata/with-facet';
 
 /**
  * Dgraph type prefix to add on the new nodes.
@@ -26,7 +27,7 @@ export namespace MutationBuilder {
   /**
    * A generic type for built mutation value.
    */
-  export interface ISetMutation<T> {
+  export interface SetMutation<T> {
     quads: T;
 
     /**
@@ -38,7 +39,7 @@ export namespace MutationBuilder {
   /**
    * Given a target object, returns set mutation with quads as string.
    */
-  export function getSetNQuadsString(target: Object): ISetMutation<string> {
+  export function getSetNQuadsString(target: Object): SetMutation<string> {
     const { quads, nodeMap } = getSetNQuads(target);
 
     return {
@@ -50,7 +51,7 @@ export namespace MutationBuilder {
   /**
    * Given a target object, returns set mutation.
    */
-  export function getSetNQuads(target: Object): ISetMutation<Quad[]> {
+  export function getSetNQuads(target: Object): SetMutation<Quad[]> {
     const quads: Quad[] = [];
     const connections: Quad[] = [];
 
@@ -134,11 +135,13 @@ namespace Private {
    */
   const TEMP_ID_MAP = new WeakMap<Object, string>();
 
-  export function getFacetValue(propertyName: string, v: Object, w: Object) {
+  export function getFacetValue(propertyName: string, v: Object, w: Object): any {
     return FacetStorage.get(propertyName, v, w) || {};
   }
 
-  export function getPredicatesOfNode(node: ObjectLiteral<any>) {
+  export function getPredicatesOfNode(
+    node: ObjectLiteral<any>,
+  ): Array<{ predicates: PredicateImpl; key: string; propertyName: string }> {
     const metadata = MetadataStorage.Instance.predicates.get(node.constructor.name);
     return !metadata
       ? []
@@ -149,12 +152,12 @@ namespace Private {
         }));
   }
 
-  export function getFacetsForInstance(node: Object) {
+  export function getFacetsForInstance(node: Object): WithFacetMetadata[] {
     const metadata = MetadataStorage.Instance.withFacets.get(node.constructor.name);
     return metadata || [];
   }
 
-  export function getNodeForInstance(node: ObjectLiteral<any>) {
+  export function getNodeForInstance(node: ObjectLiteral<any>): NamedNode | BlankNode {
     const metadata = MetadataStorage.Instance.uids.get(node.constructor.name);
     if (metadata && metadata.length > 0) {
       const uid = node[metadata[0].args.propertyName];

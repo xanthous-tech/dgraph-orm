@@ -4,7 +4,7 @@ import { DiffTracker } from '../mutation/tracker';
 /**
  * Facet decorator to annotate a facet definition class.
  */
-export function Facet(options: Facet.IOptions = {}): PropertyDecorator {
+export function Facet(options: Facet.Options = {}): PropertyDecorator {
   return function(target: Object, propertyKey: string): void {
     // Track diff values on the facet.
     DiffTracker.trackProperty(target, propertyKey);
@@ -20,7 +20,7 @@ export namespace Facet {
   /**
    * Facet decorator options.
    */
-  export interface IOptions {
-    //
+  export interface Options {
+    [key: string]: any;
   }
 }

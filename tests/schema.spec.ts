@@ -51,6 +51,7 @@ Person.works: [uid] @count .
   });
 });
 
+/* eslint-disable */
 namespace Private {
   /**
    * Bypass for unused locals.
@@ -59,3 +60,4 @@ namespace Private {
     // To bypass unused import.
   }
 }
+/* eslint-enable */

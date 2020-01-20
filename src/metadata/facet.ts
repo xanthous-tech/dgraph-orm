@@ -1,11 +1,11 @@
 export class FacetMetadata {
-  constructor(readonly args: FacetMetadata.IArgs) {
+  constructor(readonly args: FacetMetadata.Args) {
     //
   }
 }
 
 export namespace FacetMetadata {
-  export interface IArgs {
+  export interface Args {
     /**
      * Target class which the facet is added to.
      */

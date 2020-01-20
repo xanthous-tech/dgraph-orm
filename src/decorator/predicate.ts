@@ -11,7 +11,7 @@ import { FacetStorage } from '../facet';
  * A decorator to annotate properties on a DGraph Node class. Only the properties
  * decorated with this decorator will be treated as a node property.
  */
-export function Predicate(options: Predicate.IOptions) {
+export function Predicate(options: Predicate.Options): PropertyDecorator {
   // Value envelope to store values of the decorated property.
   const values = new WeakMap<Object, Predicate<any, any>>();
 
@@ -96,7 +96,7 @@ export namespace Predicate {
   /**
    * Options for the `Predicate` decorator.
    */
-  export interface IOptions {
+  export interface Options {
     /**
      * Dgraph type of the predicate.
      */

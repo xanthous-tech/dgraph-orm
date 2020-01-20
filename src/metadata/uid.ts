@@ -1,11 +1,11 @@
 export class UidMetadata {
-  constructor(readonly args: UidMetadata.IArgs) {
+  constructor(readonly args: UidMetadata.Args) {
     //
   }
 }
 
 export namespace UidMetadata {
-  export interface IArgs {
+  export interface Args {
     /**
      * Target object which the metadata is attached to.
      */
