@@ -1,4 +1,4 @@
-import { Node, Property, Uid, PropertyType, SchemaBuilder, Index } from '../src';
+import {Node, Property, Uid, PropertyType, SchemaBuilder, Index, Predicate, IPredicate} from '../src';
 import { MetadataStorageUtils } from '../src/metadata/storage';
 
 describe('Global schema', () => {
@@ -27,7 +27,7 @@ describe('Global schema', () => {
       hobbies: string[];
 
       @Predicate({ type: () => Work })
-      works: Work[];
+      works: IPredicate<Work>;
     }
 
     Private.noopClass(Person);

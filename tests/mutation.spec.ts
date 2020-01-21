@@ -1,10 +1,7 @@
 import { Writer } from '@xanthous/n3';
 
-import { Facet, Node, Predicate, Property, Uid } from '../src';
-
 import { MetadataStorageUtils } from '../src/metadata/storage';
-import { ObjectMapper } from '../src/serialization/mapper';
-import { MutationBuilder } from '../src/mutation/builder';
+import { Facet, IPredicate, Node, Predicate, Property, Uid, ObjectMapper, MutationBuilder } from '../src';
 
 describe('Serialize deserialize', () => {
   beforeEach(() => MetadataStorageUtils.flush());
@@ -31,7 +28,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Hobby })
-      hobbies: Predicate<Hobby>;
+      hobbies: IPredicate<Hobby>;
     }
 
     const data = [
@@ -74,7 +71,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Person, facet: PersonKnows })
-      friends: Predicate<Person, PersonKnows>;
+      friends: IPredicate<Person, PersonKnows>;
     }
 
     const data = [
@@ -129,7 +126,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Person, facet: PersonKnows })
-      friends: Predicate<Person, PersonKnows>;
+      friends: IPredicate<Person, PersonKnows>;
     }
 
     const john = new Person();
@@ -161,39 +158,38 @@ describe('Serialize deserialize', () => {
     const kamil = new Person();
     kamil.name = 'Kamil';
 
-    expect(MutationBuilder.getSetNQuadsString(kamil))
-        .toEqual(MutationBuilder.getSetNQuadsString(kamil));
+    expect(MutationBuilder.getSetNQuadsString(kamil)).toEqual(MutationBuilder.getSetNQuadsString(kamil));
   });
 
-  it('should support the same recursive ID', ()=>{
+  it('should support the same recursive ID', () => {
     @Node()
-    class Cell{
+    class Cell {
       @Uid()
       uid: string;
 
       @Predicate({ name: 'from_row', type: () => Row })
-      fromRow: Predicate<Row>;
+      fromRow: IPredicate<Row>;
 
       @Predicate({ name: 'from_column', type: () => Column })
-      fromColumn: Predicate<Column>;
+      fromColumn: IPredicate<Column>;
     }
 
     @Node()
-    class Row{
+    class Row {
       @Uid()
       uid: string;
 
       @Predicate({ name: 'has_cell', type: () => Cell })
-      hasCell:  Predicate<Cell>;
+      hasCell: IPredicate<Cell>;
     }
 
     @Node()
-    class Column{
+    class Column {
       @Uid()
       uid: string;
 
       @Predicate({ name: 'has_cell', type: () => Cell })
-      hasCell:  Predicate<Cell>;
+      hasCell: IPredicate<Cell>;
     }
 
     const cell = new Cell();
@@ -208,7 +204,7 @@ describe('Serialize deserialize', () => {
     const mutation = MutationBuilder.getSetNQuads(row);
 
     const rowId = mutation.nodeMap.get(row)!.value;
-    const fromRowId = mutation.quads.find(r=>r.predicate.id === 'from_row')!.object.value;
+    const fromRowId = mutation.quads.find(r => r.predicate.id === 'from_row')!.object.value;
 
     expect(rowId).toEqual(fromRowId);
   });
@@ -223,7 +219,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Person })
-      friends: Predicate<Person>;
+      friends: IPredicate<Person>;
     }
 
     const lola = new Person();
@@ -254,6 +250,5 @@ describe('Serialize deserialize', () => {
 
     const string = new Writer({ format: 'N-Quads' }).quadsToString(quads);
     console.log(string);
-
   });
 });

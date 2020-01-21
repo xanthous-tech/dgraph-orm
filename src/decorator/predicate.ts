@@ -13,7 +13,7 @@ import { FacetStorage } from '../facet';
  */
 export function Predicate(options: Predicate.IOptions): PropertyDecorator {
   // Value envelope to store values of the decorated property.
-  const values = new WeakMap<Object, Predicate<any, any>>();
+  const values = new WeakMap<Object, IPredicate<any, any>>();
 
   return function(target: Object, propertyName: string): void {
     let name = options.name;
