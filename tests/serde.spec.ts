@@ -1,8 +1,6 @@
-
-import { Facet, Node, Predicate, Property, Uid, Utils } from '../src';
+import { Facet, Node, Predicate, IPredicate, Property, Uid, ObjectMapper, Utils } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
-import { ObjectMapper } from '../src/serialization/mapper';
 
 describe('Serialize deserialize', () => {
   beforeEach(() => MetadataStorageUtils.flush());
@@ -57,7 +55,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Person, facet: PersonWorks })
-      people: Predicate<Person, PersonWorks>;
+      people: IPredicate<Person, PersonWorks>;
     }
 
     const data = [
@@ -116,7 +114,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Person, facet: PersonKnows })
-      friends: Predicate<Person, PersonKnows>;
+      friends: IPredicate<Person, PersonKnows>;
     }
 
     const data = [
@@ -157,27 +155,29 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Parent })
-      has_child: Predicate<Parent>;
+      has_child: IPredicate<Parent>;
     }
 
-    const data = [{
-      uid: '0x1',
-      'Parent.name': 'Parent',
-      'Parent.has_child': [
-        {
-          uid: '0x2',
-          'Parent.has_child': [
-            {
-              uid: '0x3',
-              'Parent.has_child': null,
-            }
-          ]
-        }
-      ] as any[]
-    }];
+    const data = [
+      {
+        uid: '0x1',
+        'Parent.name': 'Parent',
+        'Parent.has_child': [
+          {
+            uid: '0x2',
+            'Parent.has_child': [
+              {
+                uid: '0x3',
+                'Parent.has_child': null
+              }
+            ]
+          }
+        ] as any[]
+      }
+    ];
 
     // Circularly reference
-    data[0]['Parent.has_child'][0]['Parent.has_child'][0]['Parent.has_child'] = (data as any);
+    data[0]['Parent.has_child'][0]['Parent.has_child'][0]['Parent.has_child'] = data as any;
 
     const resource = [
       {
@@ -202,27 +202,21 @@ describe('Serialize deserialize', () => {
 
     Utils.printObject(instances[0]);
 
-    expect(
-      instances[0]
-        .has_child.get()[0].name
-    ).toEqual('Node 0x2');
+    expect(instances[0].has_child.get()[0].name).toEqual('Node 0x2');
 
     expect(
-      instances[0]
-        .has_child.get()[0]
+      instances[0].has_child
+        .get()[0]
         .has_child.get()[0]
         .has_child.get()[0].name
     ).toEqual('Node 0x1');
 
     expect(
-      instances[0]
-
-      ===
-
-      instances[0]
-        .has_child.get()[0]
-        .has_child.get()[0]
-        .has_child.get()[0]
-    ).toBeTruthy()
+      instances[0] ===
+        instances[0].has_child
+          .get()[0]
+          .has_child.get()[0]
+          .has_child.get()[0]
+    ).toBeTruthy();
   });
 });

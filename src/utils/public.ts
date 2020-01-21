@@ -1,6 +1,6 @@
 import * as util from 'util';
 
-import { Predicate } from '..';
+import { IPredicate } from '..';
 import { DiffTracker } from '../mutation/tracker';
 import { MetadataStorage } from '../metadata/storage';
 import { CircularTracker } from './circular-tracker';
@@ -24,7 +24,7 @@ export namespace Utils {
         compact: false,
         depth: options.depth || 10
       }
-    )
+    );
 
     console.log(inspection);
   }
@@ -53,7 +53,7 @@ export namespace Utils {
     // Drill down to the predicates if metadata found in the storage.
     const predicatesMetadata = MetadataStorage.Instance.predicates.get(instance.constructor.name) || [];
     predicatesMetadata.forEach(p => {
-      const predicateNodes: Predicate<any> = Reflect.get(instance, p.args.propertyName);
+      const predicateNodes: IPredicate<any> = Reflect.get(instance, p.args.propertyName);
 
       if (predicateNodes && Array.isArray(predicateNodes.get()) && !tracker.isVisited(instance, predicateNodes)) {
 
@@ -62,7 +62,7 @@ export namespace Utils {
         // Convert predicates to plain object.
         Object.defineProperty(object, p.args.propertyName, {
           enumerable: true,
-          value: predicateNodes.get().reduce((acc, pn) => {
+          value: predicateNodes.get().reduce((acc: any, pn: any) => {
             acc.push(storage.get(pn) || _toObject(pn, tracker, storage));
             return acc;
           }, [])
