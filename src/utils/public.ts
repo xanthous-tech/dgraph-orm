@@ -9,7 +9,7 @@ import { CircularTracker } from './circular-tracker';
  * Utility namespace.
  */
 export namespace Utils {
-  export interface IPrintOptions { 
+  export interface IPrintOptions {
     depth?: number;
   }
 
@@ -33,12 +33,12 @@ export namespace Utils {
    * Convert a node instance to a plain object.
    * Changes made to the plain object will not be tracked by the library.
    */
-  export function toObject(instance: Object) {
+  export function toObject(instance: Object): any {
     return _toObject(instance, new CircularTracker(), new WeakMap());
   }
 
-  function _toObject(instance: Object, tracker: CircularTracker, storage: WeakMap<Object, Object>) {
-    let object = Object.assign({}, instance);
+  function _toObject(instance: Object, tracker: CircularTracker, storage: WeakMap<Object, Object>): any {
+    const object = Object.assign({}, instance);
     if (!storage.has(instance)) {
       storage.set(instance, object);
     }

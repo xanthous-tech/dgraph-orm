@@ -1,11 +1,11 @@
-import { ObjectLiteral } from '../utils/type';
+import { IObjectLiteral } from '../utils/type';
 import { DiffValue } from './value';
 
 export namespace DiffTracker {
   /**
    * All instances tracked by the tracker.
    */
-  const instances = new WeakMap<Object, ObjectLiteral<DiffValue<any>>>();
+  const instances = new WeakMap<Object, IObjectLiteral<DiffValue<any>>>();
 
   /**
    * Register an instance for tracking.
@@ -33,13 +33,13 @@ export namespace DiffTracker {
   /**
    * Purge all changelogs of an instance.
    */
-  export function purgeInstance(target: Object) {
+  export function purgeInstance(target: Object): void {
     const envelope = instances.get(target);
     if (!envelope) {
       return;
     }
 
-    for (let value of Object.values(envelope)) {
+    for (const value of Object.values(envelope)) {
       value.clear();
     }
   }

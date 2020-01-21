@@ -1,6 +1,6 @@
 /**
  * A generic object literal type.
  */
-export interface ObjectLiteral<T = any> {
+export interface IObjectLiteral<T = any> {
   [key: string]: T;
 }

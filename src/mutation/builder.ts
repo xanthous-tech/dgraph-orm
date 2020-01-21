@@ -2,12 +2,13 @@ import * as UUID from 'instauuid';
 import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous/n3';
 
 import { MetadataStorage } from '../metadata/storage';
-import { ObjectLiteral } from '../utils/type';
+import { IObjectLiteral } from '../utils/type';
 import { DiffTracker } from './tracker';
 import { FacetStorage } from '../facet';
 import { PredicateImpl } from '../utils/predicate-impl';
 import { CircularTracker } from '../utils/circular-tracker';
 import { PropertyTypeUtils } from '../types/property';
+import { WithFacetMetadata } from 'src/metadata/with-facet';
 
 /**
  * Dgraph type prefix to add on the new nodes.
@@ -134,11 +135,13 @@ namespace Private {
    */
   const TEMP_ID_MAP = new WeakMap<Object, string>();
 
-  export function getFacetValue(propertyName: string, v: Object, w: Object) {
+  export function getFacetValue(propertyName: string, v: Object, w: Object): any {
     return FacetStorage.get(propertyName, v, w) || {};
   }
 
-  export function getPredicatesOfNode(node: ObjectLiteral<any>) {
+  export function getPredicatesOfNode(
+    node: IObjectLiteral<any>,
+  ): Array<{ predicates: PredicateImpl; key: string; propertyName: string }> {
     const metadata = MetadataStorage.Instance.predicates.get(node.constructor.name);
     return !metadata
       ? []
@@ -149,12 +152,12 @@ namespace Private {
         }));
   }
 
-  export function getFacetsForInstance(node: Object) {
+  export function getFacetsForInstance(node: Object): WithFacetMetadata[] {
     const metadata = MetadataStorage.Instance.withFacets.get(node.constructor.name);
     return metadata || [];
   }
 
-  export function getNodeForInstance(node: ObjectLiteral<any>) {
+  export function getNodeForInstance(node: IObjectLiteral<any>): NamedNode | BlankNode {
     const metadata = MetadataStorage.Instance.uids.get(node.constructor.name);
     if (metadata && metadata.length > 0) {
       const uid = node[metadata[0].args.propertyName];

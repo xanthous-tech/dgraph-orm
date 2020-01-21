@@ -24,19 +24,19 @@ export namespace QueryBuilder {
 
   export interface IFragment {
     fragment: string;
-    handle: string
+    handle: string;
 
   }
 
   export interface IBuildFragmentOptions<T> {
-    exclude?: T[]
+    exclude?: T[];
   }
 }
 
 namespace Private {
-    export function getFragmentString(handle: string, keys: string[]): string {
+  export function getFragmentString(handle: string, keys: string[]): string {
     return `fragment ${handle} {
-  ${keys.join('\n  ')} 
-}`
+${keys.join('\n  ')}
+}`;
   }
 }

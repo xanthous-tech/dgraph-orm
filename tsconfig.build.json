@@ -1,6 +1,6 @@
 {
   "compileOnSave": true,
-  "include": ["src", "types/*", "types/**/*", "node_modules/@types/**/*", "tests"],
+  "include": ["src", "types/*", "types/**/*", "node_modules/@types/**/*"],
   "exclude": ["node_modules"],
   "compilerOptions": {
     "module": "commonjs",

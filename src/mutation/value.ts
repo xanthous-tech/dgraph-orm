@@ -9,15 +9,15 @@ export class DiffValue<T> {
     //
   }
 
-  get dirty() {
+  get dirty(): boolean {
     return this._dirty;
   }
 
-  clear() {
+  clear(): void {
     this._dirty = false;
   }
 
-  set(value: T) {
+  set(value: T): void {
     this._dirty = true;
     this._value = value;
   }

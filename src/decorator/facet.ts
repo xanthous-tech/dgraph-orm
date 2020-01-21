@@ -21,6 +21,6 @@ export namespace Facet {
    * Facet decorator options.
    */
   export interface IOptions {
-    //
+    [key: string]: any;
   }
 }

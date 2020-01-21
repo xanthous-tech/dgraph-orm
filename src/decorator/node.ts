@@ -17,6 +17,6 @@ export namespace Node {
    * Options for the `Node` decorator.
    */
   export interface IOptions {
-    //
+    [key: string]: any;
   }
 }

@@ -18,13 +18,14 @@ export namespace MetadataStorageUtils {
    *
    * Use flush() instead.
    */
+  // eslint-disable-next-line prefer-const
   export let flushClosure: Function | null = null;
 
   /**
    * Flush all data.
    */
-  export function flush() {
-    MetadataStorageUtils.flushClosure && MetadataStorageUtils.flushClosure!();
+  export function flush(): void {
+    MetadataStorageUtils.flushClosure && MetadataStorageUtils.flushClosure();
   }
 }
 
@@ -41,7 +42,7 @@ class MetadataStorageImpl {
 
   constructor() {
     // Register a private flush method to utilities so we can use this to clear all storage during test.
-    MetadataStorageUtils.flushClosure = () => {
+    MetadataStorageUtils.flushClosure = (): void => {
       this.nodes.clear();
       this.predicates.clear();
       this.withFacets.clear();
@@ -97,7 +98,7 @@ class MetadataStorageImpl {
    */
   addPredicateMetadata(args: PredicateMetadata.IArgs): void {
     const existingMetadata = this.predicates.get(args.target.constructor.name);
-    const checkConflict = (a: PredicateMetadata) => a.args.type === args.type && a.args.name === args.name;
+    const checkConflict = (a: PredicateMetadata): boolean => a.args.type === args.type && a.args.name === args.name;
     if (existingMetadata && existingMetadata.some(m => checkConflict(m))) {
       throw new Error(`Conflicting predicate definition '${args.name}'`);
     }
@@ -115,7 +116,7 @@ class MetadataStorageImpl {
    */
   addPropertyMetadata(args: PropertyMetadata.IArgs): void {
     const existingMetadata = this.properties.get(args.target.constructor.name);
-    const checkConflict = (a: PropertyMetadata) => a.args.type === args.type && a.args.name === args.name;
+    const checkConflict = (a: PropertyMetadata): boolean => a.args.type === args.type && a.args.name === args.name;
     if (existingMetadata && existingMetadata.some(m => checkConflict(m))) {
       throw new Error(`Conflicting property definition '${args.name}'`);
     }

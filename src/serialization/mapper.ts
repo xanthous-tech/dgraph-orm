@@ -1,5 +1,5 @@
 import { plainToClass } from 'class-transformer';
-import { ObjectLiteral } from '../utils/type';
+import { IObjectLiteral } from '../utils/type';
 import { Constructor } from '../utils/class';
 import { DiffTracker } from '../mutation/tracker';
 import { MetadataStorage } from '../metadata/storage';
@@ -7,15 +7,15 @@ import { MetadataStorage } from '../metadata/storage';
 export namespace ObjectMapper {
   class ObjectMapperBuilder<T = any> {
     private _entryType: Constructor<T>;
-    private _jsonData: ObjectLiteral<any>[];
-    private _resource = new Map<string, ObjectLiteral<any>>();
+    private _jsonData: IObjectLiteral<any>[];
+    private _resource = new Map<string, IObjectLiteral<any>>();
 
-    addEntryType(type: Constructor<T>) {
+    addEntryType(type: Constructor<T>): ObjectMapperBuilder<T> {
       this._entryType = type;
       return this;
     }
 
-    addJsonData(data: ObjectLiteral<any> | ObjectLiteral<any>[]) {
+    addJsonData(data: IObjectLiteral<any> | IObjectLiteral<any>[]): ObjectMapperBuilder<T> {
       this._jsonData = Array.isArray(data) ? data : [data];
       return this;
     }
@@ -23,7 +23,7 @@ export namespace ObjectMapper {
     /**
      * Walk the resource graph and add all nodes into resource cache by its `uid`.
      */
-    addResourceData(data: ObjectLiteral<any> | ObjectLiteral<any>[]) {
+    addResourceData(data: IObjectLiteral<any> | IObjectLiteral<any>[]): ObjectMapperBuilder<T> {
       if (data && !(data instanceof Array) && data.uid) {
         this._resource.set(data.uid, data);
         return this;
@@ -56,7 +56,7 @@ export namespace ObjectMapper {
     }
   }
 
-  export function newBuilder<T = any>() {
+  export function newBuilder<T = any>(): ObjectMapperBuilder<T> {
     return new ObjectMapperBuilder<T>();
   }
 }
@@ -117,7 +117,7 @@ namespace Private {
    * ### NOTE
    * Expand will modify the data in-place.
    */
-  export function expand(visited: Set<string>, resource: ObjectLiteral<any>, source: ObjectLiteral<any>) {
+  export function expand(visited: Set<string>, resource: IObjectLiteral<any>, source: IObjectLiteral<any>): void {
     if (resource.has(source.uid)) {
       Object.assign(source, resource.get(source.uid));
     }

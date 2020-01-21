@@ -99,7 +99,10 @@ namespace Private {
    * and create additional metadata to help building correct serialization/deserialization on
    * nodes.
    */
-  export function sanitizePropertyType(options: Property.IOptions, target: Object, propertyName: string) {
+  export function sanitizePropertyType(
+    options: Property.IOptions,
+    target: Object,
+    propertyName: string): { isArray: boolean; type: PropertyType } {
     let type = options.type;
     let isArray = false;
 
@@ -124,7 +127,7 @@ namespace Private {
   /**
    * Get reflected type of a predicate property.
    */
-  function getPropertyReflectedType(target: Object, propertyName: string) {
+  function getPropertyReflectedType(target: Object, propertyName: string): PropertyType {
     const reflected =
       Reflect && Reflect.getMetadata ? Reflect.getMetadata('design:type', target, propertyName) : undefined;
 

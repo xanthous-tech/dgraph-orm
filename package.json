@@ -14,11 +14,12 @@
   "license": "MIT",
   "scripts": {
     "clean": "rimraf dist",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "postinstall": "npm run clean && npm run build",
     "prestart": "npm run postinstall",
     "start": "node .",
     "debug": "DEBUG=dgraph-orm:* DEBUG_DEPTH=10 ts-node --files -r tsconfig-paths/register src/index.ts",
+    "lint": "eslint ./src --ext .ts",
     "test": "jest"
   },
   "repository": {
@@ -34,6 +35,9 @@
     "@babel/preset-env": "^7.7.1",
     "@babel/preset-typescript": "^7.7.2",
     "@types/jest": "^24.0.23",
+    "@typescript-eslint/eslint-plugin": "^2.16.0",
+    "@typescript-eslint/parser": "^2.16.0",
+    "eslint": "^6.8.0",
     "jest": "^24.9.0",
     "nodemon": "^1.19.4",
     "ts-jest": "^24.1.0",
