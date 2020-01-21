@@ -7,4 +7,4 @@ Treelab
 
 # License
 
-MIT
+[MIT](./LICENSE)
