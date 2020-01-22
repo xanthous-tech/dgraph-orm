@@ -3,7 +3,7 @@ import { Writer } from '@xanthous/n3';
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { Facet, IPredicate, Node, Predicate, Property, Uid, ObjectMapper, MutationBuilder } from '../src';
 
-describe('Serialize deserialize', () => {
+describe('Mutation handling', () => {
   beforeEach(() => MetadataStorageUtils.flush());
 
   it('should handle circulars correctly', function() {

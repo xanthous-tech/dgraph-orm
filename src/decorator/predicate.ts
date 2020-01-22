@@ -165,8 +165,12 @@ export interface IPredicate<T, U = void> {
   get(): ReadonlyArray<T>;
 
   /**
-   * Tag a node for removal.
-   * This will also remove the connection between parent and child.
+   * Remove the connection between parent and child.
    */
-  remove(node: T): void;
+  detach(node: T): IPredicate<T, U>;
+
+  /**
+   * Tag a node for removal.
+   */
+  delete(node: T): IPredicate<T, U>;
 }
