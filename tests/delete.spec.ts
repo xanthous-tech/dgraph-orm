@@ -59,5 +59,12 @@ describe('Delete handling', function() {
     // Another idea is, if we can manage to get the context right, we could build
     // mutation and delete strings on the go and we would not need to walk the graph
     // at all to build these.
+
+    // This way the object builder would return a context like following
+    // {
+    //   tree: Person[];
+    //   getSetNQuads: () => string;
+    //   getDeleteNQuads: () => string;
+    // }
   });
 });
