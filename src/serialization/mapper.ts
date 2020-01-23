@@ -118,28 +118,35 @@ namespace Private {
    * Expand will modify the data in-place.
    */
   export function expand(visited: Set<string>, resource: IObjectLiteral<any>, source: IObjectLiteral<any>): void {
-    if (resource.has(source.uid)) {
-      Object.assign(source, resource.get(source.uid));
-    }
+    const queue: Array<{ resource: IObjectLiteral<any>; source: IObjectLiteral<any> }> = [];
+    queue.push({ resource, source });
 
-    Object.keys(source).forEach(key => {
-      if (key === 'dgraph.type') {
-        return;
+    while (queue.length > 0) {
+      const { resource: res, source: src } = queue.splice(0, 1)[0];
+
+      if (res.has(src.uid)) {
+        Object.assign(src, res.get(src.uid));
       }
 
-      if (!Array.isArray(source[key])) {
-        return;
-      }
-
-      source[key].forEach((node: any) => {
-        const visitingKey = `${source.uid}:${key}:${node.uid}`;
-        if (visited.has(visitingKey)) {
-          return;
+      for (const key of Object.keys(src)) {
+        if (key === 'dgraph.type') {
+          continue;
         }
 
-        visited.add(visitingKey);
-        return expand(visited, resource, node);
-      });
-    });
+        if (!Array.isArray(src[key])) {
+          continue;
+        }
+
+        for (const node of src[key]) {
+          const visitingKey = `${src.uid}:${key}:${node.uid}`;
+          if (visited.has(visitingKey)) {
+            break;
+          }
+
+          visited.add(visitingKey);
+          queue.push({ resource: res, source: node });
+        }
+      }
+    }
   }
 }
