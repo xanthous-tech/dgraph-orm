@@ -85,7 +85,7 @@ namespace Private {
 
     const instances: T[] = plainToClass(cls, plain, {
       enableCircularCheck: true,
-      strategy: "exposeAll"
+      strategy: "excludeAll"
     });
 
     // Keep reference to the instance so in case of circular we can simply get it from storage and complete the circle.
