@@ -1,6 +1,6 @@
 import * as util from 'util';
 
-import { Predicate } from '..';
+import { IPredicate } from '../decorator/predicate';
 import { DiffTracker } from '../mutation/tracker';
 import { MetadataStorage } from '../metadata/storage';
 import { CircularTracker } from './circular-tracker';
@@ -17,14 +17,11 @@ export namespace Utils {
    * Print the tree as object using util inspect.
    */
   export function printObject(instance: Object, options: IPrintOptions = {}): void {
-    const inspection = util.inspect(
-      toObject(instance),
-      {
-        colors: true,
-        compact: false,
-        depth: options.depth || 10
-      }
-    )
+    const inspection = util.inspect(toObject(instance), {
+      colors: true,
+      compact: false,
+      depth: options.depth || 10
+    });
 
     console.log(inspection);
   }
@@ -47,16 +44,15 @@ export namespace Utils {
       Object.defineProperty(object, a, {
         enumerable: true,
         value: Reflect.get(instance, a)
-      })
+      });
     });
 
     // Drill down to the predicates if metadata found in the storage.
     const predicatesMetadata = MetadataStorage.Instance.predicates.get(instance.constructor.name) || [];
     predicatesMetadata.forEach(p => {
-      const predicateNodes: Predicate<any> = Reflect.get(instance, p.args.propertyName);
+      const predicateNodes: IPredicate<any> = Reflect.get(instance, p.args.propertyName);
 
       if (predicateNodes && Array.isArray(predicateNodes.get()) && !tracker.isVisited(instance, predicateNodes)) {
-
         tracker.markVisited(instance, predicateNodes);
 
         // Convert predicates to plain object.

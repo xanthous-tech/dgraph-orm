@@ -1,5 +1,5 @@
 
-import { Facet, Node, Predicate, Property, Uid, Utils } from '../src';
+import { Facet, Node, Predicate, IPredicate, Property, Uid, Utils } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
@@ -57,7 +57,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Person, facet: PersonWorks })
-      people: Predicate<Person, PersonWorks>;
+      people: IPredicate<Person, PersonWorks>;
     }
 
     const data = [
@@ -116,7 +116,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Person, facet: PersonKnows })
-      friends: Predicate<Person, PersonKnows>;
+      friends: IPredicate<Person, PersonKnows>;
     }
 
     const data = [
@@ -157,7 +157,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Parent })
-      has_child: Predicate<Parent>;
+      has_child: IPredicate<Parent>;
     }
 
     const data = [{

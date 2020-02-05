@@ -7,7 +7,8 @@ export function Node(options: Node.IOptions = {}): Function {
   return function(target: Function): void {
     MetadataStorage.Instance.addNodeMetadata({
       target,
-      name: target.name
+      name: target.name,
+      dgraphType: options.dgraphType || target.name
     });
   };
 }
@@ -17,6 +18,10 @@ export namespace Node {
    * Options for the `Node` decorator.
    */
   export interface IOptions {
-    [key: string]: any;
+    /**
+     * Type of the node that is created in DGraph (sets `dgraph.type`). Setting name
+     * property lets user to reuse a global predicate between different nodes.
+     */
+    dgraphType?: string;
   }
 }

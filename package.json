@@ -17,9 +17,9 @@
     "build": "tsc -p tsconfig.build.json",
     "postinstall": "npm run clean && npm run build",
     "prestart": "npm run postinstall",
-    "start": "node .",
-    "debug": "DEBUG=dgraph-orm:* DEBUG_DEPTH=10 ts-node --files -r tsconfig-paths/register src/index.ts",
     "lint": "eslint ./src --ext .ts",
+    "lint:fix": "eslint ./src --ext .ts --fix",
+    "format": "prettier --write \"./src/**/*.ts\"",
     "test": "jest"
   },
   "repository": {
@@ -38,8 +38,11 @@
     "@typescript-eslint/eslint-plugin": "^2.16.0",
     "@typescript-eslint/parser": "^2.16.0",
     "eslint": "^6.8.0",
+    "husky": "^4.2.1",
     "jest": "^24.9.0",
+    "lint-staged": "^10.0.7",
     "nodemon": "^1.19.4",
+    "prettier": "^1.19.1",
     "ts-jest": "^24.1.0",
     "ts-node": "^8.4.1",
     "tsconfig-paths": "^3.9.0",
@@ -57,5 +60,21 @@
     "instauuid": "^1.0.4",
     "lodash": "^4.17.15",
     "reflect-metadata": "^0.1.13"
+  },
+  "volta": {
+    "node": "10.18.1",
+    "yarn": "1.21.1"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "npm run lint:fix",
+      "npm run format",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run test && lint-staged"
+    }
   }
 }

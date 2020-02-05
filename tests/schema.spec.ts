@@ -1,4 +1,4 @@
-import { Node, Property, Uid, PropertyType, SchemaBuilder, Index } from '../src';
+import { Node, Property, Uid, PropertyType, SchemaBuilder, Index, Predicate, IPredicate } from '../src';
 import { MetadataStorageUtils } from '../src/metadata/storage';
 
 describe('Global schema', () => {
@@ -14,7 +14,7 @@ describe('Global schema', () => {
       name: string;
     }
 
-    @Node()
+    @Node({ dgraphType: 'PERSON' })
     class Person {
       @Uid()
       id: string;
@@ -27,7 +27,7 @@ describe('Global schema', () => {
       hobbies: string[];
 
       @Predicate({ type: () => Work })
-      works: Work[];
+      works: IPredicate<Work>;
     }
 
     Private.noopClass(Person);
@@ -36,7 +36,7 @@ describe('Global schema', () => {
     const expectedSchema = `type Work {
   Work.name: string
 }
-type Person {
+type PERSON {
   name: string
   Person.hobbies: [string]
   Person.works: [Work]

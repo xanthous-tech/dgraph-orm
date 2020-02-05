@@ -1,4 +1,4 @@
-import { Node, Predicate, Property, Uid, Facet } from '../../src';
+import { Node, Predicate, IPredicate, Property, Uid, Facet } from '../../src';
 import { Cell } from './cell';
 
 export class ColumnCellTestFacet {
@@ -29,14 +29,14 @@ export class Column {
   isDefault: boolean;
 
   @Predicate({ name: 'has_rollup_update', type: () => Column })
-  has_rollup_update: Predicate<Column>;
+  has_rollup_update: IPredicate<Column>;
 
   @Predicate({ name: 'has_lookup_update', type: () => Column })
-  has_lookup_update: Predicate<Column>;
+  has_lookup_update: IPredicate<Column>;
 
   @Predicate({ name: 'from_formula_column', type: () => Column })
-  from_formula_column: Predicate<Column>;
+  from_formula_column: IPredicate<Column>;
 
   @Predicate({ name: 'has_cell', type: () => Cell, facet: ColumnCellTestFacet })
-  hasCell: Predicate<Cell, ColumnCellTestFacet>;
+  hasCell: IPredicate<Cell, ColumnCellTestFacet>;
 }
