@@ -13,7 +13,7 @@ import { FacetStorage } from '../facet';
  */
 export function Predicate(options: Predicate.IOptions): PropertyDecorator {
   // Value envelope to store values of the decorated property.
-  const values = new WeakMap<Object, Predicate<any, any>>();
+  const values = new WeakMap<Object, IPredicate<any, any>>();
 
   return function(target: Object, propertyName: string): void {
     let name = options.name;
@@ -46,18 +46,15 @@ export function Predicate(options: Predicate.IOptions): PropertyDecorator {
         // Here we setup facets and clean up the class-transformer artifacts of on the instance.
         value.get().forEach((v: any) => {
           if (facets) {
-            const plain = facets.reduce<IObjectLiteral<any>>(
-              (acc, f) => {
-                const facetPropertyName = `${name}|${f.args.propertyName}`;
+            const plain = facets.reduce<IObjectLiteral<any>>((acc, f) => {
+              const facetPropertyName = `${name}|${f.args.propertyName}`;
 
-                // Move data to facet object and remove it from the node object.
-                acc[f.args.propertyName] = v[facetPropertyName];
-                delete v[facetPropertyName];
+              // Move data to facet object and remove it from the node object.
+              acc[f.args.propertyName] = v[facetPropertyName];
+              delete v[facetPropertyName];
 
-                return acc;
-              },
-              {} as IObjectLiteral<any>
-            );
+              return acc;
+            }, {} as IObjectLiteral<any>);
 
             const instance = plainToClass(options.facet!, plain);
             FacetStorage.attach(propertyName, this, v, instance);

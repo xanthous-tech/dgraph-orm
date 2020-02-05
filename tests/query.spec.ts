@@ -1,4 +1,4 @@
-import { QueryBuilder, Facet, Node, Uid, Property, Predicate} from '../src';
+import { QueryBuilder, Facet, Node, Uid, Property, Predicate, IPredicate } from '../src';
 
 
 test('Should work', () => {
@@ -16,7 +16,7 @@ test('Should work', () => {
     name: string;
 
     @Predicate({ type: () => Person, facet: PersonKnows })
-    friends: Predicate<Person, PersonKnows>;
+    friends: IPredicate<Person, PersonKnows>;
   }
 
   const { handle, fragment } = QueryBuilder.buildFragment(Person);

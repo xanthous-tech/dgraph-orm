@@ -1,6 +1,6 @@
 import { Writer } from '@xanthous/n3';
 
-import { Facet, Node, Predicate, Property, Uid } from '../src';
+import { Facet, Node, IPredicate, Predicate, Property, Uid } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { ObjectMapper } from '../src/serialization/mapper';
@@ -31,7 +31,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Hobby })
-      hobbies: Predicate<Hobby>;
+      hobbies: IPredicate<Hobby>;
     }
 
     const data = [
@@ -74,7 +74,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Person, facet: PersonKnows })
-      friends: Predicate<Person, PersonKnows>;
+      friends: IPredicate<Person, PersonKnows>;
     }
 
     const data = [
@@ -129,7 +129,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Person, facet: PersonKnows })
-      friends: Predicate<Person, PersonKnows>;
+      friends: IPredicate<Person, PersonKnows>;
     }
 
     const john = new Person();
@@ -172,10 +172,10 @@ describe('Serialize deserialize', () => {
       uid: string;
 
       @Predicate({ name: 'from_row', type: () => Row })
-      fromRow: Predicate<Row>;
+      fromRow: IPredicate<Row>;
 
       @Predicate({ name: 'from_column', type: () => Column })
-      fromColumn: Predicate<Column>;
+      fromColumn: IPredicate<Column>;
     }
 
     @Node()
@@ -184,7 +184,7 @@ describe('Serialize deserialize', () => {
       uid: string;
 
       @Predicate({ name: 'has_cell', type: () => Cell })
-      hasCell:  Predicate<Cell>;
+      hasCell:  IPredicate<Cell>;
     }
 
     @Node()
@@ -193,7 +193,7 @@ describe('Serialize deserialize', () => {
       uid: string;
 
       @Predicate({ name: 'has_cell', type: () => Cell })
-      hasCell:  Predicate<Cell>;
+      hasCell:  IPredicate<Cell>;
     }
 
     const cell = new Cell();
@@ -223,7 +223,7 @@ describe('Serialize deserialize', () => {
       name: string;
 
       @Predicate({ type: () => Person })
-      friends: Predicate<Person>;
+      friends: IPredicate<Person>;
     }
 
     const lola = new Person();

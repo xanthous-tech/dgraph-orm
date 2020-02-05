@@ -1,4 +1,4 @@
-import { Node, Predicate, Property, Uid } from '../../src';
+import { Node, Predicate, IPredicate, Property, Uid } from '../../src';
 import { Column } from './column';
 
 @Node()
@@ -22,5 +22,5 @@ export class Cell {
   columnId: string;
 
   @Predicate({ name: 'from_column', type: () => Column })
-  from_column: Predicate<Column>;
+  from_column: IPredicate<Column>;
 }

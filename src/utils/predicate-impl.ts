@@ -1,5 +1,5 @@
-import {FacetStorage} from "../facet";
-import { IPredicate } from "..";
+import { FacetStorage } from '../facet';
+import { IPredicate } from '..';
 
 /**
  * Concrete implementation of the Predicate interface.

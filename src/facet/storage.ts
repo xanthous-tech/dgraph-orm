@@ -26,7 +26,10 @@ export namespace FacetStorage {
       _storage.get(v)!.set(namespace, new WeakMap<Object, any>());
     }
 
-    _storage.get(v)!.get(namespace)!.set(w, value);
+    _storage
+      .get(v)!
+      .get(namespace)!
+      .set(w, value);
   }
 
   /**
@@ -41,7 +44,10 @@ export namespace FacetStorage {
       return;
     }
 
-    _storage.get(v)!.get(namespace)!.delete(w);
+    _storage
+      .get(v)!
+      .get(namespace)!
+      .delete(w);
   }
 
   /**
@@ -56,6 +62,9 @@ export namespace FacetStorage {
       return;
     }
 
-    return _storage.get(v)!.get(namespace)!.get(w);
+    return _storage
+      .get(v)!
+      .get(namespace)!
+      .get(w);
   }
 }
