@@ -76,16 +76,19 @@ namespace Private {
   /**
    * Given a data class definition and plain object return an instance of the data class.
    */
-  function plainToClassExecutor<T extends Object, V>(cls: Constructor<T>, plain: V[], storage: WeakMap<Object, T[]>): T[] {
-
+  function plainToClassExecutor<T extends Object, V>(
+    cls: Constructor<T>,
+    plain: V[],
+    storage: WeakMap<Object, T[]>
+  ): T[] {
     // Bail early if already converted.
-    if (storage.has(plain)){
+    if (storage.has(plain)) {
       return storage.get(plain)!;
     }
 
     const instances: T[] = plainToClass(cls, plain, {
       enableCircularCheck: true,
-      strategy: "exposeAll"
+      strategy: 'exposeAll'
     });
 
     // Keep reference to the instance so in case of circular we can simply get it from storage and complete the circle.

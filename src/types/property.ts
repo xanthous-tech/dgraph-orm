@@ -13,7 +13,7 @@ export enum PropertyType {
   DateTime = 'dateTime',
   Geo = 'geo',
   Password = 'password',
-  Uid = 'uid',
+  Uid = 'uid'
 }
 
 export enum DataType {
@@ -24,7 +24,7 @@ export enum DataType {
   Bool = 'xs:boolean',
   DateTime = 'xs:dateTime',
   Geo = 'geo:geojson',
-  Password = 'xs:password',
+  Password = 'xs:password'
 }
 
 const REFLECTED_TYPE_TO_PREDICATE_TYPE: IObjectLiteral<PropertyType> = {
