@@ -37,6 +37,14 @@ export namespace MutationBuilder {
   }
 
   /**
+   * Given a target object, returns the IDs from global temp ID map
+   * @param target
+   */
+  export function getNodeId(target: Object): BlankNode | NamedNode {
+    return Private.getNodeForInstance(target);
+  }
+
+  /**
    * Given a target object, returns set mutation with quads as string.
    */
   export function getSetNQuadsString(target: Object): ISetMutation<string> {
