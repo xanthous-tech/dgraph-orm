@@ -1,7 +1,7 @@
 import * as util from 'util';
 
 import { IPredicate } from '..';
-import { DiffTracker } from '../transaction/tracker';
+import { DiffTracker } from '../transaction/diff-tracker';
 import { MetadataStorage } from '../metadata/storage';
 import { CircularTracker } from './circular-tracker';
 

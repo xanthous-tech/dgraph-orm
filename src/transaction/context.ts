@@ -3,7 +3,7 @@ import { plainToClass } from 'class-transformer';
 
 import { Constructor } from '../utils/class';
 import { MetadataStorage } from '../metadata/storage';
-import { DiffTracker } from './tracker';
+import { DiffTracker } from './diff-tracker';
 import { PredicateMetadata } from '../metadata/predicate';
 import { IPredicate, MutationBuilder } from '..';
 import { PredicateImpl } from '../utils/predicate-impl';

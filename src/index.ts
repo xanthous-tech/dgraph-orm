@@ -12,4 +12,4 @@ export { PropertyType } from './types/property';
 export { SchemaBuilder } from './schema/builder';
 export { MutationBuilder } from './transaction/mutation-builder';
 export { QueryBuilder } from './query/builder';
-export { ObjectMapper } from './transaction/mapper';
+export { ObjectMapper } from './transaction/object-mapper';
