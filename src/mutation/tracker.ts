@@ -16,6 +16,11 @@ export namespace DiffTracker {
   export function trackProperty(target: Object, propertyName: string, diffKey?: string): Object {
     ensureInstance(target, propertyName, diffKey || propertyName);
 
+    const initialValue = Reflect.get(target, propertyName);
+    if (initialValue) {
+      instances.get(target)![propertyName].set(initialValue);
+    }
+
     Reflect.defineProperty(target, propertyName, {
       configurable: true,
       enumerable: true,

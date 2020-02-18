@@ -57,6 +57,11 @@ describe('Mutation handling', () => {
   });
 
   it.only('should handle nested correctly', function() {
+    class PersonKnows {
+      @Facet()
+      familiarity: number;
+    }
+
     @Node()
     class Person {
       @Uid()
@@ -65,8 +70,8 @@ describe('Mutation handling', () => {
       @Property()
       name: string;
 
-      @Predicate({ type: () => Person })
-      friends: IPredicate<Person>;
+      @Predicate({ type: () => Person, facet: PersonKnows })
+      friends: IPredicate<Person, PersonKnows>;
     }
 
     const data = [
@@ -77,10 +82,12 @@ describe('Mutation handling', () => {
           {
             uid: '0x2',
             'Person.name': 'Jane',
+            'Person.friends|familiarity': 999,
             'Person.friends': [
               {
                 uid: '0x3',
-                'Person.name': 'Kamil',
+                'Person.friends|familiarity': 999,
+                'Person.name': 'Kamil'
               }
             ]
           }
@@ -93,17 +100,21 @@ describe('Mutation handling', () => {
       .addJsonData(data)
       .build();
 
+    console.log('name', instances[0].name);
+    console.log('facet', instances[0].friends.getFacet(instances[0].friends.get()[0])!.familiarity);
+
     instances[0].name = 'New John';
     const friends = instances[0].friends;
 
     friends.get()[0].name = 'New Jane';
+    friends.getFacet(friends.get()[0])!.familiarity = 666;
     instances[0].friends.get()[0].friends.get()[0].name = 'New Kamil';
 
     //
     console.log(MutationBuilder.getSetNQuadsString(instances[0]));
   });
 
-  it.only('should handle nested correctly for fresh instances', function() {
+  it('should handle nested correctly for fresh instances', function() {
     class PersonKnows {
       @Facet()
       familiarity: number;

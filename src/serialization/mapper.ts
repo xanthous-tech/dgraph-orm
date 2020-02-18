@@ -3,6 +3,10 @@ import { IObjectLiteral } from '../utils/type';
 import { Constructor } from '../utils/class';
 import { DiffTracker } from '../mutation/tracker';
 import { MetadataStorage } from '../metadata/storage';
+import { PredicateImpl } from '../utils/predicate-impl';
+import { FacetStorage } from '../facet';
+import { PredicateMetadata } from '../metadata/predicate';
+import { IPredicate } from '..';
 
 export namespace ObjectMapper {
   class ObjectMapperBuilder<T = any> {
@@ -106,6 +110,7 @@ namespace Private {
       // FIXME: If the same uid is referenced in multiple places in the data, currently we will have 2 different instances
       //   of the same object. We need to make sure we share the instance.
       predicates.forEach(pred => {
+        trackPredicate(ins, pred);
         const _preds = (plain[idx] as any)[pred.args.name];
 
         if (_preds) {
@@ -117,20 +122,132 @@ namespace Private {
     return instances;
   }
 
-  function trackProperties<T extends Object, V>(instance: T): T {
+  /**
+   * Attach diff tracker on the properties.
+   * @param instance
+   */
+  function trackProperties<T extends Object, V>(instance: T): void {
     const properties = MetadataStorage.Instance.properties.get(instance.constructor.name);
     if (!properties) {
-      return instance;
+      return;
     }
 
     properties.forEach(prop => {
       // Attach a diff tracker to the property.
+      // XXX: Maybe instead of tracking on instance we could track on
+      //   class itself. Initially could not make it work. We could spend
+      //   a little more time on it.
       const { propertyName, name } = prop.args;
       DiffTracker.trackProperty(instance, propertyName, name);
     });
 
-    return instance;
+    return;
   }
+
+  function trackPredicate<T extends Object, V>(instance: T, metadata: PredicateMetadata): void {
+    const { propertyName, facet, name } = metadata.args;
+
+    // Value envelope to store values of the decorated property.
+    let storedValue: IPredicate<any, any>;
+
+    Object.defineProperty(instance, propertyName, {
+      enumerable: true,
+      configurable: true,
+
+      get(): any {
+        if (!storedValue) {
+          storedValue = new PredicateImpl(propertyName, instance, []);
+        }
+
+        return storedValue;
+      },
+      set(value: any): void {
+        if (!value || Array.isArray(value)) {
+          value = new PredicateImpl(propertyName, instance, value || []);
+        }
+
+        const facets = MetadataStorage.Instance.facets.get((facet && facet.name) || '') || [];
+
+        // Here we setup facets and clean up the class-transformer artifacts of on the instance.
+        value.get().forEach((v: any) => {
+          const plain = facets.reduce<IObjectLiteral<any>>((acc, f) => {
+            const facetPropertyName = `${name}|${f.args.propertyName}`;
+
+            // Move data to facet object and remove it from the node object.
+            acc[f.args.propertyName] = v[facetPropertyName];
+            delete v[facetPropertyName];
+
+            return acc;
+          }, {} as IObjectLiteral<any>);
+
+          const facetInstance = plainToClass(facet!, plain);
+          FacetStorage.attach(propertyName, instance, v, facetInstance);
+
+          // Track each facet property in facet instance and reset it..
+          facets.forEach(f => DiffTracker.trackProperty(facetInstance, f.args.propertyName));
+          DiffTracker.purgeInstance(facetInstance);
+
+          // Clean up the diff on the instance.
+          DiffTracker.purgeInstance(v);
+        });
+
+        storedValue = value;
+      }
+    });
+  }
+
+  //
+  // function trackPredicate<T extends Object, V>(metadata: PredicateMetadata): void {
+  //   const { propertyName, target, facet } = metadata.args;
+  //
+  //   // Value envelope to store values of the decorated property.
+  //   const values = new WeakMap<Object, IPredicate<any, any>>();
+  //
+  //   // We define get/set on the class so we can access to the class instances.
+  //   // this will also handle wrapping raw data into predicate type.
+  //   Object.defineProperty(target, propertyName, {
+  //     enumerable: true,
+  //     configurable: true,
+  //
+  //     get(): any {
+  //       if (!values.get(this)) {
+  //         values.set(this, new PredicateImpl(propertyName, this, []));
+  //       }
+  //       return values.get(this)!;
+  //     },
+  //     set(value: any): void {
+  //       if (!value || Array.isArray(value)) {
+  //         value = new PredicateImpl(propertyName, this, value || []);
+  //       }
+  //
+  //       const facets = MetadataStorage.Instance.facets.get((facet && facet.name) || '') || [];
+  //
+  //       // Here we setup facets and clean up the class-transformer artifacts of on the instance.
+  //       value.get().forEach((v: any) => {
+  //         if (facets) {
+  //           const plain = facets.reduce<IObjectLiteral<any>>((acc, f) => {
+  //             const facetPropertyName = `${name}|${f.args.propertyName}`;
+  //
+  //             // Move data to facet object and remove it from the node object.
+  //             acc[f.args.propertyName] = v[facetPropertyName];
+  //             delete v[facetPropertyName];
+  //
+  //             return acc;
+  //           }, {} as IObjectLiteral<any>);
+  //
+  //           const instance = plainToClass(facet!, plain);
+  //           FacetStorage.attach(propertyName, this, v, instance);
+  //           DiffTracker.purgeInstance(instance);
+  //         }
+  //
+  //         // Clean up the diff on the instance.
+  //         DiffTracker.purgeInstance(v);
+  //       });
+  //
+  //       values.set(this, value);
+  //     }
+  //   });
+  // }
 
   /**
    * Visit all nodes in a tree recursively, matching node uid in the resource data and adding extra information.
