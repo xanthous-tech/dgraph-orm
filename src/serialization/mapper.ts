@@ -96,8 +96,7 @@ namespace Private {
     storage.set(plain, instances);
 
     instances.forEach((ins, idx) => {
-      // Add property trackers
-      ins = transformProperties(ins);
+      trackProperties(ins);
 
       const predicates = MetadataStorage.Instance.predicates.get(ins.constructor.name);
       if (!predicates) {
@@ -118,7 +117,7 @@ namespace Private {
     return instances;
   }
 
-  function transformProperties<T extends Object>(instance: T): T {
+  function trackProperties<T extends Object, V>(instance: T): T {
     const properties = MetadataStorage.Instance.properties.get(instance.constructor.name);
     if (!properties) {
       return instance;
@@ -126,8 +125,8 @@ namespace Private {
 
     properties.forEach(prop => {
       // Attach a diff tracker to the property.
-      // const { target, propertyName, name } = prop.args;
-      // DiffTracker.trackProperty(target, propertyName, name);
+      const { propertyName, name } = prop.args;
+      DiffTracker.trackProperty(instance, propertyName, name);
     });
 
     return instance;

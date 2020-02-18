@@ -186,7 +186,7 @@ namespace Private {
     const changes = DiffTracker.getSets(target);
     if (changes.length > 0) {
       changes.forEach(c => {
-        const propertyMetadata = metadata.find(pm => pm.args.propertyName === c.key);
+        const propertyMetadata = metadata.find(pm => pm.args.propertyName === c.key || pm.args.name === c.key);
 
         if (!propertyMetadata) {
           return;

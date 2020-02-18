@@ -1,6 +1,5 @@
 import { Expose } from 'class-transformer';
 
-import { DiffTracker } from '../mutation/tracker';
 import { MetadataStorage } from '../metadata/storage';
 import { PropertyType, PropertyTypeUtils } from '../types/property';
 
@@ -54,9 +53,6 @@ export function Property(options: Property.IOptions = {}): PropertyDecorator {
     // defined as the auto-generated name, we need to make sure property with predicate
     // decorator returns the correct value.
     Expose({ name, toClassOnly: true })(target, propertyName);
-
-    // Attach a diff tracker to the property.
-    DiffTracker.trackProperty(target, propertyName, name);
 
     MetadataStorage.Instance.addPropertyMetadata({
       type,

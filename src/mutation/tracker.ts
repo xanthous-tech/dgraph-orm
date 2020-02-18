@@ -14,16 +14,16 @@ export namespace DiffTracker {
    * Attaching a tracker on a property will make that property enumerable.
    */
   export function trackProperty(target: Object, propertyName: string, diffKey?: string): Object {
+    ensureInstance(target, propertyName, diffKey || propertyName);
+
     Reflect.defineProperty(target, propertyName, {
       configurable: true,
       enumerable: true,
       set: function(value: any) {
-        ensureInstance(this, propertyName, diffKey || propertyName);
-        instances.get(this)![propertyName].set(value);
+        instances.get(target)![propertyName].set(value);
       },
       get: function() {
-        ensureInstance(this, propertyName, diffKey || propertyName);
-        return instances.get(this)![propertyName].get();
+        return instances.get(target)![propertyName].get();
       }
     });
 
@@ -31,7 +31,7 @@ export namespace DiffTracker {
   }
 
   /**
-   * Purge all changelogs of an instance.
+   * Purge all change logs of an instance.
    */
   export function purgeInstance(target: Object): void {
     const envelope = instances.get(target);
@@ -95,7 +95,7 @@ export namespace DiffTracker {
   }
 
   /**
-   * Make sure the instance is in the weakmap
+   * Make sure the instance is in the weakmap.
    */
   function ensureInstance(instance: Object, propertyName: string, diffKey: string): void {
     if (!instances.has(instance)) {
