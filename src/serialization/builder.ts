@@ -1,14 +1,19 @@
 import * as UUID from 'instauuid';
 import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous/n3';
 
+import { WithFacetMetadata } from 'src/metadata/with-facet';
 import { MetadataStorage } from '../metadata/storage';
 import { IObjectLiteral } from '../utils/type';
-import { DiffTracker } from './tracker';
 import { FacetStorage } from '../facet';
 import { PredicateImpl } from '../utils/predicate-impl';
 import { CircularTracker } from '../utils/circular-tracker';
 import { PropertyTypeUtils } from '../types/property';
-import { WithFacetMetadata } from 'src/metadata/with-facet';
+import { Context } from './context';
+
+import quad = DataFactory.quad;
+import namedNode = DataFactory.namedNode;
+import literal = DataFactory.literal;
+import variable = DataFactory.variable;
 
 /**
  * Dgraph type prefix to add on the new nodes.
@@ -16,42 +21,39 @@ import { WithFacetMetadata } from 'src/metadata/with-facet';
 const DGRAPH_TYPE = 'dgraph.type';
 
 /**
- * Namespace for mutation builder utilities.
+ * A generic type for built mutation value.
  */
-export namespace MutationBuilder {
-  import quad = DataFactory.quad;
-  import namedNode = DataFactory.namedNode;
-  import literal = DataFactory.literal;
-  import variable = DataFactory.variable;
+export interface ISetMutation<T> {
+  quads: T;
 
   /**
-   * A generic type for built mutation value.
+   * Map of temporary uids created during the mutation build.
    */
-  export interface ISetMutation<T> {
-    quads: T;
+  nodeMap: WeakMap<Object, BlankNode | NamedNode>;
+}
 
-    /**
-     * Map of temporary uids created during the mutation build.
-     */
-    nodeMap: WeakMap<Object, BlankNode | NamedNode>;
-  }
+/**
+ * Namespace for mutation builder utilities.
+ */
+export class MutationBuilder {
+  constructor(private readonly context: Context) {}
 
   /**
    * Given a target object, returns set mutation with quads as string.
    */
-  export function getSetNQuadsString(target: Object): ISetMutation<string> {
-    const { quads, nodeMap } = getSetNQuads(target);
+  public getSetNQuadsString(target: Object): ISetMutation<string> {
+    const { quads, nodeMap } = this.getSetNQuads(target);
 
     return {
       nodeMap,
-      quads: new Writer({ format: 'N-Quads' }).quadsToString(quads),
+      quads: new Writer({ format: 'N-Quads' }).quadsToString(quads)
     };
   }
 
   /**
    * Given a target object, returns set mutation.
    */
-  export function getSetNQuads(target: Object): ISetMutation<Quad[]> {
+  public getSetNQuads(target: Object): ISetMutation<Quad[]> {
     const quads: Quad[] = [];
     const connections: Quad[] = [];
 
@@ -80,7 +82,7 @@ export namespace MutationBuilder {
               quads.push(quad(pn, namedNode(DGRAPH_TYPE), literal(p.constructor.name)));
             }
             // Set mutations
-            quads.push.apply(quads, Private.getSetChangeQuads(p, pn));
+            quads.push.apply(quads, this.getSetChangeQuads(p, pn));
             created.set(p, pn);
           }
 
@@ -88,8 +90,9 @@ export namespace MutationBuilder {
 
           // Create a relation between parent and predicate
           //   or update the existing with new facet values.
-          if (ps.predicates.getDiff().has(p) || DiffTracker.getSets(facetValue).length > 0) {
-            const facets = DiffTracker.getTrackedProperties(facetValue)
+          if (ps.predicates.getDiff().has(p) || this.context.diffTracker.getSets(facetValue).length > 0) {
+            const facets = this.context.diffTracker
+              .getTrackedProperties(facetValue)
               .map(key => ({ key, value: Reflect.get(facetValue, key) }))
               .map(kv => `${kv.key}=${kv.value}`);
 
@@ -112,15 +115,45 @@ export namespace MutationBuilder {
     }
 
     // Set mutations
-    quads.push.apply(quads, Private.getSetChangeQuads(target, targetNode));
+    quads.push.apply(quads, this.getSetChangeQuads(target, targetNode));
     created.set(target, targetNode);
 
     recursePredicates(target, targetNode);
 
     return {
       quads: quads.concat(connections),
-      nodeMap: created,
+      nodeMap: created
     };
+  }
+
+  private getSetChangeQuads(target: Object, targetNode: NamedNode | BlankNode): Quad[] {
+    const metadata = MetadataStorage.Instance.properties.get(target.constructor.name);
+
+    if (!metadata) {
+      return []; // probably shouldn't happen
+    }
+
+    const quads: Quad[] = [];
+    const changes = this.context.diffTracker.getSets(target);
+    if (changes.length > 0) {
+      changes.forEach(c => {
+        const propertyMetadata = metadata.find(pm => pm.args.propertyName === c.key || pm.args.name === c.key);
+
+        if (!propertyMetadata) {
+          return;
+        }
+
+        quads.push(
+          DataFactory.quad(
+            targetNode,
+            DataFactory.namedNode(c.key),
+            DataFactory.literal(c.get(), PropertyTypeUtils.getLiteralTypeNamedNode(propertyMetadata.args.type))
+          )
+        );
+      });
+    }
+
+    return quads;
   }
 }
 
@@ -140,7 +173,7 @@ namespace Private {
   }
 
   export function getPredicatesOfNode(
-    node: IObjectLiteral<any>,
+    node: IObjectLiteral<any>
   ): Array<{ predicates: PredicateImpl; key: string; propertyName: string }> {
     const metadata = MetadataStorage.Instance.predicates.get(node.constructor.name);
     return !metadata
@@ -173,38 +206,5 @@ namespace Private {
     }
 
     return DataFactory.blankNode(tempID);
-  }
-
-  export function getSetChangeQuads(target: Object, targetNode: NamedNode | BlankNode): Quad[] {
-    const metadata = MetadataStorage.Instance.properties.get(target.constructor.name);
-
-    if (!metadata) {
-      return []; // probably shouldn't happen
-    }
-
-    const quads: Quad[] = [];
-    const changes = DiffTracker.getSets(target);
-    if (changes.length > 0) {
-      changes.forEach(c => {
-        const propertyMetadata = metadata.find(pm => pm.args.propertyName === c.key || pm.args.name === c.key);
-
-        if (!propertyMetadata) {
-          return;
-        }
-
-        quads.push(
-          DataFactory.quad(
-            targetNode,
-            DataFactory.namedNode(c.key),
-            DataFactory.literal(
-              c.get(),
-              PropertyTypeUtils.getLiteralTypeNamedNode(propertyMetadata.args.type),
-            ),
-          ),
-        );
-      });
-    }
-
-    return quads;
   }
 }

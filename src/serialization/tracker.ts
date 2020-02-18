@@ -1,11 +1,11 @@
 import { IObjectLiteral } from '../utils/type';
 import { DiffValue } from './value';
 
-export namespace DiffTracker {
+export class DiffTracker {
   /**
    * All instances tracked by the tracker.
    */
-  const instances = new WeakMap<Object, IObjectLiteral<DiffValue<any>>>();
+  private readonly _instances = new WeakMap<Object, IObjectLiteral<DiffValue<any>>>();
 
   /**
    * Register an instance for tracking.
@@ -13,22 +13,24 @@ export namespace DiffTracker {
    * ### NOTE
    * Attaching a tracker on a property will make that property enumerable.
    */
-  export function trackProperty(target: Object, propertyName: string, diffKey?: string): Object {
-    ensureInstance(target, propertyName, diffKey || propertyName);
+  public trackProperty(target: Object, propertyName: string, diffKey?: string): Object {
+    this.ensureInstance(target, propertyName, diffKey || propertyName);
 
     const initialValue = Reflect.get(target, propertyName);
     if (initialValue) {
-      instances.get(target)![propertyName].set(initialValue);
+      this._instances.get(target)![propertyName].set(initialValue);
     }
+
+    const tracker = this;
 
     Reflect.defineProperty(target, propertyName, {
       configurable: true,
       enumerable: true,
       set: function(value: any) {
-        instances.get(target)![propertyName].set(value);
+        tracker._instances.get(target)![propertyName].set(value);
       },
       get: function() {
-        return instances.get(target)![propertyName].get();
+        return tracker._instances.get(target)![propertyName].get();
       }
     });
 
@@ -38,8 +40,8 @@ export namespace DiffTracker {
   /**
    * Purge all change logs of an instance.
    */
-  export function purgeInstance(target: Object): void {
-    const envelope = instances.get(target);
+  public purgeInstance(target: Object): void {
+    const envelope = this._instances.get(target);
     if (!envelope) {
       return;
     }
@@ -52,8 +54,8 @@ export namespace DiffTracker {
   /**
    * Get all tracked properties of an instance.
    */
-  export function getTrackedProperties(target: Object): string[] {
-    const t = instances.get(target);
+  public getTrackedProperties(target: Object): string[] {
+    const t = this._instances.get(target);
     if (!t) {
       return [];
     }
@@ -64,8 +66,8 @@ export namespace DiffTracker {
   /**
    * Get set values. When a property set to a new value, it becomes a set change.
    */
-  export function getSets(target: Object): DiffValue<any>[] {
-    const t = instances.get(target);
+  public getSets(target: Object): DiffValue<any>[] {
+    const t = this._instances.get(target);
     if (!t) {
       return [];
     }
@@ -83,8 +85,8 @@ export namespace DiffTracker {
   /**
    * Get set values. When a property set to undefined, it becomes a delete change.
    */
-  export function getDeletes(target: Object): DiffValue<any>[] {
-    const t = instances.get(target);
+  public getDeletes(target: Object): DiffValue<any>[] {
+    const t = this._instances.get(target);
     if (!t) {
       return [];
     }
@@ -102,13 +104,13 @@ export namespace DiffTracker {
   /**
    * Make sure the instance is in the weakmap.
    */
-  function ensureInstance(instance: Object, propertyName: string, diffKey: string): void {
-    if (!instances.has(instance)) {
-      instances.set(instance, {});
+  private ensureInstance(instance: Object, propertyName: string, diffKey: string): void {
+    if (!this._instances.has(instance)) {
+      this._instances.set(instance, {});
     }
 
-    if (!instances.get(instance)![propertyName]) {
-      instances.get(instance)![propertyName] = new DiffValue(diffKey);
+    if (!this._instances.get(instance)![propertyName]) {
+      this._instances.get(instance)![propertyName] = new DiffValue(diffKey);
     }
   }
 }
