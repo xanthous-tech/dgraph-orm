@@ -9,19 +9,19 @@ import { IPredicate, MutationBuilder } from '..';
 import { PredicateImpl } from '../utils/predicate-impl';
 import { IObjectLiteral } from '../utils/type';
 import { ISetMutation } from './mutation-builder';
-import {FacetStorage} from "./facet-storage";
+import { FacetStorage } from './facet-storage';
 
 /**
  * Create an environment for a mapped tree.
  */
-export class Context {
+export class Transaction {
   readonly diffTracker = new DiffTracker();
   readonly mutationBuilder = new MutationBuilder(this);
 
   /**
    *  Transform helper with circular handling.
    */
-  public transform<T extends Object, V>(entryCls: Constructor<T>, plain: V[]): Context.IEnvelope<T> {
+  public transform<T extends Object, V>(entryCls: Constructor<T>, plain: V[]): Transaction.IEnvelope<T> {
     const instanceStorage = new WeakMap();
     return {
       tree: this.plainToClassExecutor(entryCls, plain, instanceStorage),
@@ -158,7 +158,7 @@ export class Context {
   }
 }
 
-export namespace Context {
+export namespace Transaction {
   export interface IEnvelope<T> {
     tree: T[];
     getSetNQuads: (target: T) => ISetMutation<Quad[]>;

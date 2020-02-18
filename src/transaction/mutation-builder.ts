@@ -7,7 +7,7 @@ import { IObjectLiteral } from '../utils/type';
 import { PredicateImpl } from '../utils/predicate-impl';
 import { CircularTracker } from '../utils/circular-tracker';
 import { PropertyTypeUtils } from '../types/property';
-import { Context } from './context';
+import { Transaction } from './transaction';
 
 import quad = DataFactory.quad;
 import namedNode = DataFactory.namedNode;
@@ -36,7 +36,7 @@ export interface ISetMutation<T> {
  * Namespace for mutation builder utilities.
  */
 export class MutationBuilder {
-  constructor(private readonly context: Context) {}
+  constructor(private readonly context: Transaction) {}
 
   /**
    * Given a target object, returns set mutation with quads as string.

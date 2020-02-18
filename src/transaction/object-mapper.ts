@@ -1,6 +1,6 @@
 import { IObjectLiteral } from '../utils/type';
 import { Constructor } from '../utils/class';
-import { Context } from './context';
+import { Transaction } from './transaction';
 
 export namespace ObjectMapper {
   class ObjectMapperBuilder<T = any> {
@@ -34,8 +34,8 @@ export namespace ObjectMapper {
       return this;
     }
 
-    build(): Context.IEnvelope<T> {
-      const context = new Context();
+    build(): Transaction.IEnvelope<T> {
+      const context = new Transaction();
       // Do not traverse the json tree if there is no
       // resource data.
       if (this._resource.size > 0) {
