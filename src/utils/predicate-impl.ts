@@ -56,12 +56,11 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
     return this._diff;
   }
 
-  remove(node: T): void {
-    const index = this._data.findIndex(d => d !== node);
-    if (index < 0) {
-      return;
-    }
+  detach(node: T): IPredicate<T, U> {
+      throw new Error('Not implemented')
+  }
 
-    this._data.splice(index, 1);
+  delete(node: T): IPredicate<T, U> {
+    throw new Error('Not implemented')
   }
 }

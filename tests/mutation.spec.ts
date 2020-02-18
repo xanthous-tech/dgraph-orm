@@ -56,7 +56,7 @@ describe('Mutation handling', () => {
     console.log(MutationBuilder.getSetNQuadsString(person));
   });
 
-  it('should handle circulars correctly', function() {
+  it.only('should handle circulars correctly', function() {
     class PersonKnows {
       @Facet()
       familiarity: number;

@@ -68,30 +68,37 @@ namespace Private {
   /**
    *  Transform helper with circular handling.
    */
-  export function transform<T extends Object, V>(cls: Constructor<T>, plain: V[]): T[] {
+  export function transform<T extends Object, V>(entryCls: Constructor<T>, plain: V[]): T[] {
     const instanceStorage = new WeakMap();
-    return plainToClassExecutor(cls, plain, instanceStorage);
+    return plainToClassExecutor(entryCls, plain, instanceStorage);
   }
 
   /**
    * Given a data class definition and plain object return an instance of the data class.
    */
-  function plainToClassExecutor<T extends Object, V>(cls: Constructor<T>, plain: V[], storage: WeakMap<Object, T[]>): T[] {
-
+  function plainToClassExecutor<T extends Object, V>(
+    cls: Constructor<T>,
+    plain: V[],
+    storage: WeakMap<Object, T[]>
+  ): T[] {
     // Bail early if already converted.
-    if (storage.has(plain)){
+    if (storage.has(plain)) {
       return storage.get(plain)!;
     }
 
+    // Build the entry class
     const instances: T[] = plainToClass(cls, plain, {
       enableCircularCheck: true,
-      strategy: "exposeAll"
+      strategy: 'exposeAll'
     });
 
     // Keep reference to the instance so in case of circular we can simply get it from storage and complete the circle.
     storage.set(plain, instances);
 
     instances.forEach((ins, idx) => {
+      // Add property trackers
+      ins = transformProperties(ins);
+
       const predicates = MetadataStorage.Instance.predicates.get(ins.constructor.name);
       if (!predicates) {
         return;
@@ -109,6 +116,21 @@ namespace Private {
     });
 
     return instances;
+  }
+
+  function transformProperties<T extends Object>(instance: T): T {
+    const properties = MetadataStorage.Instance.properties.get(instance.constructor.name);
+    if (!properties) {
+      return instance;
+    }
+
+    properties.forEach(prop => {
+      // Attach a diff tracker to the property.
+      // const { target, propertyName, name } = prop.args;
+      // DiffTracker.trackProperty(target, propertyName, name);
+    });
+
+    return instance;
   }
 
   /**
