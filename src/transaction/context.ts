@@ -9,7 +9,7 @@ import { IPredicate, MutationBuilder } from '..';
 import { PredicateImpl } from '../utils/predicate-impl';
 import { IObjectLiteral } from '../utils/type';
 import { FacetStorage } from '../facet';
-import { ISetMutation } from './builder';
+import { ISetMutation } from './mutation-builder';
 
 /**
  * Create an environment for a mapped tree.
