@@ -6,7 +6,6 @@ import { PredicateMetadata } from './predicate';
 import { FacetMetadata } from './facet';
 import { IndexMetadata, PropertyMetadata } from './property';
 import { UidMetadata } from './uid';
-import { WithFacetMetadata } from './with-facet';
 
 /**
  * Internal utilities namespace.
@@ -37,7 +36,6 @@ class MetadataStorageImpl {
   readonly predicates = new Map<string, PredicateMetadata[]>();
   readonly uids = new Map<string, UidMetadata[]>();
   readonly indices = new Map<string, IndexMetadata[]>();
-  readonly withFacets = new Map<string, WithFacetMetadata[]>();
   readonly facets = new Map<string, FacetMetadata[]>();
 
   constructor() {
@@ -45,7 +43,6 @@ class MetadataStorageImpl {
     MetadataStorageUtils.flushClosure = (): void => {
       this.nodes.clear();
       this.predicates.clear();
-      this.withFacets.clear();
       this.properties.clear();
       this.uids.clear();
       this.indices.clear();
@@ -62,21 +59,6 @@ class MetadataStorageImpl {
     }
 
     this.nodes.set(args.name, new NodeMetadata(args));
-  }
-
-  /**
-   * Define a facet information of a predicate.
-   */
-  addWithFacetMetadata(args: WithFacetMetadata.IArgs): void {
-    const key = args.target.constructor.name;
-    const metadata = new WithFacetMetadata(args);
-
-    if (this.withFacets.has(key)) {
-      this.withFacets.get(key)!.push(metadata);
-      return;
-    }
-
-    this.withFacets.set(key, [metadata]);
   }
 
   /**
