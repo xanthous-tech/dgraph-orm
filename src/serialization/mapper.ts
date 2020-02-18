@@ -196,59 +196,6 @@ namespace Private {
     });
   }
 
-  //
-  // function trackPredicate<T extends Object, V>(metadata: PredicateMetadata): void {
-  //   const { propertyName, target, facet } = metadata.args;
-  //
-  //   // Value envelope to store values of the decorated property.
-  //   const values = new WeakMap<Object, IPredicate<any, any>>();
-  //
-  //   // We define get/set on the class so we can access to the class instances.
-  //   // this will also handle wrapping raw data into predicate type.
-  //   Object.defineProperty(target, propertyName, {
-  //     enumerable: true,
-  //     configurable: true,
-  //
-  //     get(): any {
-  //       if (!values.get(this)) {
-  //         values.set(this, new PredicateImpl(propertyName, this, []));
-  //       }
-  //       return values.get(this)!;
-  //     },
-  //     set(value: any): void {
-  //       if (!value || Array.isArray(value)) {
-  //         value = new PredicateImpl(propertyName, this, value || []);
-  //       }
-  //
-  //       const facets = MetadataStorage.Instance.facets.get((facet && facet.name) || '') || [];
-  //
-  //       // Here we setup facets and clean up the class-transformer artifacts of on the instance.
-  //       value.get().forEach((v: any) => {
-  //         if (facets) {
-  //           const plain = facets.reduce<IObjectLiteral<any>>((acc, f) => {
-  //             const facetPropertyName = `${name}|${f.args.propertyName}`;
-  //
-  //             // Move data to facet object and remove it from the node object.
-  //             acc[f.args.propertyName] = v[facetPropertyName];
-  //             delete v[facetPropertyName];
-  //
-  //             return acc;
-  //           }, {} as IObjectLiteral<any>);
-  //
-  //           const instance = plainToClass(facet!, plain);
-  //           FacetStorage.attach(propertyName, this, v, instance);
-  //           DiffTracker.purgeInstance(instance);
-  //         }
-  //
-  //         // Clean up the diff on the instance.
-  //         DiffTracker.purgeInstance(v);
-  //       });
-  //
-  //       values.set(this, value);
-  //     }
-  //   });
-  // }
-
   /**
    * Visit all nodes in a tree recursively, matching node uid in the resource data and adding extra information.
    *
