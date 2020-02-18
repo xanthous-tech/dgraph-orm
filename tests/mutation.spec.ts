@@ -98,9 +98,6 @@ describe('Mutation handling', () => {
       .addJsonData(data)
       .build();
 
-    console.log('name', instances.tree[0].name);
-    console.log('facet', instances.tree[0].friends.getFacet(instances.tree[0].friends.get()[0])!.familiarity);
-
     instances.tree[0].name = 'New John';
     const friends = instances.tree[0].friends;
 

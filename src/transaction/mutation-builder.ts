@@ -4,7 +4,6 @@ import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous
 import { WithFacetMetadata } from 'src/metadata/with-facet';
 import { MetadataStorage } from '../metadata/storage';
 import { IObjectLiteral } from '../utils/type';
-import { FacetStorage } from '../facet';
 import { PredicateImpl } from '../utils/predicate-impl';
 import { CircularTracker } from '../utils/circular-tracker';
 import { PropertyTypeUtils } from '../types/property';
@@ -14,6 +13,7 @@ import quad = DataFactory.quad;
 import namedNode = DataFactory.namedNode;
 import literal = DataFactory.literal;
 import variable = DataFactory.variable;
+import {FacetStorage} from "./facet-storage";
 
 /**
  * Dgraph type prefix to add on the new nodes.

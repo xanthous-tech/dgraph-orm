@@ -1,7 +1,6 @@
 import * as util from 'util';
 
 import { IPredicate } from '..';
-import { DiffTracker } from '../transaction/diff-tracker';
 import { MetadataStorage } from '../metadata/storage';
 import { CircularTracker } from './circular-tracker';
 
@@ -43,12 +42,12 @@ export namespace Utils {
       storage.set(instance, object);
     }
 
-    DiffTracker.getTrackedProperties(instance).forEach(a => {
-      Object.defineProperty(object, a, {
-        enumerable: true,
-        value: Reflect.get(instance, a)
-      })
-    });
+    // DiffTracker.getTrackedProperties(instance).forEach(a => {
+    //   Object.defineProperty(object, a, {
+    //     enumerable: true,
+    //     value: Reflect.get(instance, a)
+    //   })
+    // });
 
     // Drill down to the predicates if metadata found in the storage.
     const predicatesMetadata = MetadataStorage.Instance.predicates.get(instance.constructor.name) || [];

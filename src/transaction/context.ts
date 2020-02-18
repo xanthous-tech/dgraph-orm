@@ -8,8 +8,8 @@ import { PredicateMetadata } from '../metadata/predicate';
 import { IPredicate, MutationBuilder } from '..';
 import { PredicateImpl } from '../utils/predicate-impl';
 import { IObjectLiteral } from '../utils/type';
-import { FacetStorage } from '../facet';
 import { ISetMutation } from './mutation-builder';
+import {FacetStorage} from "./facet-storage";
 
 /**
  * Create an environment for a mapped tree.
