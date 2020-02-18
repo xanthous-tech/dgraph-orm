@@ -164,7 +164,7 @@ namespace Private {
   /**
    * A data structure to attach uid to an object.
    *
-   * TODO: Move this into transaction context when it is implemented.
+   * TODO: Move this into transaction transaction when it is implemented.
    */
   const TEMP_ID_MAP = new WeakMap<Object, string>();
 

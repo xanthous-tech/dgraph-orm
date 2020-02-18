@@ -92,7 +92,7 @@ namespace Private {
 
   /**
    * Find out the type of the predicate based on user defined type or reflected type
-   * and create additional metadata to help building correct serialization/deserialization on
+   * and create additional metadata to help building correct transaction/deserialization on
    * nodes.
    */
   export function sanitizePropertyType(

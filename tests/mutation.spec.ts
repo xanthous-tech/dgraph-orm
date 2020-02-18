@@ -142,7 +142,7 @@ describe('Mutation handling', () => {
     kamil.friends.withFacet({ familiarity: 42 }).add(jane);
     kamil.friends.withFacet({ familiarity: 99 }).add(john);
 
-    // TODO: We need to be able to init a new context ?
+    // TODO: We need to be able to init a new transaction ?
     // console.log(MutationBuilder.getSetNQuadsString(kamil));
   });
 

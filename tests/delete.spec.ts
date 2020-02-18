@@ -40,27 +40,27 @@ describe('Delete handling', function() {
 
     // Should builder return this envelope?
     // This one is mode flexible and easier to manage
-    // in a context.
+    // in a transaction.
     DeleteBuilder.createEnvelope(person[0])
       .detach(jane) // Tag a node for detach
       .delete(jane) // Tag a node for delete
       .getDeleteNQuadsString(); // Talk the graph and build the string
 
-    // This one is more difficult to manage in a context.
+    // This one is more difficult to manage in a transaction.
     // One removing the top level needs a separate method.
     person[0].friends
         .detach(jane)
         .delete(jane)
 
     // Personally, I prefer the second method if we work on containing the
-    // mutations in a context, delete can also be managed in the same context.
+    // mutations in a transaction, delete can also be managed in the same transaction.
     // It also does not require walking the tree again to build the mutation string.
 
-    // Another idea is, if we can manage to get the context right, we could build
+    // Another idea is, if we can manage to get the transaction right, we could build
     // mutation and delete strings on the go and we would not need to walk the graph
     // at all to build these.
 
-    // This way the object builder would return a context like following
+    // This way the object builder would return a transaction like following
     // {
     //   tree: Person[];
     //   getSetNQuads: () => string;

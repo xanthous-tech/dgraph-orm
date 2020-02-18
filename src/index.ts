@@ -10,6 +10,6 @@ export * from './utils/public';
 
 export { PropertyType } from './types/property';
 export { SchemaBuilder } from './schema/builder';
-export { MutationBuilder } from './serialization/builder';
+export { MutationBuilder } from './transaction/builder';
 export { QueryBuilder } from './query/builder';
-export { ObjectMapper } from './serialization/mapper';
+export { ObjectMapper } from './transaction/mapper';
