@@ -1,4 +1,4 @@
-import { Facet, Node, Predicate, IPredicate, Property, Uid, ObjectMapper, Utils } from '../src';
+import { Facet, Node, Predicate, IPredicate, Property, Uid, Utils } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 

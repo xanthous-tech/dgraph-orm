@@ -14,7 +14,7 @@ describe('Global schema', () => {
       name: string;
     }
 
-    @Node()
+    @Node({ dgraphType: 'PERSON' })
     class Person {
       @Uid()
       id: string;
@@ -36,7 +36,7 @@ describe('Global schema', () => {
     const expectedSchema = `type Work {
   Work.name: string
 }
-type Person {
+type PERSON {
   name: string
   Person.hobbies: [string]
   Person.works: [Work]

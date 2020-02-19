@@ -80,7 +80,7 @@ export class MutationBuilder {
           if (!created.get(p)) {
             if (Util.isBlankNode(pn)) {
               // Create a new node
-              quads.push(quad(pn, namedNode(DGRAPH_TYPE), literal(p.constructor.name)));
+              quads.push(quad(pn, namedNode(DGRAPH_TYPE), literal(Private.getNodeTypeName(p))));
             }
             // Set mutations
             quads.push.apply(quads, this.getSetChangeQuads(p, pn));
@@ -112,7 +112,7 @@ export class MutationBuilder {
     const targetNode = this.getNodeForInstance(target);
     if (Util.isBlankNode(targetNode)) {
       // Create a new node
-      quads.push(quad(targetNode, namedNode(DGRAPH_TYPE), literal(target.constructor.name)));
+      quads.push(quad(targetNode, namedNode(DGRAPH_TYPE), literal(Private.getNodeTypeName(target))));
     }
 
     // Set mutations
@@ -179,6 +179,11 @@ export class MutationBuilder {
 namespace Private {
   export function getFacetValue(propertyName: string, v: Object, w: Object): any {
     return FacetStorage.get(propertyName, v, w) || {};
+  }
+
+  export function getNodeTypeName(node: IObjectLiteral<any>): string {
+    const metadata = MetadataStorage.Instance.nodes.get(node.constructor.name);
+    return metadata!.args.dgraphType;
   }
 
   export function getPredicatesOfNode(

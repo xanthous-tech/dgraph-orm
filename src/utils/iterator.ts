@@ -10,11 +10,15 @@ export namespace Iterators {
     }
   }
 
-  export function reduce<T, U = any>(iterator: IterableIterator<U>, fn: (acc: T, item: U, idx?: number) => T, initial?: T): T | undefined {
+  export function reduce<T, U = any>(
+    iterator: IterableIterator<U>,
+    fn: (acc: T, item: U, idx?: number) => T,
+    initial?: T
+  ): T | undefined {
     let idx = 0;
     let acc = initial;
     for (const i of iterator) {
-      acc = fn(acc as any as T, i, idx);
+      acc = fn((acc as any) as T, i, idx);
       idx++;
     }
 

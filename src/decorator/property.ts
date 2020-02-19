@@ -98,7 +98,8 @@ namespace Private {
   export function sanitizePropertyType(
     options: Property.IOptions,
     target: Object,
-    propertyName: string): { isArray: boolean; type: PropertyType } {
+    propertyName: string
+  ): { isArray: boolean; type: PropertyType } {
     let type = options.type;
     let isArray = false;
 

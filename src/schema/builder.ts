@@ -14,7 +14,13 @@ export namespace SchemaBuilder {
   export function build(): string {
     const nodes = new Map<string, INodeSchemaDefinition>();
     MetadataStorage.Instance.nodes.forEach(n =>
-      nodes.set(n.args.name, { name: n.args.name, properties: [], indices: [], predicates: [] })
+      nodes.set(n.args.name, {
+        name: n.args.name,
+        type: n.args.dgraphType,
+        properties: [],
+        indices: [],
+        predicates: []
+      })
     );
 
     Iterators.forEach(MetadataStorage.Instance.predicates.keys(), k => {
@@ -31,7 +37,7 @@ export namespace SchemaBuilder {
 
     let schema = '';
     for (const node of nodes.values()) {
-      schema += buildNodeSchema(node.name, node.properties, node.predicates);
+      schema += buildNodeSchema(node.type, node.properties, node.predicates);
     }
 
     for (const node of nodes.values()) {
@@ -47,13 +53,13 @@ export namespace SchemaBuilder {
     return schema;
   }
 
-  function buildNodeSchema(nodeName: string, properties: PropertyMetadata[], predicates: PredicateMetadata[]): string {
+  function buildNodeSchema(nodeType: string, properties: PropertyMetadata[], predicates: PredicateMetadata[]): string {
     const _predicates = predicates.map(p => `  ${p.args.name}: [${p.args.type().name}]`);
     const _properties = properties.map(
       p => `  ${p.args.name}: ${p.args.isArray ? toArrayType(p.args.type) : p.args.type}`
     );
 
-    return `type ${nodeName} {
+    return `type ${nodeType} {
 ${_properties.concat(_predicates).join('\n')}
 }
 `;
@@ -94,6 +100,7 @@ ${_properties.concat(_predicates).join('\n')}
    */
   interface INodeSchemaDefinition {
     name: string;
+    type: string;
     predicates: PredicateMetadata[];
     properties: PropertyMetadata[];
     indices: IndexMetadata[];

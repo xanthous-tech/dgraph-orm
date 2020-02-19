@@ -55,7 +55,6 @@ export namespace Utils {
       const predicateNodes: IPredicate<any> = Reflect.get(instance, p.args.propertyName);
 
       if (predicateNodes && Array.isArray(predicateNodes.get()) && !tracker.isVisited(instance, predicateNodes)) {
-
         tracker.markVisited(instance, predicateNodes);
 
         // Convert predicates to plain object.
