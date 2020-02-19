@@ -1,4 +1,5 @@
 import { Quad } from 'n3';
+import * as UUID from 'instauuid';
 import { plainToClass } from 'class-transformer';
 
 import { IPredicate } from '..';
@@ -20,7 +21,25 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
    * Existing tree if transaction initialized from an existing data.
    */
   private readonly _tree: T[] = [];
+
+  /**
+   * Temp uid for new generated node.
+   *
+   * ### NOTE
+   * Fresh node node instances already have their @Uid properties
+   * populated with temp uid. This map acts as a tracker for tracking new
+   * created node instances when building mutation.
+   */
+  private readonly tempIDS = new WeakMap();
+
+  // Track property diffs
   private readonly diffTracker = new DiffTracker();
+
+  // Tracks new added predicates in the tree.
+  private readonly diffPredicateTracker = new WeakMap<Object, Set<Object>>();
+
+  // Tracks deleted predicates in the tree.
+  private readonly diffDeleteTracker = new WeakMap<Object, Set<Object>>();
 
   /**
    * Initialize a fresh transaction.
@@ -51,15 +70,24 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
   }
 
   public getSetNQuads<N extends Object>(target: N): ISetMutation<Quad[]> {
-    return new MutationBuilder(this.diffTracker).getSetNQuads(target);
+    return new MutationBuilder(this.diffTracker, this.tempIDS).getSetNQuads(target);
   }
 
   public getSetNQuadsString<N extends Object>(target: N): ISetMutation<string> {
-    return new MutationBuilder(this.diffTracker).getSetNQuadsString(target);
+    return new MutationBuilder(this.diffTracker, this.tempIDS).getSetNQuadsString(target);
   }
 
   public nodeFor<N extends Object>(nodeCls: Constructor<N>): N {
+    const metadata = MetadataStorage.Instance.uids.get(nodeCls.name);
+    if (!metadata) {
+      throw new Error('Node must have a property decorated with @Uid');
+    }
+
     const nodeInstance = new nodeCls();
+
+    const tempID = UUID('hex').toString();
+    this.tempIDS.set(nodeInstance, tempID);
+    metadata.forEach(m => ((nodeInstance as any)[m.args.propertyName] = tempID));
 
     this.trackPredicates(nodeInstance);
     this.trackProperties(nodeInstance);
@@ -161,14 +189,26 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
 
       get(): any {
         if (!storedValue) {
-          storedValue = new PredicateImpl(propertyName, instance, []);
+          storedValue = new PredicateImpl(
+            context.diffPredicateTracker,
+            context.diffDeleteTracker,
+            propertyName,
+            instance,
+            []
+          );
         }
 
         return storedValue;
       },
       set(value: any): void {
         if (!value || Array.isArray(value)) {
-          value = new PredicateImpl(propertyName, instance, value || []);
+          value = new PredicateImpl(
+            context.diffPredicateTracker,
+            context.diffDeleteTracker,
+            propertyName,
+            instance,
+            value || []
+          );
         }
 
         const facets = MetadataStorage.Instance.facets.get((facet && facet.name) || '') || [];

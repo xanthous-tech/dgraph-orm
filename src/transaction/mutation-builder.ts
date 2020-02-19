@@ -1,4 +1,3 @@
-import * as UUID from 'instauuid';
 import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous/n3';
 
 import { MetadataStorage } from '../metadata/storage';
@@ -38,7 +37,7 @@ export interface ISetMutation<T> {
  * It wraps a diff tracker and builds mutations string based on stored Metadata.
  */
 export class MutationBuilder {
-  constructor(private readonly tracker: DiffTracker) {}
+  constructor(private readonly tracker: DiffTracker, private readonly tempIdsMap: WeakMap<Object, string>) {}
 
   /**
    * Given a target object, returns set mutation with quads as string.
@@ -77,7 +76,7 @@ export class MutationBuilder {
         tracker.markVisited(t, ps.predicates);
 
         ps.predicates.get().forEach((p: Object) => {
-          const pn = Private.getNodeForInstance(p);
+          const pn = this.getNodeForInstance(p);
           if (!created.get(p)) {
             if (Util.isBlankNode(pn)) {
               // Create a new node
@@ -110,7 +109,7 @@ export class MutationBuilder {
       });
     };
 
-    const targetNode = Private.getNodeForInstance(target);
+    const targetNode = this.getNodeForInstance(target);
     if (Util.isBlankNode(targetNode)) {
       // Create a new node
       quads.push(quad(targetNode, namedNode(DGRAPH_TYPE), literal(target.constructor.name)));
@@ -157,19 +156,27 @@ export class MutationBuilder {
 
     return quads;
   }
+
+  private getNodeForInstance(node: IObjectLiteral<any>): NamedNode | BlankNode {
+    if (this.tempIdsMap.has(node)) {
+      let tempID = this.tempIdsMap.get(node);
+      return DataFactory.blankNode(tempID);
+    }
+
+    const metadata = MetadataStorage.Instance.uids.get(node.constructor.name);
+    if (!metadata) {
+      throw new Error('Node must have a property decorated with @Uid');
+    }
+
+    const uid = node[metadata[0].args.propertyName];
+    return DataFactory.namedNode(uid);
+  }
 }
 
 /**
  * Module private statics
  */
 namespace Private {
-  /**
-   * A data structure to attach uid to an object.
-   *
-   * TODO: Move this into transaction transaction when it is implemented.
-   */
-  const TEMP_ID_MAP = new WeakMap<Object, string>();
-
   export function getFacetValue(propertyName: string, v: Object, w: Object): any {
     return FacetStorage.get(propertyName, v, w) || {};
   }
@@ -185,23 +192,5 @@ namespace Private {
           key: m.args.name,
           propertyName: m.args.propertyName
         }));
-  }
-
-  export function getNodeForInstance(node: IObjectLiteral<any>): NamedNode | BlankNode {
-    const metadata = MetadataStorage.Instance.uids.get(node.constructor.name);
-    if (metadata && metadata.length > 0) {
-      const uid = node[metadata[0].args.propertyName];
-      if (uid) {
-        return DataFactory.namedNode(uid);
-      }
-    }
-
-    let tempID = TEMP_ID_MAP.get(node);
-    if (!tempID) {
-      tempID = UUID('hex').toString();
-      TEMP_ID_MAP.set(node, tempID);
-    }
-
-    return DataFactory.blankNode(tempID);
   }
 }

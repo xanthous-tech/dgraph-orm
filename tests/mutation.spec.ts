@@ -45,7 +45,9 @@ describe('Mutation handling', () => {
       .build();
 
     transaction.tree[0].hobbies.get()[0].name = 'New Hobby Name';
-    console.log(transaction.getSetNQuadsString(transaction.tree[0]));
+    expect(transaction.getSetNQuadsString(transaction.tree[0]).quads).toEqual(
+      '<0x2> <Hobby.name> "New Hobby Name"^^<xs:string> .\n'
+    );
 
     // const hobby = new Hobby();
     const hobby = transaction.nodeFor(Hobby);
@@ -107,7 +109,13 @@ describe('Mutation handling', () => {
     transaction.tree[0].friends.get()[0].friends.get()[0].name = 'New Kamil';
 
     //
-    console.log(transaction.getSetNQuadsString(transaction.tree[0]));
+    expect(transaction.getSetNQuadsString(transaction.tree[0]).quads).toEqual(
+      `<0x1> <Person.name> "New John"^^<xs:string> .
+<0x2> <Person.name> "New Jane"^^<xs:string> .
+<0x3> <Person.name> "New Kamil"^^<xs:string> .
+<0x1> <Person.friends> <0x2> (familiarity=666) .
+`
+    );
   });
 
   it('should handle nested correctly for fresh instances', function() {
@@ -142,7 +150,6 @@ describe('Mutation handling', () => {
     kamil.friends.withFacet({ familiarity: 42 }).add(jane);
     kamil.friends.withFacet({ familiarity: 99 }).add(john);
 
-    // TODO: We need to be able to init a new transaction ?
     console.log(transaction.getSetNQuadsString(kamil));
   });
 
@@ -156,10 +163,14 @@ describe('Mutation handling', () => {
       name: string;
     }
 
-    const kamil = new Person();
+    const transaction = TransactionBuilder.build();
+
+    const kamil = transaction.nodeFor(Person);
     kamil.name = 'Kamil';
 
-    // expect(MutationBuilder.getSetNQuadsString(kamil)).toEqual(MutationBuilder.getSetNQuadsString(kamil));
+    expect(kamil.id).not.toBeUndefined();
+    expect(transaction.getSetNQuadsString(kamil))
+        .toEqual(transaction.getSetNQuadsString(kamil));
   });
 
   it('should support the same recursive ID', () => {
