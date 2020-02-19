@@ -1,6 +1,8 @@
+import { Writer } from '@xanthous/n3';
+
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { Facet, IPredicate, Node, Predicate, Property, Uid } from '../src';
-import { Transaction } from '../src/transaction/transaction';
+import { TransactionBuilder } from '../src/transaction/transaction-builder';
 
 describe('Mutation handling', () => {
   beforeEach(() => MetadataStorageUtils.flush());
@@ -38,24 +40,23 @@ describe('Mutation handling', () => {
       }
     ];
 
-    const transaction = Transaction.of(Person)
+    const transaction = TransactionBuilder.of(Person)
       .addJsonData(data)
       .build();
 
     transaction.tree[0].hobbies.get()[0].name = 'New Hobby Name';
     console.log(transaction.getSetNQuadsString(transaction.tree[0]));
 
-    const hobby = new Hobby();
+    // const hobby = new Hobby();
+    const hobby = transaction.nodeFor(Hobby);
     hobby.name = 'Stuff';
 
-    const person = new Person();
-    person.name = 'Testing';
-    person.hobbies.add(hobby);
+    transaction.tree[0].hobbies.add(hobby);
 
-    console.log(transaction.getSetNQuadsString(person));
+    console.log(transaction.getSetNQuadsString(transaction.tree[0]));
   });
 
-  it.only('should handle nested correctly', function() {
+  it('should handle nested correctly', function() {
     class PersonKnows {
       @Facet()
       familiarity: number;
@@ -94,7 +95,7 @@ describe('Mutation handling', () => {
       }
     ];
 
-    const transaction = Transaction.of(Person)
+    const transaction = TransactionBuilder.of(Person)
       .addJsonData(data)
       .build();
 
@@ -127,20 +128,22 @@ describe('Mutation handling', () => {
       friends: IPredicate<Person, PersonKnows>;
     }
 
-    const john = new Person();
+    const transaction = TransactionBuilder.build();
+
+    const john = transaction.nodeFor(Person);
     john.name = 'John';
 
-    const jane = new Person();
+    const jane = transaction.nodeFor(Person);
     jane.name = 'Jane';
 
-    const kamil = new Person();
+    const kamil = transaction.nodeFor(Person);
     kamil.name = 'Kamil';
 
     kamil.friends.withFacet({ familiarity: 42 }).add(jane);
     kamil.friends.withFacet({ familiarity: 99 }).add(john);
 
     // TODO: We need to be able to init a new transaction ?
-    // console.log(MutationBuilder.getSetNQuadsString(kamil));
+    console.log(transaction.getSetNQuadsString(kamil));
   });
 
   it('should use refer to same temporary uid for node', function() {
@@ -190,21 +193,23 @@ describe('Mutation handling', () => {
       hasCell: IPredicate<Cell>;
     }
 
-    const cell = new Cell();
-    const row = new Row();
-    const column = new Column();
+    const transaction = TransactionBuilder.build();
+
+    const cell = transaction.nodeFor(Cell);
+    const row = transaction.nodeFor(Row);
+    const column = transaction.nodeFor(Column);
 
     cell.fromRow.add(row);
     cell.fromColumn.add(column);
 
     row.hasCell.add(cell);
 
-    // const mutation = MutationBuilder.getSetNQuads(row);
+    const mutation = transaction.getSetNQuads(row);
 
-    // const rowId = mutation.nodeMap.get(row)!.value;
-    // const fromRowId = mutation.quads.find(r => r.predicate.id === 'from_row')!.object.value;
+    const rowId = mutation.nodeMap.get(row)!.value;
+    const fromRowId = mutation.quads.find(r => r.predicate.id === 'from_row')!.object.value;
 
-    // expect(rowId).toEqual(fromRowId);
+    expect(rowId).toEqual(fromRowId);
   });
 
   it('should be able to handle reverse edges', function() {
@@ -220,16 +225,18 @@ describe('Mutation handling', () => {
       friends: IPredicate<Person>;
     }
 
-    const lola = new Person();
+    const transaction = TransactionBuilder.build();
+
+    const lola = transaction.nodeFor(Person);
     lola.name = 'Lola';
 
-    const john = new Person();
+    const john = transaction.nodeFor(Person);
     john.name = 'John';
 
-    const jane = new Person();
+    const jane = transaction.nodeFor(Person);
     jane.name = 'Jane';
 
-    const kamil = new Person();
+    const kamil = transaction.nodeFor(Person);
     kamil.name = 'Kamil';
 
     john.friends.add(jane).add(lola);
@@ -240,13 +247,13 @@ describe('Mutation handling', () => {
       .add(kamil)
       .add(john);
 
-    // console.log(MutationBuilder.getSetNQuadsString(john));
-    // console.log(MutationBuilder.getSetNQuadsString(lola));
+    console.log(transaction.getSetNQuadsString(john));
+    console.log(transaction.getSetNQuadsString(lola));
 
-    // const { quads, nodeMap } = MutationBuilder.getSetNQuads(john);
-    // console.log(nodeMap.get(john));
+    const { quads, nodeMap } = transaction.getSetNQuads(john);
+    console.log(nodeMap.get(john));
 
-    // const string = new Writer({ format: 'N-Quads' }).quadsToString(quads);
-    // console.log(string);
+    const string = new Writer({ format: 'N-Quads' }).quadsToString(quads);
+    console.log(string);
   });
 });

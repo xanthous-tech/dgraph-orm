@@ -6,13 +6,13 @@ import { IObjectLiteral } from '../utils/type';
 import { PredicateImpl } from '../utils/predicate-impl';
 import { CircularTracker } from '../utils/circular-tracker';
 import { PropertyTypeUtils } from '../types/property';
-import { Transaction } from './transaction';
+import { FacetStorage } from './facet-storage';
 
 import quad = DataFactory.quad;
 import namedNode = DataFactory.namedNode;
 import literal = DataFactory.literal;
 import variable = DataFactory.variable;
-import {FacetStorage} from "./facet-storage";
+import {DiffTracker} from "./diff-tracker";
 
 /**
  * Dgraph type prefix to add on the new nodes.
@@ -33,9 +33,11 @@ export interface ISetMutation<T> {
 
 /**
  * Namespace for mutation builder utilities.
+ *
+ * It wraps a diff tracker and builds mutations string based on stored Metadata.
  */
 export class MutationBuilder {
-  constructor(private readonly context: Transaction) {}
+  constructor(private readonly tracker: DiffTracker) {}
 
   /**
    * Given a target object, returns set mutation with quads as string.
@@ -89,8 +91,8 @@ export class MutationBuilder {
 
           // Create a relation between parent and predicate
           //   or update the existing with new facet values.
-          if (ps.predicates.getDiff().has(p) || this.context.diffTracker.getSets(facetValue).length > 0) {
-            const facets = this.context.diffTracker
+          if (ps.predicates.getDiff().has(p) || this.tracker.getSets(facetValue).length > 0) {
+            const facets = this.tracker
               .getTrackedProperties(facetValue)
               .map(key => ({ key, value: Reflect.get(facetValue, key) }))
               .map(kv => `${kv.key}=${kv.value}`);
@@ -133,7 +135,7 @@ export class MutationBuilder {
     }
 
     const quads: Quad[] = [];
-    const changes = this.context.diffTracker.getSets(target);
+    const changes = this.tracker.getSets(target);
     if (changes.length > 0) {
       changes.forEach(c => {
         const propertyMetadata = metadata.find(pm => pm.args.propertyName === c.key || pm.args.name === c.key);

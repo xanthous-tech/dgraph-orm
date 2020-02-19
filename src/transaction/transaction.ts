@@ -1,41 +1,75 @@
 import { Quad } from 'n3';
 import { plainToClass } from 'class-transformer';
 
-import { Constructor } from '../utils/class';
+import { IPredicate } from '..';
 import { MetadataStorage } from '../metadata/storage';
-import { DiffTracker } from './diff-tracker';
 import { PredicateMetadata } from '../metadata/predicate';
-import { IPredicate, MutationBuilder } from '..';
+import { Constructor } from '../utils/class';
 import { PredicateImpl } from '../utils/predicate-impl';
 import { IObjectLiteral } from '../utils/type';
-import { ISetMutation } from './mutation-builder';
+
+import { DiffTracker } from './diff-tracker';
 import { FacetStorage } from './facet-storage';
+import { ISetMutation, MutationBuilder } from './mutation-builder';
 
 /**
  * Create an environment for a mapped tree.
  */
-export class Transaction {
-  readonly diffTracker = new DiffTracker();
-  readonly mutationBuilder = new MutationBuilder(this);
+export class Transaction<T extends Object, V> implements ITransaction<T> {
+  /**
+   * Existing tree if transaction initialized from an existing data.
+   */
+  private readonly _tree: T[] = [];
+  private readonly diffTracker = new DiffTracker();
 
   /**
-   *  Transform helper with circular handling.
+   * Initialize a fresh transaction.
    */
-  public transform<T extends Object, V>(entryCls: Constructor<T>, plain: V[]): Transaction.IEnvelope<T> {
-    const instanceStorage = new WeakMap();
-    return {
-      tree: this.plainToClassExecutor(entryCls, plain, instanceStorage),
-      getDeleteNQuads: () => {
-        throw new Error('Not implemented');
-      },
-      getSetNQuadsString: (target: T) => {
-        return this.mutationBuilder.getSetNQuadsString(target);
-      },
-      getSetNQuads: (target: T) => {
-        return this.mutationBuilder.getSetNQuads(target);
-      }
-    };
+  constructor();
+
+  /**
+   * Initialize a transaction from an existing data.
+   */
+  constructor(entryCls: Constructor<T>, plain: V[]);
+
+  // Implementation
+  constructor(entryCls?: Constructor<T>, plain?: V[]) {
+    if (entryCls && plain) {
+      this._tree = this.plainToClassExecutor(entryCls, plain, new WeakMap());
+      this._tree.forEach(i => this.diffTracker.purgeInstance(i));
+    }
   }
+
+  //---- PUBLIC API
+
+  public get tree(): T[] {
+    return this._tree;
+  }
+
+  public getDeleteNQuads(): string {
+    throw new Error('Not implemented');
+  }
+
+  public getSetNQuads<N extends Object>(target: N): ISetMutation<Quad[]> {
+    return new MutationBuilder(this.diffTracker).getSetNQuads(target);
+  }
+
+  public getSetNQuadsString<N extends Object>(target: N): ISetMutation<string> {
+    return new MutationBuilder(this.diffTracker).getSetNQuadsString(target);
+  }
+
+  public nodeFor<N extends Object>(nodeCls: Constructor<N>): N {
+    const nodeInstance = new nodeCls();
+
+    this.trackPredicates(nodeInstance);
+    this.trackProperties(nodeInstance);
+
+    return nodeInstance;
+  }
+
+  //---- END PUBLIC API
+
+  // Private methods
 
   /**
    * Given a data class definition and plain object return an instance of the data class.
@@ -167,104 +201,32 @@ export class Transaction {
   }
 }
 
-export namespace Transaction {
-  export interface IEnvelope<T> {
-    tree: T[];
-    getSetNQuads: (target: T) => ISetMutation<Quad[]>;
-    getSetNQuadsString: (target: T) => ISetMutation<String>;
-    getDeleteNQuads: () => string;
-  }
-
-  export function of<T>(entryType: Constructor<T>): TreeMapperBuilder<T> {
-    return new TreeMapperBuilder().addEntryType(entryType)
-  }
-
-  class TreeMapperBuilder<T = any> {
-    private _entryType: Constructor<T>;
-    private _jsonData: IObjectLiteral<any>[];
-    private _resource = new Map<string, IObjectLiteral<any>>();
-
-    addEntryType(type: Constructor<T>): TreeMapperBuilder<T> {
-      this._entryType = type;
-      return this;
-    }
-
-    addJsonData(data: IObjectLiteral<any> | IObjectLiteral<any>[]): TreeMapperBuilder<T> {
-      this._jsonData = Array.isArray(data) ? data : [data];
-      return this;
-    }
-
-    /**
-     * Walk the resource graph and add all nodes into resource cache by its `uid`.
-     */
-    addResourceData(data: IObjectLiteral<any> | IObjectLiteral<any>[]): TreeMapperBuilder<T> {
-      if (data && !(data instanceof Array) && data.uid) {
-        this._resource.set(data.uid, data);
-        return this;
-      }
-
-      data.forEach((d: any) => {
-        this.addResourceData(d);
-      });
-
-      return this;
-    }
-
-    build(): Transaction.IEnvelope<T> {
-      const context = new Transaction();
-      // Do not traverse the json tree if there is no
-      // resource data.
-      if (this._resource.size > 0) {
-        const visited = new Set<string>();
-        Array.isArray(this._jsonData)
-          ? this._jsonData.map(jd => Private.expand(visited, this._resource, jd))
-          : Private.expand(visited, this._resource, this._jsonData);
-      }
-
-      if (!Array.isArray(this._jsonData)) {
-        this._jsonData = [this._jsonData];
-      }
-
-      const instances = context.transform(this._entryType, this._jsonData);
-      instances.tree.forEach(i => context.diffTracker.purgeInstance(i));
-      return instances;
-    }
-  }
-}
-
 /**
- * Module private statics
+ * Transaction public definition
  */
-namespace Private {
+export interface ITransaction<T> {
   /**
-   * Visit all nodes in a tree recursively, matching node uid in the resource data and adding extra information.
-   *
-   * ### NOTE
-   * Expand will modify the data in-place.
+   * Existing tree if transaction initialized from an existing data.
    */
-  export function expand(visited: Set<string>, resource: IObjectLiteral<any>, source: IObjectLiteral<any>): void {
-    if (resource.has(source.uid)) {
-      Object.assign(source, resource.get(source.uid));
-    }
+  tree: T[];
 
-    Object.keys(source).forEach(key => {
-      if (key === 'dgraph.type') {
-        return;
-      }
+  /**
+   * Initialize a fresh node object
+   */
+  nodeFor<N extends Object>(nodeCls: Constructor<N>): N;
 
-      if (!Array.isArray(source[key])) {
-        return;
-      }
+  /**
+   * Get set nQuads for a node or tree.
+   */
+  getSetNQuads<N extends Object>(target: N): ISetMutation<Quad[]>;
 
-      source[key].forEach((node: any) => {
-        const visitingKey = `${source.uid}:${key}:${node.uid}`;
-        if (visited.has(visitingKey)) {
-          return;
-        }
+  /**
+   * Get set nQuads for a node or tree.
+   */
+  getSetNQuadsString<N extends Object>(target: N): ISetMutation<String>;
 
-        visited.add(visitingKey);
-        return expand(visited, resource, node);
-      });
-    });
-  }
+  /**
+   * Get delete nQuads for a node or tree.
+   */
+  getDeleteNQuads<N extends Object>(): string;
 }

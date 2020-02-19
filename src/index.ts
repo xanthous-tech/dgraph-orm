@@ -11,4 +11,5 @@ export * from './utils/public';
 export { PropertyType } from './types/property';
 export { SchemaBuilder } from './schema/builder';
 export { QueryBuilder } from './query/builder';
-export { MutationBuilder } from './transaction/mutation-builder';
+export { TransactionBuilder } from './transaction/transaction-builder';
+export { ITransaction } from './transaction/transaction';
