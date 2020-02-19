@@ -1,5 +1,3 @@
-import { Writer } from '@xanthous/n3';
-
 import { MetadataStorageUtils } from '../src/metadata/storage';
 import { Facet, IPredicate, Node, Predicate, Property, Uid } from '../src';
 import { TransactionBuilder } from '../src/transaction/transaction-builder';
@@ -45,7 +43,7 @@ describe('Mutation handling', () => {
       .build();
 
     transaction.tree[0].hobbies.get()[0].name = 'New Hobby Name';
-    expect(transaction.getSetNQuadsString(transaction.tree[0]).quads).toEqual(
+    expect(transaction.getSetNQuadsString(transaction.tree[0])).toEqual(
       '<0x2> <Hobby.name> "New Hobby Name"^^<xs:string> .\n'
     );
 
@@ -109,7 +107,7 @@ describe('Mutation handling', () => {
     transaction.tree[0].friends.get()[0].friends.get()[0].name = 'New Kamil';
 
     //
-    expect(transaction.getSetNQuadsString(transaction.tree[0]).quads).toEqual(
+    expect(transaction.getSetNQuadsString(transaction.tree[0])).toEqual(
       `<0x1> <Person.name> "New John"^^<xs:string> .
 <0x2> <Person.name> "New Jane"^^<xs:string> .
 <0x3> <Person.name> "New Kamil"^^<xs:string> .
@@ -169,8 +167,7 @@ describe('Mutation handling', () => {
     kamil.name = 'Kamil';
 
     expect(kamil.id).not.toBeUndefined();
-    expect(transaction.getSetNQuadsString(kamil))
-        .toEqual(transaction.getSetNQuadsString(kamil));
+    expect(transaction.getSetNQuadsString(kamil)).toEqual(transaction.getSetNQuadsString(kamil));
   });
 
   it('should support the same recursive ID', () => {
@@ -215,12 +212,7 @@ describe('Mutation handling', () => {
 
     row.hasCell.add(cell);
 
-    const mutation = transaction.getSetNQuads(row);
-
-    const rowId = mutation.nodeMap.get(row)!.value;
-    const fromRowId = mutation.quads.find(r => r.predicate.id === 'from_row')!.object.value;
-
-    expect(rowId).toEqual(fromRowId);
+    expect(row.uid).toEqual(cell.fromRow.get()[0].uid);
   });
 
   it('should be able to handle reverse edges', function() {
@@ -258,13 +250,8 @@ describe('Mutation handling', () => {
       .add(kamil)
       .add(john);
 
+    console.log(john.id);
     console.log(transaction.getSetNQuadsString(john));
     console.log(transaction.getSetNQuadsString(lola));
-
-    const { quads, nodeMap } = transaction.getSetNQuads(john);
-    console.log(nodeMap.get(john));
-
-    const string = new Writer({ format: 'N-Quads' }).quadsToString(quads);
-    console.log(string);
   });
 });

@@ -20,18 +20,6 @@ import variable = DataFactory.variable;
 const DGRAPH_TYPE = 'dgraph.type';
 
 /**
- * A generic type for built mutation value.
- */
-export interface ISetMutation<T> {
-  quads: T;
-
-  /**
-   * Map of temporary uids created during the mutation build.
-   */
-  nodeMap: WeakMap<Object, BlankNode | NamedNode>;
-}
-
-/**
  * Namespace for mutation builder utilities.
  *
  * It wraps a diff tracker and builds mutations string based on stored Metadata.
@@ -42,19 +30,15 @@ export class MutationBuilder {
   /**
    * Given a target object, returns set mutation with quads as string.
    */
-  public getSetNQuadsString(target: Object): ISetMutation<string> {
-    const { quads, nodeMap } = this.getSetNQuads(target);
-
-    return {
-      nodeMap,
-      quads: new Writer({ format: 'N-Quads' }).quadsToString(quads)
-    };
+  public getSetNQuadsString(target: Object): string {
+    const quads = this.getSetNQuads(target);
+    return new Writer({ format: 'N-Quads' }).quadsToString(quads);
   }
 
   /**
    * Given a target object, returns set mutation.
    */
-  public getSetNQuads(target: Object): ISetMutation<Quad[]> {
+  public getSetNQuads(target: Object): Quad[] {
     const quads: Quad[] = [];
     const connections: Quad[] = [];
 
@@ -121,10 +105,7 @@ export class MutationBuilder {
 
     recursePredicates(target, targetNode);
 
-    return {
-      quads: quads.concat(connections),
-      nodeMap: created
-    };
+    return quads.concat(connections);
   }
 
   private getSetChangeQuads(target: Object, targetNode: NamedNode | BlankNode): Quad[] {

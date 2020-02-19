@@ -11,7 +11,7 @@ import { IObjectLiteral } from '../utils/type';
 import { DiffTracker } from './diff-tracker';
 import { FacetStorage } from './facet-storage';
 import { PredicateImpl } from './predicate-impl';
-import { ISetMutation, MutationBuilder } from './mutation-builder';
+import { MutationBuilder } from './mutation-builder';
 
 /**
  * Create an environment for a mapped tree.
@@ -69,11 +69,11 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
     throw new Error('Not implemented');
   }
 
-  public getSetNQuads<N extends Object>(target: N): ISetMutation<Quad[]> {
+  public getSetNQuads<N extends Object>(target: N): Quad[] {
     return new MutationBuilder(this.diffTracker, this.tempIDS).getSetNQuads(target);
   }
 
-  public getSetNQuadsString<N extends Object>(target: N): ISetMutation<string> {
+  public getSetNQuadsString<N extends Object>(target: N): string {
     return new MutationBuilder(this.diffTracker, this.tempIDS).getSetNQuadsString(target);
   }
 
@@ -259,12 +259,12 @@ export interface ITransaction<T> {
   /**
    * Get set nQuads for a node or tree.
    */
-  getSetNQuads<N extends Object>(target: N): ISetMutation<Quad[]>;
+  getSetNQuads<N extends Object>(target: N): Quad[];
 
   /**
    * Get set nQuads for a node or tree.
    */
-  getSetNQuadsString<N extends Object>(target: N): ISetMutation<String>;
+  getSetNQuadsString<N extends Object>(target: N): String;
 
   /**
    * Get delete nQuads for a node or tree.
