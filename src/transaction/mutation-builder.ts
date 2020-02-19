@@ -2,17 +2,18 @@ import * as UUID from 'instauuid';
 import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous/n3';
 
 import { MetadataStorage } from '../metadata/storage';
-import { IObjectLiteral } from '../utils/type';
-import { PredicateImpl } from './predicate-impl';
 import { CircularTracker } from '../utils/circular-tracker';
 import { PropertyTypeUtils } from '../types/property';
+
+import { IObjectLiteral } from '../utils/type';
+import { PredicateImpl } from './predicate-impl';
 import { FacetStorage } from './facet-storage';
+import { DiffTracker } from './diff-tracker';
 
 import quad = DataFactory.quad;
 import namedNode = DataFactory.namedNode;
 import literal = DataFactory.literal;
 import variable = DataFactory.variable;
-import {DiffTracker} from "./diff-tracker";
 
 /**
  * Dgraph type prefix to add on the new nodes.

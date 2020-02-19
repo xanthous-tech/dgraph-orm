@@ -5,11 +5,11 @@ import { IPredicate } from '..';
 import { MetadataStorage } from '../metadata/storage';
 import { PredicateMetadata } from '../metadata/predicate';
 import { Constructor } from '../utils/class';
-import { PredicateImpl } from './predicate-impl';
 import { IObjectLiteral } from '../utils/type';
 
 import { DiffTracker } from './diff-tracker';
 import { FacetStorage } from './facet-storage';
+import { PredicateImpl } from './predicate-impl';
 import { ISetMutation, MutationBuilder } from './mutation-builder';
 
 /**
