@@ -1,24 +1,23 @@
 import { Constructor } from '../utils/class';
 import { IObjectLiteral } from '../utils/type';
-import { Transaction } from './transaction';
+import { ITransaction, Transaction } from './transaction';
 
 export namespace TransactionBuilder {
   export function of<T>(entryType: Constructor<T>): TreeMapperBuilder<T> {
-    return new TreeMapperBuilder().addEntryType(entryType);
+    return new TreeMapperBuilder(entryType);
   }
 
-  export function build(): Transaction.ITransaction<any> {
+  export function build(): ITransaction<any> {
     return new Transaction<any, null>();
   }
 
   class TreeMapperBuilder<T = any> {
-    private _entryType: Constructor<T>;
+    private readonly _entryType: Constructor<T>;
     private _jsonData: IObjectLiteral<any>[];
     private _resource = new Map<string, IObjectLiteral<any>>();
 
-    addEntryType(type: Constructor<T>): TreeMapperBuilder<T> {
+    constructor(type: Constructor<T>) {
       this._entryType = type;
-      return this;
     }
 
     addJsonData(data: IObjectLiteral<any> | IObjectLiteral<any>[]): TreeMapperBuilder<T> {
@@ -42,7 +41,7 @@ export namespace TransactionBuilder {
       return this;
     }
 
-    build(): Transaction.ITransaction<T> {
+    build(): ITransaction<T> {
       // Do not traverse the json tree if there is no
       // resource data.
       if (this._resource.size > 0) {

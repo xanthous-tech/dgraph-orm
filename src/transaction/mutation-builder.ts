@@ -3,7 +3,7 @@ import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous
 
 import { MetadataStorage } from '../metadata/storage';
 import { IObjectLiteral } from '../utils/type';
-import { PredicateImpl } from '../utils/predicate-impl';
+import { PredicateImpl } from './predicate-impl';
 import { CircularTracker } from '../utils/circular-tracker';
 import { PropertyTypeUtils } from '../types/property';
 import { FacetStorage } from './facet-storage';

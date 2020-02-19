@@ -5,7 +5,7 @@ import { IPredicate } from '..';
 import { MetadataStorage } from '../metadata/storage';
 import { PredicateMetadata } from '../metadata/predicate';
 import { Constructor } from '../utils/class';
-import { PredicateImpl } from '../utils/predicate-impl';
+import { PredicateImpl } from './predicate-impl';
 import { IObjectLiteral } from '../utils/type';
 
 import { DiffTracker } from './diff-tracker';
@@ -95,7 +95,6 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
 
     instances.forEach((ins, idx) => {
       this.trackProperties(ins);
-      this.trackPredicates(ins);
 
       const predicates = MetadataStorage.Instance.predicates.get(ins.constructor.name);
       if (!predicates) {
@@ -105,6 +104,8 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
       // FIXME: If the same uid is referenced in multiple places in the data, currently we will have 2 different instances
       //   of the same object. We need to make sure we share the instance.
       predicates.forEach(pred => {
+        this.trackPredicate(ins, pred);
+
         const _preds = (plain[idx] as any)[pred.args.name];
 
         if (_preds) {

@@ -1,5 +1,5 @@
-import { IPredicate } from '..';
-import { FacetStorage } from '../transaction/facet-storage';
+import { IPredicate } from '../index';
+import { FacetStorage } from './facet-storage';
 
 /**
  * Concrete implementation of the Predicate interface.
@@ -57,10 +57,16 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
   }
 
   detach(node: T): IPredicate<T, U> {
+    console.log(this._parent);
+    console.log(this._data);
+
     throw new Error('Not implemented');
   }
 
   delete(node: T): IPredicate<T, U> {
+    console.log(this._parent);
+    console.log(this._data);
+
     throw new Error('Not implemented');
   }
 }

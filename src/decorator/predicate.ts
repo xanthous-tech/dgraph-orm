@@ -108,7 +108,7 @@ export interface IPredicate<T, U = void> {
   detach(node: T): IPredicate<T, U>;
 
   /**
-   * Tag a node for removal.
+   * Remove the node.
    */
   delete(node: T): IPredicate<T, U>;
 }
