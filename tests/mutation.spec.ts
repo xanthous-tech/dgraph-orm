@@ -1,5 +1,6 @@
 import { MetadataStorageUtils } from '../src/metadata/storage';
-import { Facet, IPredicate, Node, Predicate, Property, Uid, ObjectMapper } from '../src';
+import { Facet, IPredicate, Node, Predicate, Property, Uid } from '../src';
+import { Transaction } from '../src/transaction/transaction';
 
 describe('Mutation handling', () => {
   beforeEach(() => MetadataStorageUtils.flush());
@@ -37,13 +38,12 @@ describe('Mutation handling', () => {
       }
     ];
 
-    const existing = ObjectMapper.newBuilder<Person>()
-      .addEntryType(Person)
+    const transaction = Transaction.of(Person)
       .addJsonData(data)
       .build();
 
-    existing.tree[0].hobbies.get()[0].name = 'New Hobby Name';
-    console.log(existing.getSetNQuadsString(existing.tree[0]));
+    transaction.tree[0].hobbies.get()[0].name = 'New Hobby Name';
+    console.log(transaction.getSetNQuadsString(transaction.tree[0]));
 
     const hobby = new Hobby();
     hobby.name = 'Stuff';
@@ -51,7 +51,8 @@ describe('Mutation handling', () => {
     const person = new Person();
     person.name = 'Testing';
     person.hobbies.add(hobby);
-    console.log(existing.getSetNQuadsString(person));
+
+    console.log(transaction.getSetNQuadsString(person));
   });
 
   it.only('should handle nested correctly', function() {
@@ -93,20 +94,19 @@ describe('Mutation handling', () => {
       }
     ];
 
-    const instances = ObjectMapper.newBuilder<Person>()
-      .addEntryType(Person)
+    const transaction = Transaction.of(Person)
       .addJsonData(data)
       .build();
 
-    instances.tree[0].name = 'New John';
-    const friends = instances.tree[0].friends;
+    transaction.tree[0].name = 'New John';
+    const friends = transaction.tree[0].friends;
 
     friends.get()[0].name = 'New Jane';
     friends.getFacet(friends.get()[0])!.familiarity = 666;
-    instances.tree[0].friends.get()[0].friends.get()[0].name = 'New Kamil';
+    transaction.tree[0].friends.get()[0].friends.get()[0].name = 'New Kamil';
 
     //
-    console.log(instances.getSetNQuadsString(instances.tree[0]));
+    console.log(transaction.getSetNQuadsString(transaction.tree[0]));
   });
 
   it('should handle nested correctly for fresh instances', function() {

@@ -12,4 +12,3 @@ export { PropertyType } from './types/property';
 export { SchemaBuilder } from './schema/builder';
 export { QueryBuilder } from './query/builder';
 export { MutationBuilder } from './transaction/mutation-builder';
-export { ObjectMapper } from './transaction/object-mapper';

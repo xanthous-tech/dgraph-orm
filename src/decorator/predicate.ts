@@ -8,7 +8,6 @@ import { Constructor } from '../utils/class';
  * decorated with this decorator will be treated as a node property.
  */
 export function Predicate(options: Predicate.IOptions): PropertyDecorator {
-
   return function(target: Object, propertyName: string): void {
     let name = options.name;
     if (!name) {
@@ -28,14 +27,6 @@ export function Predicate(options: Predicate.IOptions): PropertyDecorator {
       // TODO:
       isArray: true
     });
-
-    if (options.facet) {
-      MetadataStorage.Instance.addWithFacetMetadata({
-        target,
-        propertyName,
-        constructor: options.facet
-      });
-    }
   };
 }
 

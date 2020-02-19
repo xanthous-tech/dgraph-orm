@@ -1,7 +1,6 @@
 import * as UUID from 'instauuid';
 import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous/n3';
 
-import { WithFacetMetadata } from 'src/metadata/with-facet';
 import { MetadataStorage } from '../metadata/storage';
 import { IObjectLiteral } from '../utils/type';
 import { PredicateImpl } from '../utils/predicate-impl';
@@ -183,11 +182,6 @@ namespace Private {
           key: m.args.name,
           propertyName: m.args.propertyName
         }));
-  }
-
-  export function getFacetsForInstance(node: Object): WithFacetMetadata[] {
-    const metadata = MetadataStorage.Instance.withFacets.get(node.constructor.name);
-    return metadata || [];
   }
 
   export function getNodeForInstance(node: IObjectLiteral<any>): NamedNode | BlankNode {
