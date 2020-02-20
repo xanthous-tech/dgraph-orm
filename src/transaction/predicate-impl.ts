@@ -1,5 +1,6 @@
 import { IPredicate } from '../index';
 import { FacetStorage } from './facet-storage';
+import { IDiffEnvelope } from './transaction';
 
 /**
  * Concrete implementation of the Predicate interface.
@@ -10,21 +11,16 @@ import { FacetStorage } from './facet-storage';
 export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
   private _facet: U | null = null;
 
-  private readonly _diffPredicate: WeakMap<Object, Set<T>>;
-  private readonly _diffDelete: WeakMap<Object, Set<T>>;
+  private readonly _diff: IDiffEnvelope<T>;
 
   constructor(
-    diffPredicate: WeakMap<Object, Set<T>>,
-    diffDelete: WeakMap<Object, Set<T>>,
+    diff: IDiffEnvelope<T>,
     private readonly _namespace: string,
     private readonly _parent: Object,
     private readonly _data: T[]
   ) {
-    diffDelete.set(this, new Set());
-    diffPredicate.set(this, new Set());
-
-    this._diffDelete = diffDelete;
-    this._diffPredicate = diffPredicate;
+    diff.predicates.set(this, new Set());
+    this._diff = diff;
   }
 
   withFacet(facet: U | null): IPredicate<T, U> {
@@ -43,7 +39,7 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
     }
 
     this._data.push(node);
-    this._diffPredicate.get(this)!.add(node);
+    this._diff.predicates.get(this)!.add(node);
 
     return this;
   }
@@ -63,11 +59,10 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
   }
 
   getDiff(): Set<T> {
-    return this._diffPredicate.get(this)!;
+    return this._diff.predicates.get(this)!;
   }
 
   detach(node: T): IPredicate<T, U> {
-    console.log(this._diffDelete);
     console.log(this._parent);
     console.log(this._data);
 
@@ -75,7 +70,6 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
   }
 
   delete(node: T): IPredicate<T, U> {
-    console.log(this._diffDelete);
     console.log(this._parent);
     console.log(this._data);
 

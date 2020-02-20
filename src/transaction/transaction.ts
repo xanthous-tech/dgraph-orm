@@ -33,13 +33,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
   private readonly tempIDS = new WeakMap();
 
   // Track property diffs
-  private readonly diffTracker = new DiffTracker();
-
-  // Tracks new added predicates in the tree.
-  private readonly diffPredicateTracker = new WeakMap<Object, Set<Object>>();
-
-  // Tracks deleted predicates in the tree.
-  private readonly diffDeleteTracker = new WeakMap<Object, Set<Object>>();
+  private readonly diff = new DiffEnvelope();
 
   /**
    * Initialize a fresh transaction.
@@ -55,7 +49,10 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
   constructor(entryCls?: Constructor<T>, plain?: V[]) {
     if (entryCls && plain) {
       this._tree = this.plainToClassExecutor(entryCls, plain, new WeakMap());
-      this._tree.forEach(i => this.diffTracker.purgeInstance(i));
+      this._tree.forEach(i => {
+        this.diff.facets.purgeInstance(i);
+        this.diff.properties.purgeInstance(i);
+      });
     }
   }
 
@@ -70,11 +67,11 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
   }
 
   public getSetNQuads<N extends Object>(target: N): Quad[] {
-    return new MutationBuilder(this.diffTracker, this.tempIDS).getSetNQuads(target);
+    return new MutationBuilder(this.diff, this.tempIDS).getSetNQuads(target);
   }
 
   public getSetNQuadsString<N extends Object>(target: N): string {
-    return new MutationBuilder(this.diffTracker, this.tempIDS).getSetNQuadsString(target);
+    return new MutationBuilder(this.diff, this.tempIDS).getSetNQuadsString(target);
   }
 
   public nodeFor<N extends Object>(nodeCls: Constructor<N>): N {
@@ -161,7 +158,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
       //   class itself. Initially could not make it work. We could spend
       //   a little more time on it.
       const { propertyName, name } = prop.args;
-      this.diffTracker.trackProperty(instance, propertyName, name);
+      this.diff.properties.trackProperty(instance, propertyName, name);
     });
 
     return;
@@ -189,26 +186,14 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
 
       get(): any {
         if (!storedValue) {
-          storedValue = new PredicateImpl(
-            context.diffPredicateTracker,
-            context.diffDeleteTracker,
-            propertyName,
-            instance,
-            []
-          );
+          storedValue = new PredicateImpl(context.diff, propertyName, instance, []);
         }
 
         return storedValue;
       },
       set(value: any): void {
         if (!value || Array.isArray(value)) {
-          value = new PredicateImpl(
-            context.diffPredicateTracker,
-            context.diffDeleteTracker,
-            propertyName,
-            instance,
-            value || []
-          );
+          value = new PredicateImpl(context.diff, propertyName, instance, value || []);
         }
 
         const facets = MetadataStorage.Instance.facets.get((facet && facet.name) || '') || [];
@@ -229,11 +214,11 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
           FacetStorage.attach(propertyName, instance, v, facetInstance);
 
           // Track each facet property in facet instance and reset it..
-          facets.forEach(f => context.diffTracker.trackProperty(facetInstance, f.args.propertyName));
-          context.diffTracker.purgeInstance(facetInstance);
+          facets.forEach(f => context.diff.facets.trackProperty(facetInstance, f.args.propertyName));
+          context.diff.facets.purgeInstance(facetInstance);
 
           // Clean up the diff on the instance.
-          context.diffTracker.purgeInstance(v);
+          context.diff.properties.purgeInstance(v);
         });
 
         storedValue = value;
@@ -270,4 +255,20 @@ export interface ITransaction<T> {
    * Get delete nQuads for a node or tree.
    */
   getDeleteNQuads<N extends Object>(): string;
+}
+
+/**
+ * An envelope for wrapping diff for all tracked values within
+ *  a transaction.
+ */
+export interface IDiffEnvelope<T> {
+  readonly facets: DiffTracker;
+  readonly properties: DiffTracker;
+  readonly predicates: WeakMap<Object, Set<T>>;
+}
+
+class DiffEnvelope<T> implements IDiffEnvelope<T> {
+  public readonly facets = new DiffTracker();
+  public readonly properties = new DiffTracker();
+  public readonly predicates = new WeakMap<Object, Set<T>>();
 }

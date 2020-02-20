@@ -1,5 +1,6 @@
 import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous/n3';
 
+// import { Iterators } from '../utils/iterator';
 import { MetadataStorage } from '../metadata/storage';
 import { CircularTracker } from '../utils/circular-tracker';
 import { PropertyTypeUtils } from '../types/property';
@@ -7,12 +8,12 @@ import { PropertyTypeUtils } from '../types/property';
 import { IObjectLiteral } from '../utils/type';
 import { PredicateImpl } from './predicate-impl';
 import { FacetStorage } from './facet-storage';
-import { DiffTracker } from './diff-tracker';
 
 import quad = DataFactory.quad;
 import namedNode = DataFactory.namedNode;
 import literal = DataFactory.literal;
 import variable = DataFactory.variable;
+import { IDiffEnvelope } from './transaction';
 
 /**
  * Dgraph type prefix to add on the new nodes.
@@ -25,12 +26,14 @@ const DGRAPH_TYPE = 'dgraph.type';
  * It wraps a diff tracker and builds mutations string based on stored Metadata.
  */
 export class MutationBuilder {
-  constructor(private readonly tracker: DiffTracker, private readonly tempIdsMap: WeakMap<Object, string>) {}
+  constructor(private readonly diff: IDiffEnvelope<any>, private readonly tempIdsMap: WeakMap<Object, string>) {}
 
   /**
    * Given a target object, returns set mutation with quads as string.
    */
   public getSetNQuadsString(target: Object): string {
+    // Iterators.forEach(this.diff.properties.getInstancesIterable(), i => console.log('item', i));
+
     const quads = this.getSetNQuads(target);
     return new Writer({ format: 'N-Quads' }).quadsToString(quads);
   }
@@ -75,8 +78,8 @@ export class MutationBuilder {
 
           // Create a relation between parent and predicate
           //   or update the existing with new facet values.
-          if (ps.predicates.getDiff().has(p) || this.tracker.getSets(facetValue).length > 0) {
-            const facets = this.tracker
+          if (ps.predicates.getDiff().has(p) || this.diff.facets.getSets(facetValue).length > 0) {
+            const facets = this.diff.facets
               .getTrackedProperties(facetValue)
               .map(key => ({ key, value: Reflect.get(facetValue, key) }))
               .map(kv => `${kv.key}=${kv.value}`);
@@ -116,7 +119,7 @@ export class MutationBuilder {
     }
 
     const quads: Quad[] = [];
-    const changes = this.tracker.getSets(target);
+    const changes = this.diff.properties.getSets(target);
     if (changes.length > 0) {
       changes.forEach(c => {
         const propertyMetadata = metadata.find(pm => pm.args.propertyName === c.key || pm.args.name === c.key);

@@ -6,6 +6,12 @@ export class DiffTracker {
    */
   private readonly _instances = new WeakMap<Object, IObjectLiteral<DiffValue<any>>>();
 
+  // Reference to the maintained instances.
+  //  This is totally against the idea of using the
+  //  weak map in the first place but is easier to add iterator this way.
+  //  we can remove this in favor of an IterableWeakMap when time comes.
+  private readonly _instancesSet = new Set<Object>();
+
   /**
    * Register an instance for tracking.
    *
@@ -101,11 +107,19 @@ export class DiffTracker {
   }
 
   /**
+   * Get an iterable of all tracked objects.
+   */
+  public getInstancesIterable(): IterableIterator<Object> {
+    return this._instancesSet.values();
+  }
+
+  /**
    * Make sure the instance is in the weakmap.
    */
   private ensureInstance(instance: Object, propertyName: string, diffKey: string): void {
     if (!this._instances.has(instance)) {
       this._instances.set(instance, {});
+      this._instancesSet.add(instance)
     }
 
     if (!this._instances.get(instance)![propertyName]) {
@@ -118,27 +132,27 @@ export class DiffTracker {
  * Book of history for a properties changelogs.
  */
 export class DiffValue<T> {
-    private _value: T | undefined;
-    private _dirty = false;
+  private _value: T | undefined;
+  private _dirty = false;
 
-    constructor(readonly key: string) {
-        //
-    }
+  constructor(readonly key: string) {
+    //
+  }
 
-    get dirty(): boolean {
-        return this._dirty;
-    }
+  get dirty(): boolean {
+    return this._dirty;
+  }
 
-    clear(): void {
-        this._dirty = false;
-    }
+  clear(): void {
+    this._dirty = false;
+  }
 
-    set(value: T): void {
-        this._dirty = true;
-        this._value = value;
-    }
+  set(value: T): void {
+    this._dirty = true;
+    this._value = value;
+  }
 
-    get(): T {
-        return this._value as T;
-    }
+  get(): T {
+    return this._value as T;
+  }
 }
