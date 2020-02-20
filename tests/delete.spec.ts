@@ -38,6 +38,10 @@ describe('Delete handling', function() {
 
     transaction.tree[0].friends.delete(jane);
 
-    console.log(transaction.getDeleteNQuadsString());
+    expect(transaction.getDeleteNQuadsString()).toEqual(
+        `<0x2> * * .
+<0x1> <Person.friends> <0x2> .
+`
+    );
   });
 });
