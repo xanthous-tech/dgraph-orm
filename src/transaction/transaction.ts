@@ -12,6 +12,7 @@ import { DiffTracker } from './diff-tracker';
 import { FacetStorage } from './facet-storage';
 import { PredicateImpl } from './predicate-impl';
 import { MutationBuilder } from './mutation-builder';
+import { IterableWeakMap } from '../utils/iterator';
 
 /**
  * Create an environment for a mapped tree.
@@ -66,17 +67,17 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
     throw new Error('Not implemented');
   }
 
-  public getSetNQuads<N extends Object>(target: N): Quad[] {
-    return new MutationBuilder(this.diff, this.tempIDS).getSetNQuads(target);
+  public getSetNQuads(): Quad[] {
+    return new MutationBuilder(this.diff, this.tempIDS).getSetNQuads();
   }
 
-  public getSetNQuadsString<N extends Object>(target: N): string {
-    return new MutationBuilder(this.diff, this.tempIDS).getSetNQuadsString(target);
+  public getSetNQuadsString(): string {
+    return new MutationBuilder(this.diff, this.tempIDS).getSetNQuadsString();
   }
 
   public nodeFor<N extends Object>(nodeCls: Constructor<N>): N {
-    const metadata = MetadataStorage.Instance.uids.get(nodeCls.name);
-    if (!metadata) {
+    const uids = MetadataStorage.Instance.uids.get(nodeCls.name);
+    if (!uids) {
       throw new Error('Node must have a property decorated with @Uid');
     }
 
@@ -84,10 +85,10 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
 
     const tempID = UUID('hex').toString();
     this.tempIDS.set(nodeInstance, tempID);
-    metadata.forEach(m => ((nodeInstance as any)[m.args.propertyName] = tempID));
+    uids.forEach(m => ((nodeInstance as any)[m.args.propertyName] = tempID));
 
-    this.trackPredicates(nodeInstance);
     this.trackProperties(nodeInstance);
+    this.trackPredicatesForFreshNode(nodeInstance);
 
     return nodeInstance;
   }
@@ -164,13 +165,17 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
     return;
   }
 
-  private trackPredicates<T extends Object, V>(instance: T): void {
+  private trackPredicatesForFreshNode<T extends Object, V>(instance: T): void {
     const predicates = MetadataStorage.Instance.predicates.get(instance.constructor.name);
     if (!predicates) {
       return;
     }
 
-    predicates.forEach(p => this.trackPredicate(instance, p));
+    predicates.forEach(p => {
+      this.trackPredicate(instance, p);
+      // Trigger init for a new PredicateImpl defined in above call
+      (instance as any)[p.args.propertyName] = [];
+    });
   }
 
   private trackPredicate<T extends Object, V>(instance: T, metadata: PredicateMetadata): void {
@@ -185,15 +190,11 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
       configurable: true,
 
       get(): any {
-        if (!storedValue) {
-          storedValue = new PredicateImpl(context.diff, propertyName, instance, []);
-        }
-
         return storedValue;
       },
       set(value: any): void {
         if (!value || Array.isArray(value)) {
-          value = new PredicateImpl(context.diff, propertyName, instance, value || []);
+          value = new PredicateImpl(context.diff, metadata, instance, value || []);
         }
 
         const facets = MetadataStorage.Instance.facets.get((facet && facet.name) || '') || [];
@@ -244,12 +245,12 @@ export interface ITransaction<T> {
   /**
    * Get set nQuads for a node or tree.
    */
-  getSetNQuads<N extends Object>(target: N): Quad[];
+  getSetNQuads(): Quad[];
 
   /**
    * Get set nQuads for a node or tree.
    */
-  getSetNQuadsString<N extends Object>(target: N): String;
+  getSetNQuadsString(): String;
 
   /**
    * Get delete nQuads for a node or tree.
@@ -264,11 +265,11 @@ export interface ITransaction<T> {
 export interface IDiffEnvelope<T> {
   readonly facets: DiffTracker;
   readonly properties: DiffTracker;
-  readonly predicates: WeakMap<Object, Set<T>>;
+  readonly predicates: IterableWeakMap<IPredicate<any, any>, Set<T>>;
 }
 
 class DiffEnvelope<T> implements IDiffEnvelope<T> {
   public readonly facets = new DiffTracker();
   public readonly properties = new DiffTracker();
-  public readonly predicates = new WeakMap<Object, Set<T>>();
+  public readonly predicates = new IterableWeakMap<IPredicate<any, any>, Set<T>>();
 }

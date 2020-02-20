@@ -108,9 +108,9 @@ describe('Mutation handling', () => {
 
     //
     expect(transaction.getSetNQuadsString(transaction.tree[0])).toEqual(
-      `<0x1> <Person.name> "New John"^^<xs:string> .
-<0x2> <Person.name> "New Jane"^^<xs:string> .
+      `<0x2> <Person.name> "New Jane"^^<xs:string> .
 <0x3> <Person.name> "New Kamil"^^<xs:string> .
+<0x1> <Person.name> "New John"^^<xs:string> .
 <0x1> <Person.friends> <0x2> (familiarity=666) .
 `
     );
@@ -120,6 +120,10 @@ describe('Mutation handling', () => {
     class PersonKnows {
       @Facet()
       familiarity: number;
+
+      constructor(familiarity: number) {
+        this.familiarity = familiarity;
+      }
     }
 
     @Node()
@@ -145,8 +149,8 @@ describe('Mutation handling', () => {
     const kamil = transaction.nodeFor(Person);
     kamil.name = 'Kamil';
 
-    kamil.friends.withFacet({ familiarity: 42 }).add(jane);
-    kamil.friends.withFacet({ familiarity: 99 }).add(john);
+    kamil.friends.withFacet(new PersonKnows(42)).add(jane);
+    kamil.friends.withFacet(new PersonKnows(99)).add(john);
 
     console.log(transaction.getSetNQuadsString(kamil));
   });

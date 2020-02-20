@@ -1,11 +1,11 @@
 import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous/n3';
 
-// import { Iterators } from '../utils/iterator';
+import { Iterators } from '../utils/iterator';
 import { MetadataStorage } from '../metadata/storage';
-import { CircularTracker } from '../utils/circular-tracker';
 import { PropertyTypeUtils } from '../types/property';
-
 import { IObjectLiteral } from '../utils/type';
+
+import { IDiffEnvelope } from './transaction';
 import { PredicateImpl } from './predicate-impl';
 import { FacetStorage } from './facet-storage';
 
@@ -13,7 +13,6 @@ import quad = DataFactory.quad;
 import namedNode = DataFactory.namedNode;
 import literal = DataFactory.literal;
 import variable = DataFactory.variable;
-import { IDiffEnvelope } from './transaction';
 
 /**
  * Dgraph type prefix to add on the new nodes.
@@ -29,84 +28,71 @@ export class MutationBuilder {
   constructor(private readonly diff: IDiffEnvelope<any>, private readonly tempIdsMap: WeakMap<Object, string>) {}
 
   /**
-   * Given a target object, returns set mutation with quads as string.
+   * Get set mutations for transaction with quads as string.
    */
-  public getSetNQuadsString(target: Object): string {
-    // Iterators.forEach(this.diff.properties.getInstancesIterable(), i => console.log('item', i));
+  public getSetNQuadsString(): string {
+    const log = (...i: any[]) => void 0;
+    // console.log(...i);
 
-    const quads = this.getSetNQuads(target);
+    Iterators.forEach(this.diff.facets.getInstancesIterable(), i => log('facet', i));
+    Iterators.forEach(this.diff.properties.getInstancesIterable(), i => log('property', i));
+    Iterators.forEach(this.diff.predicates.iterable, i => log('predicate', i));
+
+    const quads = this.getSetNQuads();
     return new Writer({ format: 'N-Quads' }).quadsToString(quads);
   }
 
   /**
-   * Given a target object, returns set mutation.
+   * Get set mutations for transaction.
    */
-  public getSetNQuads(target: Object): Quad[] {
+  public getSetNQuads(): Quad[] {
     const quads: Quad[] = [];
     const connections: Quad[] = [];
 
     const created = new WeakMap<Object, BlankNode | NamedNode>();
-    const tracker = new CircularTracker();
 
-    const recursePredicates = (t: Object, tn: BlankNode | NamedNode): void => {
-      const predicates = Private.getPredicatesOfNode(t);
-
-      predicates.forEach(ps => {
-        if (!ps.predicates || ps.predicates.get().length < 1) {
-          return;
+    const createNode = (p: Object): BlankNode | NamedNode => {
+      const pn = this.getNodeForInstance(p);
+      if (!created.get(p)) {
+        if (Util.isBlankNode(pn)) {
+          // Create a new node
+          quads.push(quad(pn, namedNode(DGRAPH_TYPE), literal(Private.getNodeTypeName(p))));
         }
+        // Set mutations
+        quads.push.apply(quads, this.getSetChangeQuads(p, pn));
+        created.set(p, pn);
+      }
 
-        // Handle circular
-        if (tracker.isVisited(t, ps.predicates)) {
-          return;
-        }
-        tracker.markVisited(t, ps.predicates);
-
-        ps.predicates.get().forEach((p: Object) => {
-          const pn = this.getNodeForInstance(p);
-          if (!created.get(p)) {
-            if (Util.isBlankNode(pn)) {
-              // Create a new node
-              quads.push(quad(pn, namedNode(DGRAPH_TYPE), literal(Private.getNodeTypeName(p))));
-            }
-            // Set mutations
-            quads.push.apply(quads, this.getSetChangeQuads(p, pn));
-            created.set(p, pn);
-          }
-
-          const facetValue = Private.getFacetValue(ps.propertyName, t, p);
-
-          // Create a relation between parent and predicate
-          //   or update the existing with new facet values.
-          if (ps.predicates.getDiff().has(p) || this.diff.facets.getSets(facetValue).length > 0) {
-            const facets = this.diff.facets
-              .getTrackedProperties(facetValue)
-              .map(key => ({ key, value: Reflect.get(facetValue, key) }))
-              .map(kv => `${kv.key}=${kv.value}`);
-
-            if (facets.length > 0) {
-              connections.push(quad(tn, namedNode(ps.key), pn, variable(`(${facets.join(',')})`)));
-            } else {
-              connections.push(quad(tn, namedNode(ps.key), pn));
-            }
-          }
-
-          recursePredicates(p, pn);
-        });
-      });
+      return pn;
     };
 
-    const targetNode = this.getNodeForInstance(target);
-    if (Util.isBlankNode(targetNode)) {
-      // Create a new node
-      quads.push(quad(targetNode, namedNode(DGRAPH_TYPE), literal(Private.getNodeTypeName(target))));
+    for (let predicate of this.diff.predicates.iterable as IterableIterator<PredicateImpl<any, any>>) {
+      const parent = predicate._parent;
+      const parentNode = createNode(parent);
+
+      const key = predicate._metadata.args.name;
+      const propertyName = predicate._metadata.args.propertyName;
+
+      predicate.get().forEach((child: Object) => {
+        const childNode = createNode(child);
+        const facetValue = Private.getFacetValue(propertyName, parent, child);
+
+        // Create a relation between parent and predicate
+        //   or update the existing with new facet values.
+        if (predicate.getDiff().has(child) || this.diff.facets.getSets(facetValue).length > 0) {
+          const facets = this.diff.facets
+            .getTrackedProperties(facetValue)
+            .map(key => ({ key, value: Reflect.get(facetValue, key) }))
+            .map(kv => `${kv.key}=${kv.value}`);
+
+          if (facets.length > 0) {
+            connections.push(quad(parentNode, namedNode(key), childNode, variable(`(${facets.join(',')})`)));
+          } else {
+            connections.push(quad(parentNode, namedNode(key), childNode));
+          }
+        }
+      });
     }
-
-    // Set mutations
-    quads.push.apply(quads, this.getSetChangeQuads(target, targetNode));
-    created.set(target, targetNode);
-
-    recursePredicates(target, targetNode);
 
     return quads.concat(connections);
   }
