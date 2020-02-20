@@ -6,6 +6,7 @@ import { PredicateMetadata } from '../metadata/predicate';
 
 /**
  * Schema builder namespace for building global schema based on the metadata storage.
+ * @category PublicAPI
  */
 export namespace SchemaBuilder {
   /**

@@ -2,11 +2,23 @@ import { Constructor } from '../utils/class';
 import { IObjectLiteral } from '../utils/type';
 import { ITransaction, Transaction } from './transaction';
 
+/**
+ * Initializes a transaction.
+ *
+ * @category PublicAPI
+ */
 export namespace TransactionBuilder {
+  /**
+   * Initialize a transaction using an entry type. Used for creating a transaction from an existing
+   * graph data.
+   */
   export function of<T>(entryType: Constructor<T>): TreeMapperBuilder<T> {
     return new TreeMapperBuilder(entryType);
   }
 
+  /**
+   * Initialize an empty transaction.
+   */
   export function build(): ITransaction<any> {
     return new Transaction<any, null>();
   }

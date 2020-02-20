@@ -188,6 +188,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
     // Value envelope to store values of the decorated property.
     let storedValue: IPredicate<any, any>;
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const context = this; // If don't re-assign `this` will refer to a wrong variable.
     Object.defineProperty(instance, propertyName, {
       enumerable: true,
@@ -233,7 +234,10 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
 }
 
 /**
- * Transaction public definition
+ * Transaction is a container for all the changes made to a node graph.
+ * It tracks of the diffs for managed nodes.
+ *
+ * @category PublicAPI
  */
 export interface ITransaction<T> {
   /**
@@ -247,22 +251,22 @@ export interface ITransaction<T> {
   nodeFor<N extends Object>(nodeCls: Constructor<N>): N;
 
   /**
-   * Get set nQuads for transaction
+   * Get set nQuads for transaction.
    */
   getSetNQuads(): Quad[];
 
   /**
-   * Get set nQuads for transaction
+   * Get set nQuads for transaction.
    */
   getSetNQuadsString(): String;
 
   /**
-   * Get delete nQuads for transaction
+   * Get delete nQuads for transaction.
    */
   getDeleteNQuads(): Quad[];
 
   /**
-   * Get delete nQuads for transaction
+   * Get delete nQuads for transaction.
    */
   getDeleteNQuadsString(): String;
 }

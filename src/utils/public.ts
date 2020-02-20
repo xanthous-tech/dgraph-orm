@@ -6,6 +6,8 @@ import { CircularTracker } from './circular-tracker';
 
 /**
  * Utility namespace.
+ *
+ * @category PublicAPI
  */
 export namespace Utils {
   export interface IPrintOptions {
@@ -16,14 +18,11 @@ export namespace Utils {
    * Print the tree as object using util inspect.
    */
   export function printObject(instance: Object, options: IPrintOptions = {}): void {
-    const inspection = util.inspect(
-      toObject(instance),
-      {
-        colors: true,
-        compact: false,
-        depth: options.depth || 10
-      }
-    );
+    const inspection = util.inspect(toObject(instance), {
+      colors: true,
+      compact: false,
+      depth: options.depth || 10
+    });
 
     console.log(inspection);
   }

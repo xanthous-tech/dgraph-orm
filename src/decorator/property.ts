@@ -10,6 +10,8 @@ const DEFAULT_INDEX_TYPE = 'string';
 
 /**
  * A decorator to annotate properties to index on.
+ *
+ * @category PublicAPI
  */
 export function Index(options: Index.IOptions): PropertyDecorator {
   return function(target: Object, propertyName: string): void {
@@ -21,6 +23,11 @@ export function Index(options: Index.IOptions): PropertyDecorator {
   };
 }
 
+/**
+ * Index statics.
+ *
+ * @category PublicAPI
+ */
 export namespace Index {
   /**
    * Options for the `Index` decorator.
@@ -33,6 +40,8 @@ export namespace Index {
 /**
  * A decorator to annotate properties on a DGraph Node class. Only the properties
  * decorated with this decorator will be treated as a node property.
+ *
+ * @category PublicAPI
  */
 export function Property(options: Property.IOptions = {}): PropertyDecorator {
   return function(target: Object, propertyName: string): void {
@@ -64,6 +73,11 @@ export function Property(options: Property.IOptions = {}): PropertyDecorator {
   };
 }
 
+/**
+ * Property statics.
+ *
+ * @category PublicAPI
+ */
 export namespace Property {
   /**
    * Options for the `PropertyType` decorator.

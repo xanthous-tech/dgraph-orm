@@ -4,6 +4,9 @@ import { IObjectLiteral } from '../utils/type';
 
 // TODO: dgraph type enums
 
+/**
+ * @category PublicAPI
+ */
 export enum PropertyType {
   Default = 'default',
   Int = 'int',

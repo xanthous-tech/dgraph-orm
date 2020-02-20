@@ -43,7 +43,7 @@ describe('Mutation handling', () => {
       .build();
 
     transaction.tree[0].hobbies.get()[0].name = 'New Hobby Name';
-    expect(transaction.getSetNQuadsString(transaction.tree[0])).toEqual(
+    expect(transaction.getSetNQuadsString()).toEqual(
       '<0x2> <Hobby.name> "New Hobby Name"^^<xs:string> .\n'
     );
 
@@ -53,7 +53,7 @@ describe('Mutation handling', () => {
 
     transaction.tree[0].hobbies.add(hobby);
 
-    console.log(transaction.getSetNQuadsString(transaction.tree[0]));
+    console.log(transaction.getSetNQuadsString());
   });
 
   it('should handle nested correctly', function() {
@@ -107,7 +107,7 @@ describe('Mutation handling', () => {
     transaction.tree[0].friends.get()[0].friends.get()[0].name = 'New Kamil';
 
     //
-    expect(transaction.getSetNQuadsString(transaction.tree[0])).toEqual(
+    expect(transaction.getSetNQuadsString()).toEqual(
       `<0x2> <Person.name> "New Jane"^^<xs:string> .
 <0x3> <Person.name> "New Kamil"^^<xs:string> .
 <0x1> <Person.name> "New John"^^<xs:string> .
@@ -152,7 +152,7 @@ describe('Mutation handling', () => {
     kamil.friends.withFacet(new PersonKnows(42)).add(jane);
     kamil.friends.withFacet(new PersonKnows(99)).add(john);
 
-    console.log(transaction.getSetNQuadsString(kamil));
+    console.log(transaction.getSetNQuadsString());
   });
 
   it('should use refer to same temporary uid for node', function() {
@@ -171,7 +171,7 @@ describe('Mutation handling', () => {
     kamil.name = 'Kamil';
 
     expect(kamil.id).not.toBeUndefined();
-    expect(transaction.getSetNQuadsString(kamil)).toEqual(transaction.getSetNQuadsString(kamil));
+    expect(transaction.getSetNQuadsString()).toEqual(transaction.getSetNQuadsString());
   });
 
   it('should support the same recursive ID', () => {
@@ -255,7 +255,6 @@ describe('Mutation handling', () => {
       .add(john);
 
     console.log(john.id);
-    console.log(transaction.getSetNQuadsString(john));
-    console.log(transaction.getSetNQuadsString(lola));
+    console.log(transaction.getSetNQuadsString());
   });
 });
