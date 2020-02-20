@@ -63,8 +63,12 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
     return this._tree;
   }
 
-  public getDeleteNQuads(): string {
-    throw new Error('Not implemented');
+  public getDeleteNQuads(): Quad[] {
+    return new MutationBuilder(this.diff, this.tempIDS).getDeleteNQuads();
+  }
+
+  public getDeleteNQuadsString(): String {
+    return new MutationBuilder(this.diff, this.tempIDS).getDeleteNQuadsString();
   }
 
   public getSetNQuads(): Quad[] {
@@ -243,19 +247,24 @@ export interface ITransaction<T> {
   nodeFor<N extends Object>(nodeCls: Constructor<N>): N;
 
   /**
-   * Get set nQuads for a node or tree.
+   * Get set nQuads for transaction
    */
   getSetNQuads(): Quad[];
 
   /**
-   * Get set nQuads for a node or tree.
+   * Get set nQuads for transaction
    */
   getSetNQuadsString(): String;
 
   /**
-   * Get delete nQuads for a node or tree.
+   * Get delete nQuads for transaction
    */
-  getDeleteNQuads<N extends Object>(): string;
+  getDeleteNQuads(): Quad[];
+
+  /**
+   * Get delete nQuads for transaction
+   */
+  getDeleteNQuadsString(): String;
 }
 
 /**
@@ -265,11 +274,15 @@ export interface ITransaction<T> {
 export interface IDiffEnvelope<T> {
   readonly facets: DiffTracker;
   readonly properties: DiffTracker;
+
+  readonly deletes: IterableWeakMap<IPredicate<any, any>, Set<T>>;
   readonly predicates: IterableWeakMap<IPredicate<any, any>, Set<T>>;
 }
 
 class DiffEnvelope<T> implements IDiffEnvelope<T> {
   public readonly facets = new DiffTracker();
   public readonly properties = new DiffTracker();
+
+  public readonly deletes = new IterableWeakMap<IPredicate<any, any>, Set<T>>();
   public readonly predicates = new IterableWeakMap<IPredicate<any, any>, Set<T>>();
 }

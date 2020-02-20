@@ -36,10 +36,8 @@ describe('Delete handling', function() {
 
     const jane = transaction.tree[0].friends.get()[0];
 
-    // This one is more difficult to manage in a transaction.
-    // One removing the top level needs a separate method.
-    transaction.tree[0].friends
-        .detach(jane)
-        .delete(jane);
+    transaction.tree[0].friends.delete(jane);
+
+    console.log(transaction.getDeleteNQuadsString());
   });
 });

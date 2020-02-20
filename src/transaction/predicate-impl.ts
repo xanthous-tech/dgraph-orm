@@ -20,7 +20,9 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
     readonly _parent: Object,
     private readonly _data: T[]
   ) {
+    diff.deletes.set(this, new Set());
     diff.predicates.set(this, new Set());
+
     this._diff = diff;
   }
 
@@ -65,17 +67,18 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
     return this._diff.predicates.get(this)!;
   }
 
-  detach(node: T): IPredicate<T, U> {
-    console.log(this._parent);
-    console.log(this._data);
+  delete(node: T): IPredicate<T, U>;
+  delete(nodes: T[]): IPredicate<T, U>;
+  delete(nodeOrNodes: T | T[]) {
+    if (!Array.isArray(nodeOrNodes)) {
+      nodeOrNodes = [nodeOrNodes];
+    }
 
-    throw new Error('Not implemented');
-  }
+    const deleteDiff = this._diff.deletes.get(this)!;
+    for (const node of nodeOrNodes) {
+      deleteDiff.add(node);
+    }
 
-  delete(node: T): IPredicate<T, U> {
-    console.log(this._parent);
-    console.log(this._data);
-
-    throw new Error('Not implemented');
+    return this;
   }
 }

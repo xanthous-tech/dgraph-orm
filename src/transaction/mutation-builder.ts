@@ -1,4 +1,4 @@
-import { DataFactory, Quad, Writer, Util, NamedNode, BlankNode } from '@xanthous/n3';
+import { BlankNode, DataFactory, NamedNode, Quad, Util, Writer } from '@xanthous/n3';
 
 import { Iterators } from '../utils/iterator';
 import { MetadataStorage } from '../metadata/storage';
@@ -8,7 +8,6 @@ import { IObjectLiteral } from '../utils/type';
 import { IDiffEnvelope } from './transaction';
 import { PredicateImpl } from './predicate-impl';
 import { FacetStorage } from './facet-storage';
-
 import quad = DataFactory.quad;
 import namedNode = DataFactory.namedNode;
 import literal = DataFactory.literal;
@@ -73,6 +72,8 @@ export class MutationBuilder {
       const key = predicate._metadata.args.name;
       const propertyName = predicate._metadata.args.propertyName;
 
+      // TODO: Here map only on the child which has a changed value.
+      //  Probably we need to handle diff.property a bit better.
       predicate.get().forEach((child: Object) => {
         const childNode = createNode(child);
         const facetValue = Private.getFacetValue(propertyName, parent, child);
@@ -95,6 +96,28 @@ export class MutationBuilder {
     }
 
     return quads.concat(connections);
+  }
+
+  public getDeleteNQuadsString(): string {
+    const quads = this.getDeleteNQuads();
+    return new Writer({ format: 'N-Quads' }).quadsToString(quads);
+  }
+
+  public getDeleteNQuads(): Quad[] {
+    const quads: Quad[] = [];
+
+    for (const predicate of this.diff.deletes.iterable as IterableIterator<PredicateImpl<any, any>>) {
+      const parentNode = this.getNodeForInstance(predicate._parent);
+      const children = this.diff.deletes.get(predicate)!.values();
+
+      for (const child of children) {
+        const childNode = this.getNodeForInstance(child);
+        quads.push(quad(childNode, variable('*'), variable('*')));
+        quads.push(quad(parentNode, namedNode(predicate._metadata.args.name), childNode));
+      }
+    }
+
+    return quads;
   }
 
   private getSetChangeQuads(target: Object, targetNode: NamedNode | BlankNode): Quad[] {

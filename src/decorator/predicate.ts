@@ -103,12 +103,12 @@ export interface IPredicate<T, U = void> {
   get(): ReadonlyArray<T>;
 
   /**
-   * Remove the connection between parent and child.
-   */
-  detach(node: T): IPredicate<T, U>;
-
-  /**
    * Remove the node.
    */
   delete(node: T): IPredicate<T, U>;
+
+  /**
+   * Remove a list of nodes.
+   */
+  delete(nodes: T[]): IPredicate<T, U>;
 }
