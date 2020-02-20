@@ -1,4 +1,4 @@
-import { Facet, Node, Predicate, IPredicate, Property, Uid, Utils } from '../src';
+import { Facet, Node, Predicate, IPredicate, Property, Uid, Utils, TransactionBuilder } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 
@@ -19,12 +19,11 @@ describe('Serialize deserialize', () => {
       }
     ];
 
-    const instances = ObjectMapper.newBuilder()
-      .addEntryType(Work)
+    const txn = TransactionBuilder.of(Work)
       .addJsonData(data)
       .build();
 
-    const work = instances[0];
+    const work = txn.tree[0];
     expect(work.name).toEqual(data[0]['Work.name']);
   });
 
@@ -79,24 +78,23 @@ describe('Serialize deserialize', () => {
       }
     ];
 
-    const instances = ObjectMapper.newBuilder<Work>()
-      .addEntryType(Work)
+    const txn = TransactionBuilder.of(Work)
       .addJsonData(data)
       .build();
 
-    console.log(Utils.toObject(instances[0]));
+    console.log(Utils.toObject(txn.tree[0]));
 
-    const people = instances[0].people.get();
+    const people = txn.tree[0].people.get();
 
-    expect(instances[0].name).toEqual(data[0]['Work.name']);
+    expect(txn.tree[0].name).toEqual(data[0]['Work.name']);
     expect(people).toHaveLength(2);
 
     // Has correct facet values.
-    expect(instances[0].people.getFacet(people[0])!.salary).toEqual(1200);
-    expect(instances[0].people.getFacet(people[0])!.years).toEqual(10);
+    expect(txn.tree[0].people.getFacet(people[0])!.salary).toEqual(1200);
+    expect(txn.tree[0].people.getFacet(people[0])!.years).toEqual(10);
 
-    expect(instances[0].people.getFacet(people[1])!.salary).toEqual(1201);
-    expect(instances[0].people.getFacet(people[1])!.years).toEqual(11);
+    expect(txn.tree[0].people.getFacet(people[1])!.salary).toEqual(1201);
+    expect(txn.tree[0].people.getFacet(people[1])!.years).toEqual(11);
   });
 
   it('should handle circulars correctly', function() {
@@ -138,14 +136,13 @@ describe('Serialize deserialize', () => {
       }
     ];
 
-    const instances = ObjectMapper.newBuilder<Person>()
-      .addEntryType(Person)
+    const txn = TransactionBuilder.of(Person)
       .addJsonData(data)
       .build();
 
-    expect(instances[0].name).toEqual(data[0]['Person.name']);
-    expect(instances[0].friends.get()).toHaveLength(1);
-    expect(instances[0].friends.get()[0].name).toEqual(data[0]['Person.friends'][0]['Person.name']);
+    expect(txn.tree[0].name).toEqual(data[0]['Person.name']);
+    expect(txn.tree[0].friends.get()).toHaveLength(1);
+    expect(txn.tree[0].friends.get()[0].name).toEqual(data[0]['Person.friends'][0]['Person.name']);
   });
 
   it('should be able to handle ', () => {
@@ -194,26 +191,25 @@ describe('Serialize deserialize', () => {
       }
     ];
 
-    const instances = ObjectMapper.newBuilder<Parent>()
-      .addEntryType(Parent)
+    const txn = TransactionBuilder.of(Parent)
       .addJsonData(data)
       .addResourceData(resource)
       .build();
 
-    Utils.printObject(instances[0]);
+    Utils.printObject(txn.tree[0]);
 
-    expect(instances[0].has_child.get()[0].name).toEqual('Node 0x2');
+    expect(txn.tree[0].has_child.get()[0].name).toEqual('Node 0x2');
 
     expect(
-      instances[0].has_child
+      txn.tree[0].has_child
         .get()[0]
         .has_child.get()[0]
         .has_child.get()[0].name
     ).toEqual('Node 0x1');
 
     expect(
-      instances[0] ===
-        instances[0].has_child
+      txn.tree[0] ===
+        txn.tree[0].has_child
           .get()[0]
           .has_child.get()[0]
           .has_child.get()[0]
