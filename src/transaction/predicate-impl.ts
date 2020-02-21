@@ -2,6 +2,7 @@ import { IPredicate } from '../index';
 import { FacetStorage } from './facet-storage';
 import { IDiffEnvelope } from './transaction';
 import { PredicateMetadata } from '../metadata/predicate';
+import { MetadataStorage } from '../metadata/storage';
 
 /**
  * Concrete implementation of the Predicate interface.
@@ -38,7 +39,7 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
   add(node: T): IPredicate<T, U> {
     if (this._facet) {
       FacetStorage.attach(this._metadata.args.propertyName, this._parent, node, this._facet);
-      // TODO: Set a diff tracker on facet value.
+      this.trackFacetValues(this._facet);
       this._facet = null;
     }
 
@@ -55,7 +56,9 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
     }
 
     FacetStorage.attach(this._metadata.args.propertyName, this._parent, node, this._facet);
-    // TODO: Set a diff tracker on facet value.
+    this.trackFacetValues(this._facet);
+    this._facet = null;
+
     return this;
   }
 
@@ -80,5 +83,16 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
     }
 
     return this;
+  }
+
+  private trackFacetValues(facet: Object): void {
+    const metadata = MetadataStorage.Instance.facets.get(facet.constructor.name);
+    if (!metadata) {
+      return;
+    }
+
+    for (const meta of metadata) {
+      this._diff.facets.trackProperty(facet, meta.args.propertyName);
+    }
   }
 }

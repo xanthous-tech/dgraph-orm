@@ -116,7 +116,7 @@ describe('Mutation handling', () => {
     );
   });
 
-  it('should handle nested correctly for fresh instances', function() {
+  it.only('should handle nested correctly for fresh instances', function() {
     class PersonKnows {
       @Facet()
       familiarity: number;
