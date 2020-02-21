@@ -79,6 +79,20 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
     return new MutationBuilder(this.diff, this.tempIDS).getSetNQuadsString();
   }
 
+  public delete(node: T): void;
+  public delete(nodes: T[]): void;
+  public delete(nodeOrNodes: T | T[]) {
+    if (!Array.isArray(nodeOrNodes)) {
+      nodeOrNodes = [nodeOrNodes];
+    }
+
+    for (const node of nodeOrNodes) {
+      this.diff.globalDeletes.add(node);
+    }
+
+    return this;
+  }
+
   public nodeFor<N extends Object>(nodeCls: Constructor<N>): N {
     const uids = MetadataStorage.Instance.uids.get(nodeCls.name);
     if (!uids) {
@@ -246,6 +260,20 @@ export interface ITransaction<T> {
   tree: T[];
 
   /**
+   * Tag a node for deletion. Unlike deleting on a predicate this will
+   * not delete the incoming edge on the node. It will append a delete
+   * triplet to delete nquads.
+   */
+  delete<N extends Object>(node: N): void;
+
+  /**
+   * Tag a nodes for deletion. Unlike deleting on a predicate this will
+   * not delete the incoming edge on the node. It will append delete
+   * triplets to delete nquads.
+   */
+  delete<N extends Object>(nodes: N[]): void;
+
+  /**
    * Initialize a fresh node object
    */
   nodeFor<N extends Object>(nodeCls: Constructor<N>): N;
@@ -279,6 +307,7 @@ export interface IDiffEnvelope<T> {
   readonly facets: DiffTracker;
   readonly properties: DiffTracker;
 
+  readonly globalDeletes: Set<T>;
   readonly deletes: IterableWeakMap<IPredicate<any, any>, Set<T>>;
   readonly predicates: IterableWeakMap<IPredicate<any, any>, Set<T>>;
 }
@@ -287,6 +316,7 @@ class DiffEnvelope<T> implements IDiffEnvelope<T> {
   public readonly facets = new DiffTracker();
   public readonly properties = new DiffTracker();
 
+  public readonly globalDeletes = new Set<T>();
   public readonly deletes = new IterableWeakMap<IPredicate<any, any>, Set<T>>();
   public readonly predicates = new IterableWeakMap<IPredicate<any, any>, Set<T>>();
 }

@@ -65,7 +65,7 @@ export class MutationBuilder {
       return pn;
     };
 
-    for (let predicate of this.diff.predicates.iterable as IterableIterator<PredicateImpl<any, any>>) {
+    for (const predicate of this.diff.predicates.iterable as IterableIterator<PredicateImpl<any, any>>) {
       const parent = predicate._parent;
       const parentNode = createNode(parent);
 
@@ -105,6 +105,11 @@ export class MutationBuilder {
 
   public getDeleteNQuads(): Quad[] {
     const quads: Quad[] = [];
+
+    for (const node of this.diff.globalDeletes as Set<PredicateImpl>) {
+      const rdfNode = this.getNodeForInstance(node);
+      quads.push(quad(rdfNode, variable('*'), variable('*')));
+    }
 
     for (const predicate of this.diff.deletes.iterable as IterableIterator<PredicateImpl<any, any>>) {
       const parentNode = this.getNodeForInstance(predicate._parent);
@@ -152,7 +157,7 @@ export class MutationBuilder {
 
   private getNodeForInstance(node: IObjectLiteral<any>): NamedNode | BlankNode {
     if (this.tempIdsMap.has(node)) {
-      let tempID = this.tempIdsMap.get(node);
+      const tempID = this.tempIdsMap.get(node);
       return DataFactory.blankNode(tempID);
     }
 

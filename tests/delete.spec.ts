@@ -25,6 +25,10 @@ describe('Delete handling', function() {
           {
             uid: '0x2',
             'Person.name': 'Jane'
+          },
+          {
+            uid: '0x3',
+            'Person.name': 'Kamil'
           }
         ]
       }
@@ -35,11 +39,14 @@ describe('Delete handling', function() {
       .build();
 
     const jane = transaction.tree[0].friends.get()[0];
+    const kamil = transaction.tree[0].friends.get()[1];
 
+    transaction.delete(kamil);
     transaction.tree[0].friends.delete(jane);
 
     expect(transaction.getDeleteNQuadsString()).toEqual(
-        `<0x2> * * .
+      `<0x3> * * .
+<0x2> * * .
 <0x1> <Person.friends> <0x2> .
 `
     );
