@@ -1,6 +1,5 @@
 import { BlankNode, DataFactory, NamedNode, Quad, Util, Writer } from '@xanthous/n3';
 
-import { Iterators } from '../utils/iterator';
 import { MetadataStorage } from '../metadata/storage';
 import { PropertyTypeUtils } from '../types/property';
 import { IObjectLiteral } from '../utils/type';
@@ -30,13 +29,6 @@ export class MutationBuilder {
    * Get set mutations for transaction with quads as string.
    */
   public getSetNQuadsString(): string {
-    const log = (...i: any[]) => void 0;
-    // console.log(...i);
-
-    Iterators.forEach(this.diff.facets.getInstancesIterable(), i => log('facet', i));
-    Iterators.forEach(this.diff.properties.getInstancesIterable(), i => log('property', i));
-    Iterators.forEach(this.diff.predicates.iterable, i => log('predicate', i));
-
     const quads = this.getSetNQuads();
     return new Writer({ format: 'N-Quads' }).quadsToString(quads);
   }
