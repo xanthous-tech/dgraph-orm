@@ -22,10 +22,11 @@ export class DiffTracker {
     this.ensureInstance(target, propertyName, diffKey || propertyName);
 
     const initialValue = Reflect.get(target, propertyName);
-    if (initialValue) {
+    if (initialValue !== undefined) {
       this._instances.get(target)![propertyName].set(initialValue);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const tracker = this;
 
     Reflect.defineProperty(target, propertyName, {
@@ -119,7 +120,7 @@ export class DiffTracker {
   private ensureInstance(instance: Object, propertyName: string, diffKey: string): void {
     if (!this._instances.has(instance)) {
       this._instances.set(instance, {});
-      this._instancesSet.add(instance)
+      this._instancesSet.add(instance);
     }
 
     if (!this._instances.get(instance)![propertyName]) {

@@ -73,10 +73,13 @@ export class MutationBuilder {
         // Create a relation between parent and predicate
         //   or update the existing with new facet values.
         if (predicate.getDiff().has(child) || this.diff.facets.getSets(facetValue).length > 0) {
-          const facets = this.diff.facets
-            .getTrackedProperties(facetValue)
-            .map(key => ({ key, value: Reflect.get(facetValue, key) }))
-            .map(kv => `${kv.key}=${kv.value}`);
+          const facets = this.diff.facets.getTrackedProperties(facetValue).reduce<string[]>((acc, key) => {
+            const value = Reflect.get(facetValue, key);
+            if (value !== undefined) {
+              acc.push(`${key}=${Reflect.get(facetValue, key)}`);
+            }
+            return acc;
+          }, []);
 
           if (facets.length > 0) {
             connections.push(quad(parentNode, namedNode(key), childNode, variable(`(${facets.join(',')})`)));

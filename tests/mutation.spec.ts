@@ -43,15 +43,56 @@ describe('Mutation handling', () => {
       .build();
 
     transaction.tree[0].hobbies.get()[0].name = 'New Hobby Name';
-    expect(transaction.getSetNQuadsString()).toEqual(
-      '<0x2> <Hobby.name> "New Hobby Name"^^<xs:string> .\n'
-    );
+    expect(transaction.getSetNQuadsString()).toEqual('<0x2> <Hobby.name> "New Hobby Name"^^<xs:string> .\n');
 
     // const hobby = new Hobby();
     const hobby = transaction.nodeFor(Hobby);
     hobby.name = 'Stuff';
 
     transaction.tree[0].hobbies.add(hobby);
+
+    console.log(transaction.getSetNQuadsString());
+  });
+
+  it('should add the correct facet', () => {
+    class OrderFacet {
+      constructor(data: OrderFacet) {
+        if (data.order != null) {
+          this.order = data.order;
+        }
+        if (data.width != null) {
+          this.width = data.width;
+        }
+      }
+
+      @Facet()
+      order?: number;
+
+      @Facet()
+      width?: number;
+    }
+
+    @Node()
+    class Person {
+      @Uid()
+      id: string;
+
+      @Property()
+      name: string;
+
+      @Predicate({ type: () => Person, facet: OrderFacet })
+      friends: IPredicate<Person, OrderFacet>;
+    }
+    const transaction = TransactionBuilder.build();
+
+    const lim = transaction.nodeFor(Person);
+    const nick = transaction.nodeFor(Person);
+
+    lim.name = 'Lim';
+    nick.name = 'Nick';
+
+    lim.friends.withFacet(new OrderFacet({ order: 0 })).add(nick);
+    nick.friends.withFacet(new OrderFacet({ order: 1, width: 200 })).add(lim);
 
     console.log(transaction.getSetNQuadsString());
   });
@@ -108,15 +149,15 @@ describe('Mutation handling', () => {
 
     //
     expect(transaction.getSetNQuadsString()).toEqual(
-      `<0x2> <Person.name> "New Jane"^^<xs:string> .
-<0x3> <Person.name> "New Kamil"^^<xs:string> .
+      `<0x3> <Person.name> "New Kamil"^^<xs:string> .
+<0x2> <Person.name> "New Jane"^^<xs:string> .
 <0x1> <Person.name> "New John"^^<xs:string> .
 <0x1> <Person.friends> <0x2> (familiarity=666) .
 `
     );
   });
 
-  it.only('should handle nested correctly for fresh instances', function() {
+  it('should handle nested correctly for fresh instances', function() {
     class PersonKnows {
       @Facet()
       familiarity: number;
