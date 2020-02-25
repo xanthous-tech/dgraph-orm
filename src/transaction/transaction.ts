@@ -149,8 +149,12 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
       //   of the same object. We need to make sure we share the instance.
       predicates.forEach(pred => {
         this.trackPredicate(ins, pred);
-
         const _preds = (plain[idx] as any)[pred.args.name];
+
+        // If no data available assign a new data.
+        if (!_preds) {
+          (ins as any)[pred.args.propertyName] = [];
+        }
 
         if (_preds) {
           (ins as any)[pred.args.propertyName] = this.plainToClassExecutor(pred.args.type(), _preds, storage);

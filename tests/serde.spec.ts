@@ -97,6 +97,39 @@ describe('Serialize deserialize', () => {
     expect(txn.tree[0].people.getFacet(people[1])!.years).toEqual(11);
   });
 
+  it('should create empty predicates for all @Predicate properties if no data', function() {
+    class PersonKnows {
+      @Facet()
+      familiarity: number;
+    }
+
+    @Node()
+    class Person {
+      @Uid()
+      id: string;
+
+      @Property()
+      name: string;
+
+      @Predicate({ type: () => Person, facet: PersonKnows })
+      friends: IPredicate<Person, PersonKnows>;
+    }
+
+    const data = [
+      {
+        uid: '0x1',
+        'Person.name': 'John'
+      }
+    ];
+
+    const txn = TransactionBuilder.of(Person)
+      .addJsonData(data)
+      .build();
+
+    expect(txn.tree[0].name).toEqual(data[0]['Person.name']);
+    expect(txn.tree[0].friends).not.toBeUndefined();
+  });
+
   it('should handle circulars correctly', function() {
     class PersonKnows {
       @Facet()
