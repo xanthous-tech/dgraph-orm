@@ -93,21 +93,36 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
     return this;
   }
 
-  public nodeFor<N extends Object>(nodeCls: Constructor<N>): N {
+  public nodeFor<N extends Object>(nodeCls: Constructor<N>): N;
+  public nodeFor<N extends Object, V extends Object>(nodeCls: Constructor<N>, data: V & { uid?: string }): N;
+  public nodeFor<N extends Object, V extends Object>(nodeCls: Constructor<N>, data?: V & { uid?: string }): N {
     const uids = MetadataStorage.Instance.uids.get(nodeCls.name);
-    if (!uids) {
+    if (!uids || uids.length === 0) {
       throw new Error('Node must have a property decorated with @Uid');
     }
 
     const nodeInstance = new nodeCls();
-
-    const tempID = UUID('hex').toString();
-    this.tempIDS.set(nodeInstance, tempID);
-    uids.forEach(m => ((nodeInstance as any)[m.args.propertyName] = tempID));
-
     this.trackProperties(nodeInstance);
     this.trackPredicatesForFreshNode(nodeInstance);
 
+    let id: string;
+    if (data && data.uid) {
+      id = data.uid;
+      // Remove the field so we don't introduce extra fields to
+      //  new created node instance when assigning data to it.
+      delete data.uid;
+    } else {
+      id = UUID('hex').toString();
+      this.tempIDS.set(nodeInstance, id);
+    }
+
+    if (data) {
+      // Mutate the original object so we trigger
+      // a diff on the tracked properties.
+      Object.assign(nodeInstance, data);
+    }
+
+    uids.forEach(m => ((nodeInstance as any)[m.args.propertyName] = id));
     return nodeInstance;
   }
 
@@ -276,11 +291,15 @@ export interface ITransaction<T> {
    * triplets to delete nquads.
    */
   delete<N extends Object>(nodes: N[]): void;
-
   /**
-   * Initialize a fresh node object
+   * Initialize a fresh node object.
    */
   nodeFor<N extends Object>(nodeCls: Constructor<N>): N;
+
+  /**
+   * Initialize a node object from data.
+   */
+  nodeFor<N extends Object, V extends Object>(nodeCls: Constructor<N>, data: V): N;
 
   /**
    * Get set nQuads for transaction.

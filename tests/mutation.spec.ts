@@ -181,14 +181,18 @@ describe('Mutation handling', () => {
 
     const transaction = TransactionBuilder.build();
 
+    // Create a new node.
     const john = transaction.nodeFor(Person);
     john.name = 'John';
 
-    const jane = transaction.nodeFor(Person);
-    jane.name = 'Jane';
+    // Create a new node and set name to 'Jane'
+    const janeData = { name: 'Jane' };
+    const jane = transaction.nodeFor(Person, janeData);
 
-    const kamil = transaction.nodeFor(Person);
-    kamil.name = 'Kamil';
+    // This node already exist and we only want to introduce new
+    //   predicates to it.
+    const kamilData = { uid: '0x1' };
+    const kamil = transaction.nodeFor(Person, kamilData);
 
     kamil.friends.withFacet(new PersonKnows(42)).add(jane);
     kamil.friends.withFacet(new PersonKnows(99)).add(john);
