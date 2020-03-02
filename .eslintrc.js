@@ -12,6 +12,7 @@ module.exports = {
   rules: {
     'no-inner-declarations': 'off',
     'prefer-spread': 'off',
+    '@typescript-eslint/camelcase': 'warn',
     '@typescript-eslint/no-namespace': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',

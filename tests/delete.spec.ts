@@ -35,7 +35,8 @@ describe('Delete handling', function() {
     ];
 
     const transaction = TransactionBuilder.of(Person)
-      .addJsonData(data)
+      .addResourceData(data)
+      .setRoot({ uid: '0x1' })
       .build();
 
     const jane = transaction.tree[0].friends.get()[0];

@@ -20,7 +20,8 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Work)
-      .addJsonData(data)
+      .addResourceData(data)
+      .setRoot({ uid: '0x1' })
       .build();
 
     const work = txn.tree[0];
@@ -79,7 +80,8 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Work)
-      .addJsonData(data)
+      .addResourceData(data)
+      .setRoot({ uid: '0x2' })
       .build();
 
     console.log(Utils.toObject(txn.tree[0]));
@@ -123,7 +125,8 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Person)
-      .addJsonData(data)
+      .addResourceData(data)
+      .setRoot({ uid: '0x1' })
       .build();
 
     expect(txn.tree[0].name).toEqual(data[0]['Person.name']);
@@ -170,7 +173,8 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Person)
-      .addJsonData(data)
+      .addResourceData(data)
+      .setRoot({ uid: '0x1' })
       .build();
 
     expect(txn.tree[0].name).toEqual(data[0]['Person.name']);
@@ -191,14 +195,13 @@ describe('Serialize deserialize', () => {
     const data = [
       {
         uid: '0x1',
-        'Parent.name': 'Parent',
         'Parent.has_child': [
           {
             uid: '0x2',
             'Parent.has_child': [
               {
                 uid: '0x3',
-                'Parent.has_child': null
+                'Parent.has_child': []
               }
             ]
           }
@@ -225,25 +228,33 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Parent)
-      .addJsonData(data)
+      .addResourceData(data)
       .addResourceData(resource)
+      .setRoot({ uid: '0x1' })
       .build();
 
     Utils.printObject(txn.tree[0]);
+    Utils.printObject(
+      txn.tree[0]
+        .has_child.get()[0]
+        .has_child.get()[0]
+        .has_child.get()[0]
+    );
 
     expect(txn.tree[0].has_child.get()[0].name).toEqual('Node 0x2');
 
     expect(
-      txn.tree[0].has_child
-        .get()[0]
+      txn.tree[0]
         .has_child.get()[0]
-        .has_child.get()[0].name
+        .has_child.get()[0]
+        .has_child.get()[0]
+        .name
     ).toEqual('Node 0x1');
 
     expect(
       txn.tree[0] ===
-        txn.tree[0].has_child
-          .get()[0]
+        txn.tree[0]
+          .has_child.get()[0]
           .has_child.get()[0]
           .has_child.get()[0]
     ).toBeTruthy();

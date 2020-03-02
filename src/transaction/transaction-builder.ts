@@ -25,15 +25,17 @@ export namespace TransactionBuilder {
 
   class TreeMapperBuilder<T = any> {
     private readonly _entryType: Constructor<T>;
-    private _jsonData: IObjectLiteral<any>[];
+    private _root: string;
     private _resource = new Map<string, IObjectLiteral<any>>();
 
     constructor(type: Constructor<T>) {
       this._entryType = type;
     }
 
-    addJsonData(data: IObjectLiteral<any> | IObjectLiteral<any>[]): TreeMapperBuilder<T> {
-      this._jsonData = Array.isArray(data) ? data : [data];
+    setRoot(data: IObjectLiteral<any>): TreeMapperBuilder<T> {
+      if (Private.isNode(data)) {
+        this._root = data.uid;
+      }
       return this;
     }
 
@@ -42,7 +44,34 @@ export namespace TransactionBuilder {
      */
     addResourceData(data: IObjectLiteral<any> | IObjectLiteral<any>[]): TreeMapperBuilder<T> {
       if (data && !(data instanceof Array) && data.uid) {
-        this._resource.set(data.uid, data);
+        const { obj, predicates } = Private.separatePredicates(data);
+
+        if (this._resource.has(obj.uid)) {
+          const existingObj = this._resource.get(obj.uid) as IObjectLiteral<any>;
+          // trying to not modify existing object ref
+          Object.assign(existingObj, obj);
+        } else {
+          this._resource.set(obj.uid, obj);
+        }
+
+        for (const key of predicates.keys()) {
+          const predicate = predicates.get(key) as IObjectLiteral<any>[];
+          // store nodes from the predicate
+          this.addResourceData(predicate);
+          const existingObj = this._resource.get(obj.uid) as IObjectLiteral<any>;
+          const pred = existingObj[key] as IObjectLiteral<any>[];
+
+          predicate.forEach(p => {
+            const pObj = this._resource.get(p.uid) as IObjectLiteral<any>;
+
+            if (pred.indexOf(pObj) > -1) {
+              return;
+            }
+
+            pred.push(pObj);
+          });
+        }
+
         return this;
       }
 
@@ -54,20 +83,12 @@ export namespace TransactionBuilder {
     }
 
     build(): ITransaction<T> {
-      // Do not traverse the json tree if there is no
-      // resource data.
-      if (this._resource.size > 0) {
-        const visited = new Set<string>();
-        Array.isArray(this._jsonData)
-          ? this._jsonData.map(jd => Private.expand(visited, this._resource, jd))
-          : Private.expand(visited, this._resource, this._jsonData);
-      }
 
-      if (!Array.isArray(this._jsonData)) {
-        this._jsonData = [this._jsonData];
-      }
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      // const util = require('util');
+      // console.log(util.inspect(this._resource.get(this._root), { colors: true, depth: 20 }))
 
-      return new Transaction(this._entryType, this._jsonData);
+      return new Transaction(this._entryType, [this._resource.get(this._root) as IObjectLiteral<any>]);
     }
   }
 }
@@ -76,35 +97,25 @@ export namespace TransactionBuilder {
  * Module private statics
  */
 namespace Private {
-  /**
-   * Visit all nodes in a tree recursively, matching node uid in the resource data and adding extra information.
-   *
-   * ### NOTE
-   * Expand will modify the data in-place.
-   */
-  export function expand(visited: Set<string>, resource: IObjectLiteral<any>, source: IObjectLiteral<any>): void {
-    if (resource.has(source.uid)) {
-      Object.assign(source, resource.get(source.uid));
-    }
+  export function separatePredicates(obj: IObjectLiteral<any>): { obj: IObjectLiteral<any>; predicates: Map<string, IObjectLiteral<any>[]> } {
+    const predicates: Map<string, IObjectLiteral<any>[]> = new Map();
 
-    Object.keys(source).forEach(key => {
-      if (key === 'dgraph.type') {
-        return;
+    Object.keys(obj).forEach((key: string) => {
+      if (isPredicate(obj, key)) {
+        predicates.set(key, obj[key]);
+
+        obj[key] = [];
       }
-
-      if (!Array.isArray(source[key])) {
-        return;
-      }
-
-      source[key].forEach((node: any) => {
-        const visitingKey = `${source.uid}:${key}:${node.uid}`;
-        if (visited.has(visitingKey)) {
-          return;
-        }
-
-        visited.add(visitingKey);
-        return expand(visited, resource, node);
-      });
     });
+
+    return { obj, predicates };
+  }
+
+  export function isPredicate(obj: IObjectLiteral<any>, key: string): boolean {
+    return Array.isArray(obj[key]) && (obj[key] as Array<any>).every(isNode);
+  }
+
+  export function isNode(obj: IObjectLiteral<any>): boolean {
+    return !!obj.uid;
   }
 }
