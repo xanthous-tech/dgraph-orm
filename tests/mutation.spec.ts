@@ -39,7 +39,7 @@ describe('Mutation handling', () => {
     ];
 
     const transaction = TransactionBuilder.of(Person)
-      .addResourceData(data)
+      .addJsonData(data)
       .setRoot({ uid: '0x1' })
       .build();
 
@@ -138,7 +138,7 @@ describe('Mutation handling', () => {
     ];
 
     const transaction = TransactionBuilder.of(Person)
-      .addResourceData(data)
+      .addJsonData(data)
       .setRoot({ uid: '0x1' })
       .build();
 

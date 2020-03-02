@@ -20,7 +20,7 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Work)
-      .addResourceData(data)
+      .addJsonData(data)
       .setRoot({ uid: '0x1' })
       .build();
 
@@ -80,7 +80,7 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Work)
-      .addResourceData(data)
+      .addJsonData(data)
       .setRoot({ uid: '0x2' })
       .build();
 
@@ -125,7 +125,7 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Person)
-      .addResourceData(data)
+      .addJsonData(data)
       .setRoot({ uid: '0x1' })
       .build();
 
@@ -173,7 +173,7 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Person)
-      .addResourceData(data)
+      .addJsonData(data)
       .setRoot({ uid: '0x1' })
       .build();
 
@@ -201,16 +201,13 @@ describe('Serialize deserialize', () => {
             'Parent.has_child': [
               {
                 uid: '0x3',
-                'Parent.has_child': []
+                'Parent.has_child': [{ uid: '0x1' }]
               }
             ]
           }
         ] as any[]
       }
     ];
-
-    // Circularly reference
-    data[0]['Parent.has_child'][0]['Parent.has_child'][0]['Parent.has_child'] = data as any;
 
     const resource = [
       {
@@ -228,8 +225,8 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Parent)
-      .addResourceData(data)
-      .addResourceData(resource)
+      .addJsonData(data)
+      .addJsonData(resource)
       .setRoot({ uid: '0x1' })
       .build();
 
@@ -252,11 +249,11 @@ describe('Serialize deserialize', () => {
     ).toEqual('Node 0x1');
 
     expect(
-      txn.tree[0] ===
+      txn.tree[0].name ===
         txn.tree[0]
           .has_child.get()[0]
           .has_child.get()[0]
-          .has_child.get()[0]
+          .has_child.get()[0].name
     ).toBeTruthy();
   });
 });

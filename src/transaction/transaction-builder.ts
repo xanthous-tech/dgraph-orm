@@ -25,24 +25,29 @@ export namespace TransactionBuilder {
 
   class TreeMapperBuilder<T = any> {
     private readonly _entryType: Constructor<T>;
-    private _root: string;
+    private _root: IObjectLiteral<any>[];
     private _resource = new Map<string, IObjectLiteral<any>>();
 
     constructor(type: Constructor<T>) {
       this._entryType = type;
     }
 
-    setRoot(data: IObjectLiteral<any>): TreeMapperBuilder<T> {
-      if (Private.isNode(data)) {
-        this._root = data.uid;
+    setRoot(data: IObjectLiteral<any> | IObjectLiteral<any>[]): TreeMapperBuilder<T> {
+      if (!Array.isArray(data) && Private.isNode(data)) {
+        this._root = [data];
+      } else {
+        if (Private.isAllNodes(data as IObjectLiteral<any>[])) {
+          this._root = data as IObjectLiteral<any>[];
+        }
       }
+
       return this;
     }
 
     /**
      * Walk the resource graph and add all nodes into resource cache by its `uid`.
      */
-    addResourceData(data: IObjectLiteral<any> | IObjectLiteral<any>[]): TreeMapperBuilder<T> {
+    addJsonData(data: IObjectLiteral<any> | IObjectLiteral<any>[]): TreeMapperBuilder<T> {
       if (data && !(data instanceof Array) && data.uid) {
         const { obj, predicates } = Private.separatePredicates(data);
 
@@ -57,7 +62,7 @@ export namespace TransactionBuilder {
         for (const key of predicates.keys()) {
           const predicate = predicates.get(key) as IObjectLiteral<any>[];
           // store nodes from the predicate
-          this.addResourceData(predicate);
+          this.addJsonData(predicate);
           const existingObj = this._resource.get(obj.uid) as IObjectLiteral<any>;
           const pred = existingObj[key] as IObjectLiteral<any>[];
 
@@ -76,19 +81,21 @@ export namespace TransactionBuilder {
       }
 
       data.forEach((d: any) => {
-        this.addResourceData(d);
+        this.addJsonData(d);
       });
 
       return this;
     }
 
     build(): ITransaction<T> {
-
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       // const util = require('util');
       // console.log(util.inspect(this._resource.get(this._root), { colors: true, depth: 20 }))
 
-      return new Transaction(this._entryType, [this._resource.get(this._root) as IObjectLiteral<any>]);
+      return new Transaction(
+        this._entryType,
+        this._root.map((o: IObjectLiteral<any>) => this._resource.get(o.uid) as IObjectLiteral<any>)
+      );
     }
   }
 }
@@ -97,7 +104,9 @@ export namespace TransactionBuilder {
  * Module private statics
  */
 namespace Private {
-  export function separatePredicates(obj: IObjectLiteral<any>): { obj: IObjectLiteral<any>; predicates: Map<string, IObjectLiteral<any>[]> } {
+  export function separatePredicates(
+    obj: IObjectLiteral<any>
+  ): { obj: IObjectLiteral<any>; predicates: Map<string, IObjectLiteral<any>[]> } {
     const predicates: Map<string, IObjectLiteral<any>[]> = new Map();
 
     Object.keys(obj).forEach((key: string) => {
@@ -112,7 +121,11 @@ namespace Private {
   }
 
   export function isPredicate(obj: IObjectLiteral<any>, key: string): boolean {
-    return Array.isArray(obj[key]) && (obj[key] as Array<any>).every(isNode);
+    return isAllNodes(obj[key]);
+  }
+
+  export function isAllNodes(obj: IObjectLiteral<any>[]): boolean {
+    return Array.isArray(obj) && (obj as Array<any>).every(isNode);
   }
 
   export function isNode(obj: IObjectLiteral<any>): boolean {
