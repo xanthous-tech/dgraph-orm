@@ -21,7 +21,7 @@
     "lint:fix": "eslint --fix",
     "format": "prettier --write",
     "test": "jest",
-    "test:debug": "node --inspect ./node_modules/.bin/jest"
+    "test:debug": "node --inspect-brk ./node_modules/.bin/jest"
   },
   "repository": {
     "type": "git",

@@ -136,23 +136,23 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
   private plainToClassExecutor<T extends Object, V>(
     cls: Constructor<T>,
     plain: V[],
-    storage: WeakMap<Object, T[]>
+    storage: WeakMap<Object, T>
   ): T[] {
-    // Bail early if already converted.
-    if (storage.has(plain)) {
-      return storage.get(plain)!;
-    }
+    const instances: T[] = plain.map((pln: V) => {
+      // Bail early if already converted.
+      if (storage.has(pln)) {
+        return storage.get(pln)!;
+      }
 
-    // Build the entry class
-    const instances: T[] = plainToClass(cls, plain, {
-      enableCircularCheck: true,
-      strategy: 'exposeAll'
-    });
+      // Build the entry class
+      const ins: T = plainToClass(cls, pln, {
+        enableCircularCheck: true,
+        strategy: 'exposeAll'
+      });
 
-    // Keep reference to the instance so in case of circular we can simply get it from storage and complete the circle.
-    storage.set(plain, instances);
+      // Keep reference to the instance so in case of circular we can simply get it from storage and complete the circle.
+      storage.set(pln, ins);
 
-    instances.forEach((ins, idx) => {
       this.trackProperties(ins);
 
       const predicates = MetadataStorage.Instance.predicates.get(ins.constructor.name);
@@ -164,7 +164,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
       //   of the same object. We need to make sure we share the instance.
       predicates.forEach(pred => {
         this.trackPredicate(ins, pred);
-        const _preds = (plain[idx] as any)[pred.args.name];
+        const _preds = (pln as any)[pred.args.name];
 
         // If no data available assign a new data.
         if (!_preds) {
@@ -175,7 +175,9 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
           (ins as any)[pred.args.propertyName] = this.plainToClassExecutor(pred.args.type(), _preds, storage);
         }
       });
-    });
+
+      return ins;
+    }) as T[];
 
     return instances;
   }
