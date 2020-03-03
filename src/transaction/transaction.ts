@@ -133,12 +133,8 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
   /**
    * Given a data class definition and plain object return an instance of the data class.
    */
-  private plainToClassExecutor<T extends Object, V>(
-    cls: Constructor<T>,
-    plain: V[],
-    storage: WeakMap<Object, T>
-  ): T[] {
-    const instances: T[] = plain.map((pln: V) => {
+  private plainToClassExecutor<T extends Object, V>(cls: Constructor<T>, plain: V[], storage: WeakMap<Object, T>): T[] {
+    const instances: T[] = plain.reduce((acc: any[], pln: V) => {
       // Bail early if already converted.
       if (storage.has(pln)) {
         return storage.get(pln)!;
@@ -152,12 +148,13 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
 
       // Keep reference to the instance so in case of circular we can simply get it from storage and complete the circle.
       storage.set(pln, ins);
+      acc.push(ins);
 
       this.trackProperties(ins);
 
       const predicates = MetadataStorage.Instance.predicates.get(ins.constructor.name);
       if (!predicates) {
-        return;
+        return acc;
       }
 
       // FIXME: If the same uid is referenced in multiple places in the data, currently we will have 2 different instances
@@ -176,8 +173,8 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
         }
       });
 
-      return ins;
-    }) as T[];
+      return acc;
+    }, []) as T[];
 
     return instances;
   }
