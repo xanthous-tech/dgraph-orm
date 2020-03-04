@@ -39,8 +39,7 @@ describe('Mutation handling', () => {
     ];
 
     const transaction = TransactionBuilder.of(Person)
-      .addJsonData(data)
-      .setRoot({ uid: '0x1' })
+      .setRoot(data)
       .build();
 
     transaction.tree[0].hobbies.get()[0].name = 'New Hobby Name';
@@ -138,8 +137,7 @@ describe('Mutation handling', () => {
     ];
 
     const transaction = TransactionBuilder.of(Person)
-      .addJsonData(data)
-      .setRoot({ uid: '0x1' })
+      .setRoot(data)
       .build();
 
     transaction.tree[0].name = 'New John';

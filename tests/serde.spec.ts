@@ -20,8 +20,7 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Work)
-      .addJsonData(data)
-      .setRoot({ uid: '0x1' })
+      .setRoot(data)
       .build();
 
     const work = txn.tree[0];
@@ -80,8 +79,7 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Work)
-      .addJsonData(data)
-      .setRoot({ uid: '0x2' })
+      .setRoot(data)
       .build();
 
     console.log(Utils.toObject(txn.tree[0]));
@@ -125,8 +123,7 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Person)
-      .addJsonData(data)
-      .setRoot({ uid: '0x1' })
+      .setRoot(data)
       .build();
 
     expect(txn.tree[0].name).toEqual(data[0]['Person.name']);
@@ -173,8 +170,7 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Person)
-      .addJsonData(data)
-      .setRoot({ uid: '0x1' })
+      .setRoot(data)
       .build();
 
     expect(txn.tree[0].name).toEqual(data[0]['Person.name']);
@@ -225,9 +221,8 @@ describe('Serialize deserialize', () => {
     ];
 
     const txn = TransactionBuilder.of(Parent)
-      .addJsonData(data)
+      .setRoot(data)
       .addJsonData(resource)
-      .setRoot({ uid: '0x1' })
       .build();
 
     Utils.printObject(txn.tree[0]);

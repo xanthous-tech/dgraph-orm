@@ -41,6 +41,7 @@ export namespace TransactionBuilder {
         }
       }
 
+      this.addJsonData(data);
       return this;
     }
 
