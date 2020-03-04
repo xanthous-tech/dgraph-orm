@@ -90,11 +90,16 @@ export namespace TransactionBuilder {
     build(): ITransaction<T> {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       // const util = require('util');
-      // console.log(util.inspect(this._resource.get(this._root), { colors: true, depth: 20 }))
+      // console.log(
+      //   util.inspect(
+      //     this._root.map(o => this._resource.get(o.uid)),
+      //     { colors: true, depth: 20 }
+      //   )
+      // );
 
       return new Transaction(
         this._entryType,
-        this._root.map((o: IObjectLiteral<any>) => this._resource.get(o.uid) as IObjectLiteral<any>)
+        this._root.map(o => this._resource.get(o.uid))
       );
     }
   }

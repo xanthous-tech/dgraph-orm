@@ -134,10 +134,11 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
    * Given a data class definition and plain object return an instance of the data class.
    */
   private plainToClassExecutor<T extends Object, V>(cls: Constructor<T>, plain: V[], storage: WeakMap<Object, T>): T[] {
-    const instances: T[] = plain.reduce((acc: any[], pln: V) => {
+    return plain.reduce((acc: any[], pln: V) => {
       // Bail early if already converted.
       if (storage.has(pln)) {
-        return storage.get(pln)!;
+        acc.push(storage.get(pln)!);
+        return acc;
       }
 
       // Build the entry class
@@ -175,8 +176,6 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
 
       return acc;
     }, []) as T[];
-
-    return instances;
   }
 
   /**
