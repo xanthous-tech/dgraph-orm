@@ -133,38 +133,36 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
   /**
    * Given a data class definition and plain object return an instance of the data class.
    */
-  private plainToClassExecutor<T extends Object, V>(
-    cls: Constructor<T>,
-    plain: V[],
-    storage: WeakMap<Object, T[]>
-  ): T[] {
-    // Bail early if already converted.
-    if (storage.has(plain)) {
-      return storage.get(plain)!;
-    }
+  private plainToClassExecutor<T extends Object, V>(cls: Constructor<T>, plain: V[], storage: WeakMap<Object, T>): T[] {
+    return plain.reduce((acc: any[], pln: V) => {
+      // Bail early if already converted.
+      if (storage.has(pln)) {
+        acc.push(storage.get(pln)!);
+        return acc;
+      }
 
-    // Build the entry class
-    const instances: T[] = plainToClass(cls, plain, {
-      enableCircularCheck: true,
-      strategy: 'exposeAll'
-    });
+      // Build the entry class
+      const ins: T = plainToClass(cls, pln, {
+        enableCircularCheck: true,
+        strategy: 'exposeAll'
+      });
 
-    // Keep reference to the instance so in case of circular we can simply get it from storage and complete the circle.
-    storage.set(plain, instances);
+      // Keep reference to the instance so in case of circular we can simply get it from storage and complete the circle.
+      storage.set(pln, ins);
+      acc.push(ins);
 
-    instances.forEach((ins, idx) => {
       this.trackProperties(ins);
 
       const predicates = MetadataStorage.Instance.predicates.get(ins.constructor.name);
       if (!predicates) {
-        return;
+        return acc;
       }
 
       // FIXME: If the same uid is referenced in multiple places in the data, currently we will have 2 different instances
       //   of the same object. We need to make sure we share the instance.
       predicates.forEach(pred => {
         this.trackPredicate(ins, pred);
-        const _preds = (plain[idx] as any)[pred.args.name];
+        const _preds = (pln as any)[pred.args.name];
 
         // If no data available assign a new data.
         if (!_preds) {
@@ -175,9 +173,9 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
           (ins as any)[pred.args.propertyName] = this.plainToClassExecutor(pred.args.type(), _preds, storage);
         }
       });
-    });
 
-    return instances;
+      return acc;
+    }, []) as T[];
   }
 
   /**
