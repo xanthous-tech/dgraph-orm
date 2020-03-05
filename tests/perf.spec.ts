@@ -1,4 +1,6 @@
+// @ts-ignore
 import * as util from 'util';
+
 import { IPredicate, Node, Predicate, Property, TransactionBuilder, Uid } from '../src';
 
 describe('Performance testing', () => {
@@ -76,37 +78,67 @@ describe('Performance testing', () => {
   });
 
   it.only('Fuzz with random data', () => {
+    interface IStation {
+      uid: string;
+      name: string;
+      connects: IStation[];
+    }
+
     @Node()
+    // @ts-ignore
     class Station {
       @Uid()
       uid: string;
 
-      @Property()
+      @Property({ name: 'name' })
       name: string;
 
-      @Predicate({ type: () => Station })
+      @Predicate({ name: 'connects', type: () => Station })
       connects: IPredicate<Station>;
     }
 
-    const STATION_COUNT = 5;
+    const MIN_DEPTH = 3;
+    const CONNECTION_PER_STATION = 2;
+    const STATION_COUNT = 50;
 
-    const allStations = new Array(STATION_COUNT).fill(null).map((_, idx) => ({
+    console.time('Data create');
+    const allStations: IStation[] = new Array(STATION_COUNT).fill(null).map((_, idx) => ({
       uid: `${idx}`,
       name: `Station_${idx}`,
-      stations: [] as any[]
+      connects: [] as any[]
     }));
 
-    new Array(2).fill(null).forEach(() => {
-      const rand = Math.floor(Math.random() * STATION_COUNT);
-      allStations.forEach(station => station.stations.push(allStations[rand]));
+    new Array(MIN_DEPTH).fill(null).forEach(() => {
+      allStations.forEach((station, idx) => {
+        new Array(CONNECTION_PER_STATION).fill(null).forEach(() => {
+          let rand = Math.floor(Math.random() * STATION_COUNT);
+          if (rand !== idx) {
+            station.connects.push(allStations[rand]);
+          }
+        });
+      });
     });
+    // console.timeEnd('Data create');
+    // console.log(util.inspect(allStations, { colors: true, depth: 10, compact: true, breakLength: 200 }));
 
-    console.log(util.inspect(allStations, { colors: true, depth: 10 }));
+    console.time('Data clean');
+    const tb = TransactionBuilder.of(Station);
+    tb.setRoot(allStations);
+    console.timeEnd('Data clean');
 
-    const result = TransactionBuilder.of(Station)
-      .setRoot(allStations)
-      .build();
+    // console.time('Map build');
+    // tb.build();
+    // console.timeEnd('Map build');
+    // console.log(util.inspect(result.tree, { colors: true, depth: 20 }));
+    // console.log(`Stations ${result.tree[0].name} connects to:\n`, result.tree[0].connects.get());
 
-    console.log(util.inspect(result.tree, { colors: true, depth: 10 }));
+    // expect(allStations[0].connects[0].connects[0].connects[0].connects[0].connects[0].uid).toEqual(
+    //   result.tree[0].connects
+    //     .get()[0]
+    //     .connects.get()[0]
+    //     .connects.get()[0]
+    //     .connects.get()[0]
+    //     .connects.get()[0].uid
+    // );
   });
 });
