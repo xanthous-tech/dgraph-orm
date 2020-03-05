@@ -10,6 +10,17 @@ export namespace Iterators {
     }
   }
 
+  export function map<T, V>(iterator: IterableIterator<T>, fn: (item: T, idx?: number) => V): Set<V> {
+    const result = new Set<V>();
+    let idx = 0;
+    for (const i of iterator) {
+      result.add(fn(i, idx));
+      idx++;
+    }
+
+    return result;
+  }
+
   export function reduce<T, U = any>(
     iterator: IterableIterator<U>,
     fn: (acc: T, item: U, idx?: number) => T,

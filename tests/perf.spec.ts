@@ -99,7 +99,7 @@ describe('Performance testing', () => {
 
     const MIN_DEPTH = 3;
     const CONNECTION_PER_STATION = 2;
-    const STATION_COUNT = 50;
+    const STATION_COUNT = 100;
 
     console.time('Data create');
     const allStations: IStation[] = new Array(STATION_COUNT).fill(null).map((_, idx) => ({
@@ -126,9 +126,9 @@ describe('Performance testing', () => {
     tb.setRoot(allStations);
     console.timeEnd('Data clean');
 
-    // console.time('Map build');
-    // tb.build();
-    // console.timeEnd('Map build');
+    console.time('Map build');
+    tb.build();
+    console.timeEnd('Map build');
     // console.log(util.inspect(result.tree, { colors: true, depth: 20 }));
     // console.log(`Stations ${result.tree[0].name} connects to:\n`, result.tree[0].connects.get());
 

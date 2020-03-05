@@ -5,6 +5,7 @@ import { plainToClass } from 'class-transformer';
 import { IPredicate } from '..';
 import { MetadataStorage } from '../metadata/storage';
 import { PredicateMetadata } from '../metadata/predicate';
+import { INode, IPlainPredicates } from '../types/data';
 import { Constructor } from '../utils/class';
 import { IObjectLiteral } from '../utils/type';
 
@@ -44,12 +45,12 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
   /**
    * Initialize a transaction from an existing data.
    */
-  constructor(entryCls: Constructor<T>, plain: V[]);
+  constructor(entryCls: Constructor<T>, plain: IPlainPredicates);
 
   // Implementation
-  constructor(entryCls?: Constructor<T>, plain?: V[]) {
+  constructor(entryCls?: Constructor<T>, plain?: IPlainPredicates) {
     if (entryCls && plain) {
-      this._tree = this.plainToClassExecutor(entryCls, plain, new WeakMap());
+      this._tree = this.plainToClassExecutor(entryCls, Array.from(plain), new WeakMap());
       this._tree.forEach(i => {
         this.diff.facets.purgeInstance(i);
         this.diff.properties.purgeInstance(i);
@@ -133,8 +134,12 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
   /**
    * Given a data class definition and plain object return an instance of the data class.
    */
-  private plainToClassExecutor<T extends Object, V>(cls: Constructor<T>, plain: V[], storage: WeakMap<Object, T>): T[] {
-    return plain.reduce((acc: any[], pln: V) => {
+  private plainToClassExecutor<T extends Object, V>(
+    cls: Constructor<T>,
+    plain: INode[],
+    storage: WeakMap<Object, T>
+  ): T[] {
+    return plain.reduce((acc: any[], pln: INode) => {
       // Bail early if already converted.
       if (storage.has(pln)) {
         acc.push(storage.get(pln)!);
@@ -162,7 +167,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
       //   of the same object. We need to make sure we share the instance.
       predicates.forEach(pred => {
         this.trackPredicate(ins, pred);
-        const _preds = (pln as any)[pred.args.name];
+        let _preds: INode[] = (pln as any)[pred.args.name];
 
         // If no data available assign a new data.
         if (!_preds) {
@@ -170,6 +175,10 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
         }
 
         if (_preds) {
+          if (!Array.isArray(_preds)) {
+            _preds = Array.from(_preds);
+          }
+
           (ins as any)[pred.args.propertyName] = this.plainToClassExecutor(pred.args.type(), _preds, storage);
         }
       });
