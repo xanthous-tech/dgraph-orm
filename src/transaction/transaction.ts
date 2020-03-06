@@ -278,7 +278,6 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
           delete (value._owner as any)[facetPropertyName];
         });
 
-        // Clean up the diff on the instance.
         storedValue = value;
       }
     });
