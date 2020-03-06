@@ -15,5 +15,10 @@ export namespace NodeMetadata {
      * Name of the node.
      */
     name: string;
+
+    /**
+     * dgraph.type override.
+     */
+    dgraphType: string;
   }
 }

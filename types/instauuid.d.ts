@@ -12,7 +12,7 @@ declare module 'instauuid' {
     | 'decimal'
     | 'buffer_be';
 
-  interface UuidOptions {
+  interface IUuidOptions {
     type?: UuidType;
 
     additional?: number;
@@ -20,7 +20,7 @@ declare module 'instauuid' {
     countNumber?: number;
   }
 
-  function instauuid(type: UuidType | UuidOptions | undefined): string;
+  function instauuid(type: UuidType | IUuidOptions | undefined): string;
   namespace instauuid {}
   export = instauuid;
 }

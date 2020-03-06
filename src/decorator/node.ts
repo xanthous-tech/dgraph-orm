@@ -3,20 +3,35 @@
  */
 import { MetadataStorage } from '../metadata/storage';
 
+/**
+ * Class decorator to mark a class as a graph node.
+ *
+ * @category PublicAPI
+ */
 export function Node(options: Node.IOptions = {}): Function {
   return function(target: Function): void {
     MetadataStorage.Instance.addNodeMetadata({
       target,
-      name: target.name
+      name: target.name,
+      dgraphType: options.dgraphType || target.name
     });
   };
 }
 
+/**
+ * Node statics.
+ *
+ * @category PublicAPI
+ */
 export namespace Node {
   /**
    * Options for the `Node` decorator.
    */
   export interface IOptions {
-    //
+    /**
+     * Type of the node that is created in DGraph (sets `dgraph.type`). Setting name
+     * property lets user to reuse a global predicate between different nodes.
+     */
+    dgraphType?: string;
   }
 }

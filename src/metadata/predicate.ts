@@ -33,8 +33,18 @@ export namespace PredicateMetadata {
     type: () => Constructor;
 
     /**
+     * Facet info if present;
+     */
+    facet?: Constructor<any>;
+
+    /**
      * Is the predicate an array type.
      */
     isArray: boolean;
+
+    /**
+     * Should dgraph count the number of edges out of each node.
+     */
+    count: boolean;
   }
 }

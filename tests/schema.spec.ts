@@ -1,4 +1,4 @@
-import { Node, Predicate, Property, Uid, PropertyType, SchemaBuilder, Index } from '../src';
+import {Node, Property, Uid, PropertyType, SchemaBuilder, Index, Predicate, IPredicate} from '../src';
 import { MetadataStorageUtils } from '../src/metadata/storage';
 
 describe('Global schema', () => {
@@ -14,7 +14,7 @@ describe('Global schema', () => {
       name: string;
     }
 
-    @Node()
+    @Node({ dgraphType: 'PERSON' })
     class Person {
       @Uid()
       id: string;
@@ -27,7 +27,7 @@ describe('Global schema', () => {
       hobbies: string[];
 
       @Predicate({ type: () => Work })
-      works: Work[];
+      works: IPredicate<Work>;
     }
 
     Private.noopClass(Person);
@@ -36,19 +36,22 @@ describe('Global schema', () => {
     const expectedSchema = `type Work {
   Work.name: string
 }
-type Person {
+type PERSON {
   name: string
   Person.hobbies: [string]
+  Person.works: [Work]
 }
-Work.name:string
-@index(hash) name:string
-Person.hobbies:[string]
+Work.name: string .
+name: string @index(hash) .
+Person.hobbies: [string] .
+Person.works: [uid] @count .
 `;
 
     expect(SchemaBuilder.build()).toEqual(expectedSchema);
   });
 });
 
+/* eslint-disable */
 namespace Private {
   /**
    * Bypass for unused locals.
@@ -57,3 +60,4 @@ namespace Private {
     // To bypass unused import.
   }
 }
+/* eslint-enable */
