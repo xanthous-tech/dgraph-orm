@@ -18,7 +18,7 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
   constructor(
     diff: IDiffEnvelope<T>,
     readonly _metadata: PredicateMetadata,
-    readonly _parent: Object,
+    readonly _owner: Object,
     private readonly _data: T[]
   ) {
     diff.deletes.set(this, new Set());
@@ -33,12 +33,12 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
   }
 
   getFacet(node: T): U | undefined {
-    return FacetStorage.get(this._metadata.args.propertyName, this._parent, node);
+    return FacetStorage.get(this._metadata.args.propertyName, this._owner, node);
   }
 
   add(node: T): IPredicate<T, U> {
     if (this._facet) {
-      FacetStorage.attach(this._metadata.args.propertyName, this._parent, node, this._facet);
+      FacetStorage.attach(this._metadata.args.propertyName, this._owner, node, this._facet);
       this.trackFacetValues(this._facet);
       this._facet = null;
     }
@@ -51,11 +51,11 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
 
   update(node: T): IPredicate<T, U> {
     if (!this._facet) {
-      FacetStorage.detach(this._metadata.args.propertyName, this._parent, node);
+      FacetStorage.detach(this._metadata.args.propertyName, this._owner, node);
       return this;
     }
 
-    FacetStorage.attach(this._metadata.args.propertyName, this._parent, node, this._facet);
+    FacetStorage.attach(this._metadata.args.propertyName, this._owner, node, this._facet);
     this.trackFacetValues(this._facet);
     this._facet = null;
 

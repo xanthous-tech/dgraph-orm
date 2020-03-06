@@ -51,10 +51,6 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
   constructor(entryCls?: Constructor<T>, plain?: IPlainPredicates) {
     if (entryCls && plain) {
       this._tree = this.plainToClassExecutor(entryCls, Array.from(plain), new WeakMap());
-      this._tree.forEach(i => {
-        this.diff.facets.purgeInstance(i);
-        this.diff.properties.purgeInstance(i);
-      });
     }
   }
 
@@ -163,8 +159,6 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
         return acc;
       }
 
-      // FIXME: If the same uid is referenced in multiple places in the data, currently we will have 2 different instances
-      //   of the same object. We need to make sure we share the instance.
       predicates.forEach(pred => {
         this.trackPredicate(ins, pred);
         let _preds: INode[] = (pln as any)[pred.args.name];
@@ -206,6 +200,8 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
       this.diff.properties.trackProperty(instance, propertyName, name);
     });
 
+    this.diff.properties.purgeInstance(instance);
+
     return;
   }
 
@@ -224,6 +220,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
 
   private trackPredicate<T extends Object, V>(instance: T, metadata: PredicateMetadata): void {
     const { propertyName, facet, name } = metadata.args;
+    const facets = MetadataStorage.Instance.facets.get((facet && facet.name) || '') || [];
 
     // Value envelope to store values of the decorated property.
     let storedValue: IPredicate<any, any>;
@@ -237,39 +234,65 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
       get(): any {
         return storedValue;
       },
-      set(value: any): void {
+      set(value: PredicateImpl): void {
         if (!value || Array.isArray(value)) {
           value = new PredicateImpl(context.diff, metadata, instance, value || []);
         }
 
-        const facets = MetadataStorage.Instance.facets.get((facet && facet.name) || '') || [];
+        // All children under this predicate
+        const children = value.get();
 
-        // Here we setup facets and clean up the class-transformer artifacts of on the instance.
-        value.get().forEach((v: any) => {
-          const plain = facets.reduce<IObjectLiteral<any>>((acc, f) => {
+        // Merge all indices seen on facet data.
+        const facetDataIndices = facets.reduce<Set<string>>((acc, f) => {
+          const facetPropertyName = `${name}|${f.args.propertyName}`;
+          const facetData = Private.accessUnsafe(value._owner, facetPropertyName)
+            ? Object.keys(Private.accessUnsafe(value._owner, facetPropertyName))
+            : [];
+
+          return new Set([...acc, ...facetData]);
+        }, new Set<string>());
+
+        // Iterate on available facets and map them
+        facetDataIndices.forEach(idx => {
+          const plain = facets.reduce<IObjectLiteral>((acc, f) => {
             const facetPropertyName = `${name}|${f.args.propertyName}`;
+            const facetValue = Private.accessUnsafe(value._owner, facetPropertyName)[idx];
 
-            // Move data to facet object and remove it from the node object.
-            acc[f.args.propertyName] = v[facetPropertyName];
-            delete v[facetPropertyName];
+            if (facetValue) {
+              acc[f.args.propertyName] = facetValue;
+            }
 
             return acc;
-          }, {} as IObjectLiteral<any>);
+          }, {});
 
           const facetInstance = plainToClass(facet!, plain);
-          FacetStorage.attach(propertyName, instance, v, facetInstance);
+          FacetStorage.attach(propertyName, instance, children[Number(idx)], facetInstance);
 
           // Track each facet property in facet instance and reset it..
           facets.forEach(f => context.diff.facets.trackProperty(facetInstance, f.args.propertyName));
           context.diff.facets.purgeInstance(facetInstance);
+        });
 
-          // Clean up the diff on the instance.
-          context.diff.properties.purgeInstance(v);
+        facets.forEach(f => {
+          const facetPropertyName = `${name}|${f.args.propertyName}`;
+          delete (value._owner as any)[facetPropertyName];
         });
 
         storedValue = value;
       }
     });
+  }
+}
+
+/**
+ * Module private statics
+ */
+namespace Private {
+  /**
+   * Unsafe access to a class instances data.
+   */
+  export function accessUnsafe(instance: any, property: string): any {
+    return instance[property];
   }
 }
 
