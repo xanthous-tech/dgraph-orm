@@ -1,10 +1,14 @@
 {
   "name": "@xanthous/dgraph-orm",
-  "version": "0.2.0-alpha3",
+  "version": "0.2.0-alpha5",
   "description": "dgraph ORM in TypeScript",
   "main": "dist/index.js",
-  "author": "Simon Liang <simon@x-tech.io>",
+  "author": "Xanthous Tech Developers <hi@x-tech.io>",
   "contributors": [
+    {
+      "name": "Simon Liang",
+      "email": "simon@x-tech.io"
+    },
     {
       "name": "Osman Mesut Ozcan",
       "email": "osman@x-tech.io",
