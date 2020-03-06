@@ -273,6 +273,11 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
           context.diff.facets.purgeInstance(facetInstance);
         });
 
+        facets.forEach(f => {
+          const facetPropertyName = `${name}|${f.args.propertyName}`;
+          delete (value._owner as any)[facetPropertyName];
+        });
+
         // Clean up the diff on the instance.
         storedValue = value;
       }
