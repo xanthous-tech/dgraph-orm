@@ -252,6 +252,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
           return new Set([...acc, ...facetData]);
         }, new Set<string>());
 
+        // Iterate on available facets and map them
         facetDataIndices.forEach(idx => {
           const plain = facets.reduce<IObjectLiteral>((acc, f) => {
             const facetPropertyName = `${name}|${f.args.propertyName}`;

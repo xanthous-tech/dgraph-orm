@@ -99,7 +99,7 @@ describe('Performance testing', () => {
 
     const MIN_DEPTH = 3;
     const CONNECTION_PER_STATION = 2;
-    const STATION_COUNT = 100;
+    const STATION_COUNT = 1000;
 
     console.time('Data create');
     const allStations: IStation[] = new Array(STATION_COUNT).fill(null).map((_, idx) => ({
