@@ -58,7 +58,7 @@ export class MutationBuilder {
     };
 
     for (const predicate of this.diff.predicates.iterable as IterableIterator<PredicateImpl<any, any>>) {
-      const parent = predicate._parent;
+      const parent = predicate._owner;
       const parentNode = createNode(parent);
 
       const key = predicate._metadata.args.name;
@@ -107,7 +107,7 @@ export class MutationBuilder {
     }
 
     for (const predicate of this.diff.deletes.iterable as IterableIterator<PredicateImpl<any, any>>) {
-      const parentNode = this.getNodeForInstance(predicate._parent);
+      const parentNode = this.getNodeForInstance(predicate._owner);
       const children = this.diff.deletes.get(predicate)!.values();
 
       for (const child of children) {

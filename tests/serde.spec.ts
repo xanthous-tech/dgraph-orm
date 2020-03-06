@@ -1,4 +1,4 @@
-import { Facet, Node, Predicate, IPredicate, Property, Uid, Utils, TransactionBuilder } from '../src';
+import { Facet, Node, Predicate, IPredicate, Property, Uid, TransactionBuilder } from '../src';
 
 import { MetadataStorageUtils } from '../src/metadata/storage';
 
@@ -64,17 +64,21 @@ describe('Serialize deserialize', () => {
         'Work.people': [
           {
             uid: '0x1',
-            'Person.name': 'John Doe',
-            'Work.people|salary': 1200,
-            'Work.people|years': 10
+            'Person.name': 'John Doe'
           },
           {
             uid: '0x3',
-            'Person.name': 'Jane Doe',
-            'Work.people|salary': 1201,
-            'Work.people|years': 11
+            'Person.name': 'Jane Doe'
           }
-        ]
+        ],
+        'Work.people|salary': {
+          '0': 1200,
+          '1': 1201
+        },
+        'Work.people|years': {
+          '0': 10,
+          '1': 11
+        }
       }
     ];
 
@@ -82,9 +86,9 @@ describe('Serialize deserialize', () => {
       .setRoot(data)
       .build();
 
-    console.log(Utils.toObject(txn.tree[0]));
-
     const people = txn.tree[0].people.get();
+
+    expect(txn.getSetNQuads().length).toEqual(0);
 
     expect(txn.tree[0].name).toEqual(data[0]['Work.name']);
     expect(people).toHaveLength(2);
@@ -126,6 +130,7 @@ describe('Serialize deserialize', () => {
       .setRoot(data)
       .build();
 
+    expect(txn.getSetNQuads().length).toEqual(0);
     expect(txn.tree[0].name).toEqual(data[0]['Person.name']);
     expect(txn.tree[0].friends).not.toBeUndefined();
   });
@@ -152,15 +157,15 @@ describe('Serialize deserialize', () => {
       {
         uid: '0x1',
         'Person.name': 'John',
+        'Person.friends|familiarity': { '0': 9999 },
         'Person.friends': [
           {
             uid: '0x2',
-            'Person.friends|familiarity': 9999,
             'Person.name': 'Jane',
+            'Person.friends|familiarity': { '0': 9999 },
             'Person.friends': [
               {
                 uid: '0x3',
-                'Person.friends|familiarity': 9999,
                 'Person.name': 'Kamil'
               }
             ]
@@ -173,6 +178,7 @@ describe('Serialize deserialize', () => {
       .setRoot(data)
       .build();
 
+    expect(txn.getSetNQuads().length).toEqual(0);
     expect(txn.tree[0].name).toEqual(data[0]['Person.name']);
     expect(txn.tree[0].friends.get()).toHaveLength(1);
     // expect(txn.tree[0].friends.get()[0].name).toEqual(data[0]['Person.friends'][0]['Person.name']);
@@ -181,6 +187,9 @@ describe('Serialize deserialize', () => {
   it('should be able to handle ', () => {
     @Node()
     class Parent {
+      @Uid()
+      uid: string;
+
       @Property()
       name: string;
 
@@ -225,14 +234,7 @@ describe('Serialize deserialize', () => {
       .addJsonData(resource)
       .build();
 
-    Utils.printObject(txn.tree[0]);
-    Utils.printObject(
-      txn.tree[0].has_child
-        .get()[0]
-        .has_child.get()[0]
-        .has_child.get()[0]
-    );
-
+    expect(txn.getSetNQuads().length).toEqual(0);
     expect(txn.tree[0].has_child.get()[0].name).toEqual('Node 0x2');
 
     expect(

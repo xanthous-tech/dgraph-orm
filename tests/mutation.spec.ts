@@ -119,15 +119,15 @@ describe('Mutation handling', () => {
       {
         uid: '0x1',
         'Person.name': 'John',
+        'Person.friends|familiarity': { '0': 999 },
         'Person.friends': [
           {
             uid: '0x2',
             'Person.name': 'Jane',
-            'Person.friends|familiarity': 999,
+            'Person.friends|familiarity': { '0': 999 },
             'Person.friends': [
               {
                 uid: '0x3',
-                'Person.friends|familiarity': 999,
                 'Person.name': 'Kamil'
               }
             ]
