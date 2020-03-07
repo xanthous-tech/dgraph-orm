@@ -1,10 +1,14 @@
 {
   "name": "@xanthous/dgraph-orm",
-  "version": "0.1.15",
+  "version": "0.2.0-alpha5",
   "description": "dgraph ORM in TypeScript",
   "main": "dist/index.js",
-  "author": "Simon Liang <simon@x-tech.io>",
+  "author": "Xanthous Tech Developers <hi@x-tech.io>",
   "contributors": [
+    {
+      "name": "Simon Liang",
+      "email": "simon@x-tech.io"
+    },
     {
       "name": "Osman Mesut Ozcan",
       "email": "osman@x-tech.io",
@@ -20,7 +24,8 @@
     "lint": "eslint ./src --ext .ts",
     "lint:fix": "eslint --fix",
     "format": "prettier --write",
-    "test": "jest"
+    "test": "jest",
+    "test:debug": "node --inspect-brk ./node_modules/.bin/jest"
   },
   "repository": {
     "type": "git",
@@ -46,6 +51,7 @@
     "ts-jest": "^24.1.0",
     "ts-node": "^8.4.1",
     "tsconfig-paths": "^3.9.0",
+    "typedoc": "^0.16.10",
     "typescript": "^3.6.4"
   },
   "dependencies": {

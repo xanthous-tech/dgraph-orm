@@ -1,6 +1,5 @@
 import { Expose } from 'class-transformer';
 
-import { DiffTracker } from '../mutation/tracker';
 import { MetadataStorage } from '../metadata/storage';
 import { PropertyType, PropertyTypeUtils } from '../types/property';
 
@@ -11,6 +10,8 @@ const DEFAULT_INDEX_TYPE = 'string';
 
 /**
  * A decorator to annotate properties to index on.
+ *
+ * @category PublicAPI
  */
 export function Index(options: Index.IOptions): PropertyDecorator {
   return function(target: Object, propertyName: string): void {
@@ -22,6 +23,11 @@ export function Index(options: Index.IOptions): PropertyDecorator {
   };
 }
 
+/**
+ * Index statics.
+ *
+ * @category PublicAPI
+ */
 export namespace Index {
   /**
    * Options for the `Index` decorator.
@@ -34,6 +40,8 @@ export namespace Index {
 /**
  * A decorator to annotate properties on a DGraph Node class. Only the properties
  * decorated with this decorator will be treated as a node property.
+ *
+ * @category PublicAPI
  */
 export function Property(options: Property.IOptions = {}): PropertyDecorator {
   return function(target: Object, propertyName: string): void {
@@ -55,9 +63,6 @@ export function Property(options: Property.IOptions = {}): PropertyDecorator {
     // decorator returns the correct value.
     Expose({ name, toClassOnly: true })(target, propertyName);
 
-    // Attach a diff tracker to the property.
-    DiffTracker.trackProperty(target, propertyName, name);
-
     MetadataStorage.Instance.addPropertyMetadata({
       type,
       name,
@@ -68,6 +73,11 @@ export function Property(options: Property.IOptions = {}): PropertyDecorator {
   };
 }
 
+/**
+ * Property statics.
+ *
+ * @category PublicAPI
+ */
 export namespace Property {
   /**
    * Options for the `PropertyType` decorator.
@@ -96,7 +106,7 @@ namespace Private {
 
   /**
    * Find out the type of the predicate based on user defined type or reflected type
-   * and create additional metadata to help building correct serialization/deserialization on
+   * and create additional metadata to help building correct transaction/deserialization on
    * nodes.
    */
   export function sanitizePropertyType(

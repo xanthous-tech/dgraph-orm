@@ -1,5 +1,4 @@
-import { QueryBuilder, Facet, Node, Uid, Property, Predicate, IPredicate } from '../src';
-
+import {QueryBuilder, Facet, Node, Uid, Property, Predicate, IPredicate, SchemaBuilder} from '../src';
 
 test('Should work', () => {
   class PersonKnows {
@@ -20,8 +19,8 @@ test('Should work', () => {
   }
 
   const { handle, fragment } = QueryBuilder.buildFragment(Person);
+  console.log(SchemaBuilder.build())
 
   expect(handle).toEqual('...personDataFragment');
-  expect(fragment.split('\n').length).toEqual(5)
-
+  expect(fragment.split('\n').length).toEqual(5);
 });

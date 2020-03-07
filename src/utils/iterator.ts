@@ -10,6 +10,17 @@ export namespace Iterators {
     }
   }
 
+  export function map<T, V>(iterator: IterableIterator<T>, fn: (item: T, idx?: number) => V): Set<V> {
+    const result = new Set<V>();
+    let idx = 0;
+    for (const i of iterator) {
+      result.add(fn(i, idx));
+      idx++;
+    }
+
+    return result;
+  }
+
   export function reduce<T, U = any>(
     iterator: IterableIterator<U>,
     fn: (acc: T, item: U, idx?: number) => T,
@@ -23,5 +34,37 @@ export namespace Iterators {
     }
 
     return acc;
+  }
+}
+
+/**
+ * TODO: Replace with a real IterableWeakMap when TC proposal goes prod.
+ */
+export class IterableWeakMap<T extends Object, V = any> extends WeakMap<T, V> {
+  private _keys = new Set<T>();
+
+  set(key: T, value: V): this {
+    this._keys.add(key);
+    return super.set(key, value);
+  }
+
+  get(key: T): V | undefined {
+    return super.get(key);
+  }
+
+  delete(key: T): boolean {
+    this._keys.delete(key);
+    return super.delete(key);
+  }
+
+  /**
+   * Dispose of the iterable.
+   */
+  dispose() {
+    this._keys.clear();
+  }
+
+  get iterable(): IterableIterator<T> {
+    return this._keys.values();
   }
 }

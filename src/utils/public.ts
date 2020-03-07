@@ -1,12 +1,13 @@
 import * as util from 'util';
 
-import { IPredicate } from '../decorator/predicate';
-import { DiffTracker } from '../mutation/tracker';
+import { IPredicate } from '..';
 import { MetadataStorage } from '../metadata/storage';
 import { CircularTracker } from './circular-tracker';
 
 /**
  * Utility namespace.
+ *
+ * @category PublicAPI
  */
 export namespace Utils {
   export interface IPrintOptions {
@@ -40,12 +41,12 @@ export namespace Utils {
       storage.set(instance, object);
     }
 
-    DiffTracker.getTrackedProperties(instance).forEach(a => {
-      Object.defineProperty(object, a, {
-        enumerable: true,
-        value: Reflect.get(instance, a)
-      });
-    });
+    // DiffTracker.getTrackedProperties(instance).forEach(a => {
+    //   Object.defineProperty(object, a, {
+    //     enumerable: true,
+    //     value: Reflect.get(instance, a)
+    //   })
+    // });
 
     // Drill down to the predicates if metadata found in the storage.
     const predicatesMetadata = MetadataStorage.Instance.predicates.get(instance.constructor.name) || [];
@@ -58,7 +59,7 @@ export namespace Utils {
         // Convert predicates to plain object.
         Object.defineProperty(object, p.args.propertyName, {
           enumerable: true,
-          value: predicateNodes.get().reduce((acc, pn) => {
+          value: predicateNodes.get().reduce((acc: any, pn: any) => {
             acc.push(storage.get(pn) || _toObject(pn, tracker, storage));
             return acc;
           }, [])

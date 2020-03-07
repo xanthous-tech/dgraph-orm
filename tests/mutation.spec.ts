@@ -1,12 +1,8 @@
-import { Writer } from '@xanthous/n3';
-
-import { Facet, Node, IPredicate, Predicate, Property, Uid } from '../src';
-
 import { MetadataStorageUtils } from '../src/metadata/storage';
-import { ObjectMapper } from '../src/serialization/mapper';
-import { MutationBuilder } from '../src/mutation/builder';
+import { Facet, IPredicate, Node, Predicate, Property, Uid } from '../src';
+import { TransactionBuilder } from '../src/transaction/transaction-builder';
 
-describe('Serialize deserialize', () => {
+describe('Mutation handling', () => {
   beforeEach(() => MetadataStorageUtils.flush());
 
   it('should handle circulars correctly', function() {
@@ -42,24 +38,66 @@ describe('Serialize deserialize', () => {
       }
     ];
 
-    const existing = ObjectMapper.newBuilder<Person>()
-      .addEntryType(Person)
-      .addJsonData(data)
+    const transaction = TransactionBuilder.of(Person)
+      .setRoot(data)
       .build();
 
-    existing[0].hobbies.get()[0].name = 'New Hobby Name';
-    console.log(MutationBuilder.getSetNQuadsString(existing[0]));
+    transaction.tree[0].hobbies.get()[0].name = 'New Hobby Name';
+    expect(transaction.getSetNQuadsString()).toEqual('<0x2> <Hobby.name> "New Hobby Name"^^<xs:string> .\n');
 
-    const hobby = new Hobby();
+    // const hobby = new Hobby();
+    const hobby = transaction.nodeFor(Hobby);
     hobby.name = 'Stuff';
 
-    const person = new Person();
-    person.name = 'Testing';
-    person.hobbies.add(hobby);
-    console.log(MutationBuilder.getSetNQuadsString(person));
+    transaction.tree[0].hobbies.add(hobby);
+
+    console.log(transaction.getSetNQuadsString());
   });
 
-  it('should handle circulars correctly', function() {
+  it('should add the correct facet', () => {
+    class OrderFacet {
+      constructor(data: OrderFacet) {
+        if (data.order != null) {
+          this.order = data.order;
+        }
+        if (data.width != null) {
+          this.width = data.width;
+        }
+      }
+
+      @Facet()
+      order?: number;
+
+      @Facet()
+      width?: number;
+    }
+
+    @Node()
+    class Person {
+      @Uid()
+      id: string;
+
+      @Property()
+      name: string;
+
+      @Predicate({ type: () => Person, facet: OrderFacet })
+      friends: IPredicate<Person, OrderFacet>;
+    }
+    const transaction = TransactionBuilder.build();
+
+    const lim = transaction.nodeFor(Person);
+    const nick = transaction.nodeFor(Person);
+
+    lim.name = 'Lim';
+    nick.name = 'Nick';
+
+    lim.friends.withFacet(new OrderFacet({ order: 0 })).add(nick);
+    nick.friends.withFacet(new OrderFacet({ order: 1, width: 200 })).add(lim);
+
+    console.log(transaction.getSetNQuadsString());
+  });
+
+  it('should handle nested correctly', function() {
     class PersonKnows {
       @Facet()
       familiarity: number;
@@ -81,15 +119,15 @@ describe('Serialize deserialize', () => {
       {
         uid: '0x1',
         'Person.name': 'John',
+        'Person.friends|familiarity': { '0': 999 },
         'Person.friends': [
           {
             uid: '0x2',
             'Person.name': 'Jane',
-            'Person.friends|familiarity': 999,
+            'Person.friends|familiarity': { '0': 999 },
             'Person.friends': [
               {
                 uid: '0x3',
-                'Person.friends|familiarity': 999,
                 'Person.name': 'Kamil'
               }
             ]
@@ -98,26 +136,35 @@ describe('Serialize deserialize', () => {
       }
     ];
 
-    const instances = ObjectMapper.newBuilder<Person>()
-      .addEntryType(Person)
-      .addJsonData(data)
+    const transaction = TransactionBuilder.of(Person)
+      .setRoot(data)
       .build();
 
-    instances[0].name = 'New John';
-    const friends = instances[0].friends;
+    transaction.tree[0].name = 'New John';
+    const friends = transaction.tree[0].friends;
 
     friends.get()[0].name = 'New Jane';
-    instances[0].friends.get()[0].friends.get()[0].name = 'New Kamil';
     friends.getFacet(friends.get()[0])!.familiarity = 666;
+    transaction.tree[0].friends.get()[0].friends.get()[0].name = 'New Kamil';
 
     //
-    console.log(MutationBuilder.getSetNQuadsString(instances[0]));
+    expect(transaction.getSetNQuadsString()).toEqual(
+      `<0x3> <Person.name> "New Kamil"^^<xs:string> .
+<0x2> <Person.name> "New Jane"^^<xs:string> .
+<0x1> <Person.name> "New John"^^<xs:string> .
+<0x1> <Person.friends> <0x2> (familiarity=666) .
+`
+    );
   });
 
-  it('should handle circulars correctly for fresh instances', function() {
+  it('should handle nested correctly for fresh instances', function() {
     class PersonKnows {
       @Facet()
       familiarity: number;
+
+      constructor(familiarity: number) {
+        this.familiarity = familiarity;
+      }
     }
 
     @Node()
@@ -132,20 +179,25 @@ describe('Serialize deserialize', () => {
       friends: IPredicate<Person, PersonKnows>;
     }
 
-    const john = new Person();
+    const transaction = TransactionBuilder.build();
+
+    // Create a new node.
+    const john = transaction.nodeFor(Person);
     john.name = 'John';
 
-    const jane = new Person();
-    jane.name = 'Jane';
+    // Create a new node and set name to 'Jane'
+    const janeData = { name: 'Jane' };
+    const jane = transaction.nodeFor(Person, janeData);
 
-    const kamil = new Person();
-    kamil.name = 'Kamil';
+    // This node already exist and we only want to introduce new
+    //   predicates to it.
+    const kamilData = { uid: '0x1' };
+    const kamil = transaction.nodeFor(Person, kamilData);
 
-    kamil.friends.withFacet({ familiarity: 42 }).add(jane);
-    kamil.friends.withFacet({ familiarity: 99 }).add(john);
+    kamil.friends.withFacet(new PersonKnows(42)).add(jane);
+    kamil.friends.withFacet(new PersonKnows(99)).add(john);
 
-    //
-    console.log(MutationBuilder.getSetNQuadsString(kamil));
+    console.log(transaction.getSetNQuadsString());
   });
 
   it('should use refer to same temporary uid for node', function() {
@@ -158,16 +210,18 @@ describe('Serialize deserialize', () => {
       name: string;
     }
 
-    const kamil = new Person();
+    const transaction = TransactionBuilder.build();
+
+    const kamil = transaction.nodeFor(Person);
     kamil.name = 'Kamil';
 
-    expect(MutationBuilder.getSetNQuadsString(kamil))
-        .toEqual(MutationBuilder.getSetNQuadsString(kamil));
+    expect(kamil.id).not.toBeUndefined();
+    expect(transaction.getSetNQuadsString()).toEqual(transaction.getSetNQuadsString());
   });
 
-  it('should support the same recursive ID', ()=>{
+  it('should support the same recursive ID', () => {
     @Node()
-    class Cell{
+    class Cell {
       @Uid()
       uid: string;
 
@@ -179,38 +233,35 @@ describe('Serialize deserialize', () => {
     }
 
     @Node()
-    class Row{
+    class Row {
       @Uid()
       uid: string;
 
       @Predicate({ name: 'has_cell', type: () => Cell })
-      hasCell:  IPredicate<Cell>;
+      hasCell: IPredicate<Cell>;
     }
 
     @Node()
-    class Column{
+    class Column {
       @Uid()
       uid: string;
 
       @Predicate({ name: 'has_cell', type: () => Cell })
-      hasCell:  IPredicate<Cell>;
+      hasCell: IPredicate<Cell>;
     }
 
-    const cell = new Cell();
-    const row = new Row();
-    const column = new Column();
+    const transaction = TransactionBuilder.build();
+
+    const cell = transaction.nodeFor(Cell);
+    const row = transaction.nodeFor(Row);
+    const column = transaction.nodeFor(Column);
 
     cell.fromRow.add(row);
     cell.fromColumn.add(column);
 
     row.hasCell.add(cell);
 
-    const mutation = MutationBuilder.getSetNQuads(row);
-
-    const rowId = mutation.nodeMap.get(row)!.value;
-    const fromRowId = mutation.quads.find(r=>r.predicate.id === 'from_row')!.object.value;
-
-    expect(rowId).toEqual(fromRowId);
+    expect(row.uid).toEqual(cell.fromRow.get()[0].uid);
   });
 
   it('should be able to handle reverse edges', function() {
@@ -226,16 +277,18 @@ describe('Serialize deserialize', () => {
       friends: IPredicate<Person>;
     }
 
-    const lola = new Person();
+    const transaction = TransactionBuilder.build();
+
+    const lola = transaction.nodeFor(Person);
     lola.name = 'Lola';
 
-    const john = new Person();
+    const john = transaction.nodeFor(Person);
     john.name = 'John';
 
-    const jane = new Person();
+    const jane = transaction.nodeFor(Person);
     jane.name = 'Jane';
 
-    const kamil = new Person();
+    const kamil = transaction.nodeFor(Person);
     kamil.name = 'Kamil';
 
     john.friends.add(jane).add(lola);
@@ -246,14 +299,7 @@ describe('Serialize deserialize', () => {
       .add(kamil)
       .add(john);
 
-    console.log(MutationBuilder.getSetNQuadsString(john));
-    console.log(MutationBuilder.getSetNQuadsString(lola));
-
-    const { quads, nodeMap } = MutationBuilder.getSetNQuads(john);
-    console.log(nodeMap.get(john));
-
-    const string = new Writer({ format: 'N-Quads' }).quadsToString(quads);
-    console.log(string);
-
+    console.log(john.id);
+    console.log(transaction.getSetNQuadsString());
   });
 });

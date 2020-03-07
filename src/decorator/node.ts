@@ -3,6 +3,11 @@
  */
 import { MetadataStorage } from '../metadata/storage';
 
+/**
+ * Class decorator to mark a class as a graph node.
+ *
+ * @category PublicAPI
+ */
 export function Node(options: Node.IOptions = {}): Function {
   return function(target: Function): void {
     MetadataStorage.Instance.addNodeMetadata({
@@ -13,6 +18,11 @@ export function Node(options: Node.IOptions = {}): Function {
   };
 }
 
+/**
+ * Node statics.
+ *
+ * @category PublicAPI
+ */
 export namespace Node {
   /**
    * Options for the `Node` decorator.
