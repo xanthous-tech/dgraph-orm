@@ -256,7 +256,13 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
         facetDataIndices.forEach(idx => {
           const plain = facets.reduce<IObjectLiteral>((acc, f) => {
             const facetPropertyName = `${name}|${f.args.propertyName}`;
-            const facetValue = Private.accessUnsafe(value._owner, facetPropertyName)[idx];
+            const facetDataMap = Private.accessUnsafe(value._owner, facetPropertyName);
+
+            if (!facetDataMap) {
+              return acc;
+            }
+
+            const facetValue = facetDataMap[idx];
 
             if (facetValue) {
               acc[f.args.propertyName] = facetValue;

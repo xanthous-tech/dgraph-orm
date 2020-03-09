@@ -101,6 +101,9 @@ describe('Mutation handling', () => {
     class PersonKnows {
       @Facet()
       familiarity: number;
+
+      @Facet()
+      years: number;
     }
 
     @Node()
@@ -120,6 +123,7 @@ describe('Mutation handling', () => {
         uid: '0x1',
         'Person.name': 'John',
         'Person.friends|familiarity': { '0': 999 },
+        'Person.friends|years': { '0': 3 },
         'Person.friends': [
           {
             uid: '0x2',
@@ -152,7 +156,7 @@ describe('Mutation handling', () => {
       `<0x3> <Person.name> "New Kamil"^^<xs:string> .
 <0x2> <Person.name> "New Jane"^^<xs:string> .
 <0x1> <Person.name> "New John"^^<xs:string> .
-<0x1> <Person.friends> <0x2> (familiarity=666) .
+<0x1> <Person.friends> <0x2> (familiarity=666,years=3) .
 `
     );
   });
