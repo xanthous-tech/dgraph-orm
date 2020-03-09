@@ -76,9 +76,9 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
     return new MutationBuilder(this.diff, this.tempIDS).getSetNQuadsString();
   }
 
-  public delete(node: T): void;
-  public delete(nodes: T[]): void;
-  public delete(nodeOrNodes: T | T[]) {
+  public delete(node: T): ITransaction<T>;
+  public delete(nodes: T[]): ITransaction<T>;
+  public delete(nodeOrNodes: T | T[]): ITransaction<T> {
     if (!Array.isArray(nodeOrNodes)) {
       nodeOrNodes = [nodeOrNodes];
     }

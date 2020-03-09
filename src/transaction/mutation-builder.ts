@@ -95,7 +95,11 @@ export class MutationBuilder {
 
   public getDeleteNQuadsString(): string {
     const quads = this.getDeleteNQuads();
-    return new Writer({ format: 'N-Quads' }).quadsToString(quads);
+    const quadsString = new Writer({ format: 'N-Quads' }).quadsToString(quads);
+
+    const lines = quadsString.split('\n');
+
+    return Array.from(new Set(lines)).join('\n');
   }
 
   public getDeleteNQuads(): Quad[] {

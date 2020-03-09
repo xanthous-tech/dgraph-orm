@@ -45,10 +45,24 @@ describe('Delete handling', function() {
     transaction.delete(kamil);
     transaction.tree[0].friends.delete(jane);
 
+    // XXX: here kamil is not deleted in the friends predicate
+    expect(transaction.tree[0].friends.get().length).toBe(1);
+
     expect(transaction.getDeleteNQuadsString()).toEqual(
       `<0x3> * * .
 <0x2> * * .
 <0x1> <Person.friends> <0x2> .
+`
+    );
+
+    transaction.tree[0].friends.deleteAll();
+    expect(transaction.tree[0].friends.get().length).toBe(0);
+
+    expect(transaction.getDeleteNQuadsString()).toEqual(
+      `<0x3> * * .
+<0x2> * * .
+<0x1> <Person.friends> <0x2> .
+<0x1> <Person.friends> <0x3> .
 `
     );
   });
