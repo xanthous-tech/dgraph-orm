@@ -1,5 +1,3 @@
-// @ts-ignore
-import * as util from 'util';
 
 import { IPredicate, Node, Predicate, Property, TransactionBuilder, Uid } from '../src';
 
@@ -77,7 +75,7 @@ describe('Performance testing', () => {
     console.timeEnd('Second');
   });
 
-  it.only('Fuzz with random data', () => {
+  it('Fuzz with random data', () => {
     interface IStation {
       uid: string;
       name: string;
@@ -85,7 +83,6 @@ describe('Performance testing', () => {
     }
 
     @Node()
-    // @ts-ignore
     class Station {
       @Uid()
       uid: string;

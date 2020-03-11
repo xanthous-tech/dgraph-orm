@@ -118,4 +118,9 @@ export interface IPredicate<T, U = void> {
    * Remove a list of nodes.
    */
   delete(nodes: T[]): IPredicate<T, U>;
+
+  /**
+   * Removes all nodes from the predicate.
+   */
+  deleteAll(): IPredicate<T, U>;
 }

@@ -72,7 +72,7 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
 
   delete(node: T): IPredicate<T, U>;
   delete(nodes: T[]): IPredicate<T, U>;
-  delete(nodeOrNodes: T | T[]) {
+  delete(nodeOrNodes: T | T[]): IPredicate<T, U> {
     if (!Array.isArray(nodeOrNodes)) {
       nodeOrNodes = [nodeOrNodes];
     }
@@ -80,8 +80,17 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
     const deleteDiff = this._diff.deletes.get(this)!;
     for (const node of nodeOrNodes) {
       deleteDiff.add(node);
+      this._data.splice(
+        this._data.findIndex(n => n === node),
+        1
+      );
     }
 
+    return this;
+  }
+
+  deleteAll(): IPredicate<T, U> {
+    this.delete(this._data);
     return this;
   }
 

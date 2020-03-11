@@ -1,5 +1,5 @@
 import { Quad } from 'n3';
-import * as UUID from 'instauuid';
+import uniqid from 'uniqid';
 import { plainToClass } from 'class-transformer';
 
 import { IPredicate } from '..';
@@ -76,9 +76,9 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
     return new MutationBuilder(this.diff, this.tempIDS).getSetNQuadsString();
   }
 
-  public delete(node: T): void;
-  public delete(nodes: T[]): void;
-  public delete(nodeOrNodes: T | T[]) {
+  public delete(node: T): ITransaction<T>;
+  public delete(nodes: T[]): ITransaction<T>;
+  public delete(nodeOrNodes: T | T[]): ITransaction<T> {
     if (!Array.isArray(nodeOrNodes)) {
       nodeOrNodes = [nodeOrNodes];
     }
@@ -109,7 +109,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
       //  new created node instance when assigning data to it.
       delete data.uid;
     } else {
-      id = UUID('hex').toString();
+      id = uniqid();
       this.tempIDS.set(nodeInstance, id);
     }
 
@@ -256,7 +256,13 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
         facetDataIndices.forEach(idx => {
           const plain = facets.reduce<IObjectLiteral>((acc, f) => {
             const facetPropertyName = `${name}|${f.args.propertyName}`;
-            const facetValue = Private.accessUnsafe(value._owner, facetPropertyName)[idx];
+            const facetDataMap = Private.accessUnsafe(value._owner, facetPropertyName);
+
+            if (!facetDataMap) {
+              return acc;
+            }
+
+            const facetValue = facetDataMap[idx];
 
             if (facetValue) {
               acc[f.args.propertyName] = facetValue;
