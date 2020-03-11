@@ -19,8 +19,6 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "tsc -p tsconfig.build.json",
-    "postinstall": "npm run clean && npm run build",
-    "prestart": "npm run postinstall",
     "prepublish": "npm run test && npm run postinstall",
     "lint": "eslint ./src --ext .ts",
     "lint:fix": "eslint --fix",
