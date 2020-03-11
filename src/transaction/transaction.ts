@@ -1,5 +1,5 @@
 import { Quad } from 'n3';
-import * as UUID from 'instauuid';
+import * as uniqid from 'uniqid';
 import { plainToClass } from 'class-transformer';
 
 import { IPredicate } from '..';
@@ -109,7 +109,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
       //  new created node instance when assigning data to it.
       delete data.uid;
     } else {
-      id = UUID('hex').toString();
+      id = uniqid();
       this.tempIDS.set(nodeInstance, id);
     }
 
