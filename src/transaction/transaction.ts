@@ -1,5 +1,5 @@
 import { Quad } from 'n3';
-import * as uniqid from 'uniqid';
+import uniqid from 'uniqid';
 import { plainToClass } from 'class-transformer';
 
 import { IPredicate } from '..';
