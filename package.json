@@ -1,6 +1,6 @@
 {
   "name": "@xanthous/dgraph-orm",
-  "version": "0.2.0-alpha9",
+  "version": "0.3.2",
   "description": "dgraph ORM in TypeScript",
   "main": "dist/index.js",
   "author": "Xanthous Tech Developers <hi@x-tech.io>",
@@ -19,9 +19,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "tsc -p tsconfig.build.json",
-    "postinstall": "npm run clean && npm run build",
-    "prestart": "npm run postinstall",
-    "prepublish": "npm run test && npm run postinstall",
+    "prepublish": "npm run test && npm run clean && npm run build",
     "lint": "eslint ./src --ext .ts",
     "lint:fix": "eslint --fix",
     "format": "prettier --write",
@@ -41,6 +39,7 @@
     "@babel/preset-env": "^7.7.1",
     "@babel/preset-typescript": "^7.7.2",
     "@types/jest": "^24.0.23",
+    "@types/uniqid": "^4.1.3",
     "@typescript-eslint/eslint-plugin": "^2.16.0",
     "@typescript-eslint/parser": "^2.16.0",
     "eslint": "^6.8.0",
@@ -64,9 +63,9 @@
     "debug": "^4.1.1",
     "dgraph-js": "^2.0.2",
     "grpc": "^1.24.2",
-    "instauuid": "^1.0.4",
     "lodash": "^4.17.15",
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "^0.1.13",
+    "uniqid": "^5.2.0"
   },
   "volta": {
     "node": "10.18.1",
