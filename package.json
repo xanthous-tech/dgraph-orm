@@ -1,6 +1,6 @@
 {
   "name": "@xanthous/dgraph-orm",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "dgraph ORM in TypeScript",
   "main": "dist/index.js",
   "author": "Xanthous Tech Developers <hi@x-tech.io>",
@@ -19,7 +19,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "tsc -p tsconfig.build.json",
-    "prepublish": "npm run test && npm run postinstall",
+    "prepublish": "npm run test && npm run clean && npm run build",
     "lint": "eslint ./src --ext .ts",
     "lint:fix": "eslint --fix",
     "format": "prettier --write",
