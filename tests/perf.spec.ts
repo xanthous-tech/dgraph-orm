@@ -1,5 +1,6 @@
 
 import { IPredicate, Node, Predicate, Property, TransactionBuilder, Uid } from '../src';
+// import util from 'util'
 
 describe('Performance testing', () => {
   it('mutation string generate', () => {
@@ -94,9 +95,9 @@ describe('Performance testing', () => {
       connects: IPredicate<Station>;
     }
 
-    const MIN_DEPTH = 3;
-    const CONNECTION_PER_STATION = 2;
-    const STATION_COUNT = 1000;
+    const MIN_DEPTH = 1;
+    const CONNECTION_PER_STATION = 1;
+    const STATION_COUNT = 50000;
 
     console.time('Data create');
     const allStations: IStation[] = new Array(STATION_COUNT).fill(null).map((_, idx) => ({
@@ -117,6 +118,64 @@ describe('Performance testing', () => {
     });
     // console.timeEnd('Data create');
     // console.log(util.inspect(allStations, { colors: true, depth: 10, compact: true, breakLength: 200 }));
+
+
+    console.time('Data clean');
+    const tb = TransactionBuilder.of(Station);
+    tb.setRoot(allStations);
+    console.timeEnd('Data clean');
+
+    console.time('Map build');
+    tb.build();
+    console.timeEnd('Map build');
+    // console.log(util.inspect(result.tree, { colors: true, depth: 20 }));
+    // console.log(`Stations ${result.tree[0].name} connects to:\n`, result.tree[0].connects.get());
+
+    // expect(allStations[0].connects[0].connects[0].connects[0].connects[0].connects[0].uid).toEqual(
+    //   result.tree[0].connects
+    //     .get()[0]
+    //     .connects.get()[0]
+    //     .connects.get()[0]
+    //     .connects.get()[0]
+    //     .connects.get()[0].uid
+    // );
+  });
+
+  it.only('Fuzz with random data v2', () => {
+    interface IStation {
+      uid: string;
+      name: string;
+      connects: IStation[];
+    }
+
+    @Node()
+    class Station {
+      @Uid()
+      uid: string;
+
+      @Property({ name: 'name' })
+      name: string;
+
+      @Predicate({ name: 'connects', type: () => Station })
+      connects: IPredicate<Station>;
+    }
+
+    const DEPTH = 10;
+    const STATION_COUNT = 10000;
+
+    function createRoute(n: number) {
+      return new Array(DEPTH).fill(null).reduce((acc, _, idx) => {
+
+        const uid = `${Math.random()}`
+        return {
+          uid,
+          name: `Station_${uid}`,
+          connects: acc ? [acc] : []
+        }
+      })
+    }
+
+    const allStations: IStation[] = new Array(STATION_COUNT).fill(null).map((_, idx) => createRoute(DEPTH));
 
     console.time('Data clean');
     const tb = TransactionBuilder.of(Station);

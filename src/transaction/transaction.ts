@@ -1,6 +1,5 @@
 import { Quad } from 'n3';
 import uniqid from 'uniqid';
-import { plainToClass } from 'class-transformer';
 
 import { DiffTracker } from './diff-tracker';
 import { FacetStorage } from './facet-storage';
@@ -269,7 +268,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
             return acc;
           }, {});
 
-          const facetInstance = plainToClass(facet!, plain);
+          const facetInstance = Object.assign(new facet!(), plain);
           FacetStorage.attach(propertyName, instance, children[Number(idx)], facetInstance);
 
           // Track each facet property in facet instance and reset it..
