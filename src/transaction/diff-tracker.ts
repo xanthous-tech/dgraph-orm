@@ -19,10 +19,9 @@ export class DiffTracker {
    * Attaching a tracker on a property will make that property enumerable.
    */
   public trackProperty(target: Object, propertyName: string, diffKey?: string): Object {
-    this.ensureInstance(target, propertyName, diffKey || propertyName);
-
     const initialValue = Reflect.get(target, propertyName);
     if (initialValue !== undefined) {
+      this.ensureInstance(target, propertyName, diffKey || propertyName);
       this._instances.get(target)![propertyName].set(initialValue);
     }
 
@@ -33,9 +32,11 @@ export class DiffTracker {
       configurable: true,
       enumerable: true,
       set: function(value: any) {
+        tracker.ensureInstance(target, propertyName, diffKey || propertyName);
         tracker._instances.get(target)![propertyName].set(value);
       },
       get: function() {
+        tracker.ensureInstance(target, propertyName, diffKey || propertyName);
         return tracker._instances.get(target)![propertyName].get();
       }
     });
