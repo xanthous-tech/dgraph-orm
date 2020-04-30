@@ -61,7 +61,8 @@ export function Property(options: Property.IOptions = {}): PropertyDecorator {
       name,
       isArray,
       target,
-      propertyName
+      propertyName,
+      default: options.default
     });
   };
 }
@@ -86,6 +87,11 @@ export namespace Property {
      * property lets user to reuse a global predicate between different nodes.
      */
     name?: string;
+
+    /**
+     * Default value to fallback to.
+     */
+    default?: number | boolean | string;
   }
 }
 
