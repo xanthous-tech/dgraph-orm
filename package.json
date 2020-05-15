@@ -1,7 +1,8 @@
 {
   "name": "@xanthous/dgraph-orm",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "dgraph ORM in TypeScript",
+  "types": "dist/index.d.ts",
   "main": "dist/index.js",
   "author": "Xanthous Tech Developers <hi@x-tech.io>",
   "contributors": [

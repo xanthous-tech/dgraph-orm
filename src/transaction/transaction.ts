@@ -332,7 +332,7 @@ export interface ITransaction<T> {
   /**
    * Initialize a node object from data.
    */
-  nodeFor<N extends Object, V extends Object>(nodeCls: Constructor<N>, data: V): N;
+  nodeFor<N extends Object, V extends Object>(nodeCls: Constructor<N>, data: V & { uid?: string }): N;
 
   /**
    * Get set nQuads for transaction.
