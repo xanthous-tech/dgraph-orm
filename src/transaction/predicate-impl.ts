@@ -90,7 +90,7 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
   }
 
   deleteAll(): IPredicate<T, U> {
-    this.delete(this._data);
+    this.delete(Array.from(this._data));
     return this;
   }
 
