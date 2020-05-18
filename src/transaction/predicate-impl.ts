@@ -90,13 +90,7 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
   }
 
   deleteAll(): IPredicate<T, U> {
-    const deleteDiff = this._diff.deletes.get(this)!;
-
-    for (const node of this._data) {
-      deleteDiff.add(node);
-    }
-
-    this._data.splice(0, this._data.length);
+    this.delete(Array.from(this._data));
     return this;
   }
 
