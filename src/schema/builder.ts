@@ -5,7 +5,29 @@ import { Iterators } from '../utils/iterator';
 import { PredicateMetadata } from '../metadata/predicate';
 
 /**
- * Schema builder namespace for building global schema based on the metadata storage.
+ * Schema builder namespace for building global schema based on the Node definitions.
+ * This utility will use {@link MetadataStorage} to get information about registered
+ * {@link Node} definitions.
+ *
+ * @example
+ * ```
+ * import { SchemaBuilder } from '@xanthous/dgraph-orm'
+ * const schema = SchemaBuilder.build();
+ *
+ * console.log(schema);
+ *
+ * // Arbitrary example output
+ *
+ * // type Person {
+ * //   Person.name: string
+ * // }
+ * //
+ * // Person.name: string .
+ *
+ * ```
+ *
+ *
+ *
  * @category PublicAPI
  */
 export namespace SchemaBuilder {

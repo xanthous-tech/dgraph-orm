@@ -5,6 +5,9 @@ import { IObjectLiteral } from '../utils/type';
 // TODO: dgraph type enums
 
 /**
+ *
+ * Alias for dgraph property types.
+ *
  * @category PublicAPI
  */
 export enum PropertyType {

@@ -306,6 +306,47 @@ namespace Private {
  * Transaction is a container for all the changes made to a node graph.
  * It tracks of the diffs for managed nodes.
  *
+ * This container is intended to be created per dgraph transaction and then discarded
+ * and recreated whenever needed.
+ * 
+ *
+ * @example
+ * ```typescript
+ * // Create a new transaction container.
+ * const transaction = TransactionBuilder.build();
+ *
+ * // Create new nodes within the transaction.
+ * const john = transaction.nodeFor(Person);
+ * const jane = transaction.nodeFor(Person);
+
+ *
+ * // A temporary uid is assigned with the transaction whenever
+ * //  a fresh instance is created and it is assigned to the field decorated with
+ * //  @Uid
+ *
+ * console.log(john.id);
+ * // b830c1f5ca09d466 ## random
+ *
+ * // Now any mutation on @Property of this object will be tracked.
+ * john.name = 'John'
+ * jane.name = 'Jane';
+ * 
+ *
+ * // As well as the @Predicate changes.
+ * john.friends.add(jane);
+ * jane.friends.add(john); 
+ *
+ * const mutation = transaction.getSetNQuadsString();
+ * console.log(mutation);
+ *
+ * // _:b830c1f5c787c210 <dgraph.type> "Person" .
+ * // _:b830c1f5c787c210 <Person.name> "John"^^<xs:string> .
+ * // _:b830c1f5c78a5947 <dgraph.type> "Person" .
+ * // _:b830c1f5c78a5947 <Person.name> "Jane"^^<xs:string> .
+ * // _:b830c1f5c787c210 <Person.friends> _:b830c1f5c78a5947 .
+ * // _:b830c1f5c78a5947 <Person.friends> _:b830c1f5c787c210 .
+ * ```
+ *
  * @category PublicAPI
  */
 export interface ITransaction<T> {
@@ -315,26 +356,25 @@ export interface ITransaction<T> {
   tree: T[];
 
   /**
-   * Tag a node for deletion. Unlike deleting on a predicate this will
+   * Tag a node or nodes for deletion. Unlike deleting on a predicate this will
    * not delete the incoming edge on the node. It will append a delete
    * triplet to delete nquads.
    */
   delete<N extends Object>(node: N): void;
-
-  /**
-   * Tag a nodes for deletion. Unlike deleting on a predicate this will
-   * not delete the incoming edge on the node. It will append delete
-   * triplets to delete nquads.
-   */
   delete<N extends Object>(nodes: N[]): void;
+
   /**
    * Initialize a fresh node object.
+   *
+   * This object will act like a regular object
+   * except transaction context will always keep a reference to this object
+   * and use it to extract changes, keep track of facades etc.
+   *
+   * Because this is object is tracked by the context, it should be passed around
+   * as a reference and mutated.
+   *
    */
   nodeFor<N extends Object>(nodeCls: Constructor<N>): N;
-
-  /**
-   * Initialize a node object from data.
-   */
   nodeFor<N extends Object, V extends Object>(nodeCls: Constructor<N>, data: V): N;
 
   /**

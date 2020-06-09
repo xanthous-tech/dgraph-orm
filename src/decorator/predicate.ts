@@ -4,8 +4,9 @@ import { MetadataStorage } from '../metadata/storage';
 import { Constructor } from '../utils/class';
 
 /**
- * A decorator to annotate properties on a DGraph Node class. Only the properties
- * decorated with this decorator will be treated as a node property.
+ * A decoratol to annotate predicated on a DGraph Node class.
+ * Transaction context will inject a {@link IPredicate} to each
+ * property annotated with this decorator.
  *
  * @category PublicAPI
  */
@@ -66,7 +67,11 @@ export namespace Predicate {
 /**
  * Type definition of the predicate.
  *
+ * @typeparam T Type of the predicate items.
+ * @typeparam U Optional facet type.
+ *
  * @category PublicAPI
+ *
  */
 export interface IPredicate<T, U = void> {
   /**
@@ -76,6 +81,15 @@ export interface IPredicate<T, U = void> {
    * Facet value must be a concrete instance of the facet definition.
    * While it is possible to satisfy to type using a plain object,
    * it breaks the behaviour of the mapper.
+   *
+   * @example
+   *
+   * ```typescript
+   * john
+   *   .friends
+   *   .withFacet(new FriendshipFacet({ familiarity: 99 }))
+   *   .add(jane);
+   * ```
    */
   withFacet(facet: U | null): IPredicate<T, U>;
 
@@ -86,6 +100,13 @@ export interface IPredicate<T, U = void> {
 
   /**
    * Add a new node to the connection.
+   *
+   * @example
+   *
+   * ```typescript
+   * kamil.friends.add(jane);
+   * kamil.friends.add(john);
+   * ```
    */
   add(node: T): IPredicate<T, U>;
 

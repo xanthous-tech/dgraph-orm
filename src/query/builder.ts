@@ -2,6 +2,28 @@ import { MetadataStorage } from '../metadata/storage';
 import { Constructor } from 'src/utils/class';
 
 /**
+ *
+ * Utility for creating queries based on the schema definitions.
+ *
+ * @example
+ * ```
+ * const { handle, fragment } = QueryBuilder.buildFragment(Person, {
+ *   exclude: ['friends']
+ * });
+ *
+ * console.log(handle);
+ * console.log(fragment);
+ *
+ * // Arbitrary example output
+ *
+ * // ...personDataFragment
+ * //
+ * // fragment personDataFragment {
+ * //    Person.name
+ * //    id
+ * // }
+ * ```
+ *
  * @category PublicAPI
  */
 export namespace QueryBuilder {
