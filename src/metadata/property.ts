@@ -36,6 +36,11 @@ export namespace PropertyMetadata {
      * Is the predicate an array type.
      */
     isArray: boolean;
+
+    /**
+     * Default value for the predicate.
+     */
+    default?: any;
   }
 }
 

@@ -1,6 +1,10 @@
 import { Quad } from 'n3';
 import uniqid from 'uniqid';
-import { plainToClass } from 'class-transformer';
+
+import { DiffTracker } from './diff-tracker';
+import { FacetStorage } from './facet-storage';
+import { PredicateImpl } from './predicate-impl';
+import { MutationBuilder } from './mutation-builder';
 
 import { IPredicate } from '..';
 import { MetadataStorage } from '../metadata/storage';
@@ -8,12 +12,8 @@ import { PredicateMetadata } from '../metadata/predicate';
 import { INode, IPlainPredicates } from '../types/data';
 import { Constructor } from '../utils/class';
 import { IObjectLiteral } from '../utils/type';
-
-import { DiffTracker } from './diff-tracker';
-import { FacetStorage } from './facet-storage';
-import { PredicateImpl } from './predicate-impl';
-import { MutationBuilder } from './mutation-builder';
 import { IterableWeakMap } from '../utils/iterator';
+import { transformer } from '../utils/transformer';
 
 /**
  * Create an environment for a mapped tree.
@@ -143,10 +143,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
       }
 
       // Build the entry class
-      const ins: T = plainToClass(cls, pln, {
-        enableCircularCheck: true,
-        strategy: 'exposeAll'
-      });
+      const ins: T = transformer(cls, pln);
 
       // Keep reference to the instance so in case of circular we can simply get it from storage and complete the circle.
       storage.set(pln, ins);
@@ -271,7 +268,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
             return acc;
           }, {});
 
-          const facetInstance = plainToClass(facet!, plain);
+          const facetInstance = Object.assign(new facet!(), plain);
           FacetStorage.attach(propertyName, instance, children[Number(idx)], facetInstance);
 
           // Track each facet property in facet instance and reset it..
@@ -335,7 +332,7 @@ export interface ITransaction<T> {
   /**
    * Initialize a node object from data.
    */
-  nodeFor<N extends Object, V extends Object>(nodeCls: Constructor<N>, data: V): N;
+  nodeFor<N extends Object, V extends Object>(nodeCls: Constructor<N>, data: V & { uid?: string }): N;
 
   /**
    * Get set nQuads for transaction.
