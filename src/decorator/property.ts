@@ -1,5 +1,3 @@
-import { Expose } from 'class-transformer';
-
 import { MetadataStorage } from '../metadata/storage';
 import { PropertyType, PropertyTypeUtils } from '../types/property';
 
@@ -58,17 +56,13 @@ export function Property(options: Property.IOptions = {}): PropertyDecorator {
       name = `${target.constructor.name}.${propertyName}`;
     }
 
-    // When we load data into the class, we will have a new property
-    // defined as the auto-generated name, we need to make sure property with predicate
-    // decorator returns the correct value.
-    Expose({ name, toClassOnly: true })(target, propertyName);
-
     MetadataStorage.Instance.addPropertyMetadata({
       type,
       name,
       isArray,
       target,
-      propertyName
+      propertyName,
+      default: options.default
     });
   };
 }
@@ -93,6 +87,11 @@ export namespace Property {
      * property lets user to reuse a global predicate between different nodes.
      */
     name?: string;
+
+    /**
+     * Default value to fallback to.
+     */
+    default?: number | boolean | string;
   }
 }
 

@@ -1,5 +1,3 @@
-import { Exclude } from 'class-transformer';
-
 import { MetadataStorage } from '../metadata/storage';
 import { Constructor } from '../utils/class';
 
@@ -16,9 +14,6 @@ export function Predicate(options: Predicate.IOptions): PropertyDecorator {
     if (!name) {
       name = `${target.constructor.name}.${propertyName}`;
     }
-
-    // Exclude the predicates to prevent class-transformer from doing unnecessary stuff..
-    Exclude()(target, name);
 
     MetadataStorage.Instance.addPredicateMetadata({
       facet: options.facet,

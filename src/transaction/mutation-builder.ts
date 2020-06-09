@@ -11,6 +11,7 @@ import quad = DataFactory.quad;
 import namedNode = DataFactory.namedNode;
 import literal = DataFactory.literal;
 import variable = DataFactory.variable;
+import { DiffValue } from './diff-tracker';
 
 /**
  * Dgraph type prefix to add on the new nodes.
@@ -132,24 +133,29 @@ export class MutationBuilder {
     }
 
     const quads: Quad[] = [];
-    const changes = this.diff.properties.getSets(target);
-    if (changes.length > 0) {
-      changes.forEach(c => {
-        const propertyMetadata = metadata.find(pm => pm.args.propertyName === c.key || pm.args.name === c.key);
+    const changes = this.diff.properties.getSets(target).reduce((acc, c) => {
+      acc.set(c.key, c);
+      return acc;
+    }, new Map<string, DiffValue<any>>());
 
-        if (!propertyMetadata) {
-          return;
-        }
+    metadata.forEach(pm => {
+      const change = changes.get(pm.args.propertyName) || changes.get(pm.args.name);
 
-        quads.push(
-          DataFactory.quad(
-            targetNode,
-            DataFactory.namedNode(c.key),
-            DataFactory.literal(c.get(), PropertyTypeUtils.getLiteralTypeNamedNode(propertyMetadata.args.type))
+      if (!change && !pm.args.default) {
+        return;
+      }
+
+      quads.push(
+        DataFactory.quad(
+          targetNode,
+          DataFactory.namedNode(change ? change.key : pm.args.name),
+          DataFactory.literal(
+            change ? change.get() : pm.args.default,
+            PropertyTypeUtils.getLiteralTypeNamedNode(pm.args.type)
           )
-        );
-      });
-    }
+        )
+      );
+    });
 
     return quads;
   }
