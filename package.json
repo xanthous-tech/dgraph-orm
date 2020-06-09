@@ -20,6 +20,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "tsc -p tsconfig.build.json",
+    "docs": "typedoc --options typedocconfig.ts",
     "prepublish": "npm run test && npm run clean && npm run build",
     "lint": "eslint ./src --ext .ts",
     "lint:fix": "eslint --fix",

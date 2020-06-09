@@ -1,3 +1,5 @@
+/* eslint @typescript-eslint/no-empty-interface: 0 */
+
 import { MetadataStorage } from '../metadata/storage';
 
 /**
@@ -20,8 +22,10 @@ export function Facet(options: Facet.IOptions = {}): PropertyDecorator {
 export namespace Facet {
   /**
    * Facet decorator options.
+   *
+   * placeholder for future usage.
    */
   export interface IOptions {
-    [key: string]: any;
+    //
   }
 }
