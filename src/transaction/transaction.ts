@@ -261,7 +261,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
 
             const facetValue = facetDataMap[idx];
 
-            if (facetValue) {
+            if (facetValue !== undefined) {
               acc[f.args.propertyName] = facetValue;
             }
 

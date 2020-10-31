@@ -97,6 +97,45 @@ describe('Mutation handling', () => {
     console.log(transaction.getSetNQuadsString());
   });
 
+  it('should handle falsey facet correctly', () => {
+    class OrderFacet {
+      @Facet()
+      order?: number;
+    }
+
+    @Node()
+    class Person {
+      @Uid()
+      id: string;
+
+      @Predicate({ type: () => Person, facet: OrderFacet })
+      friends: IPredicate<Person, OrderFacet>;
+    }
+
+    const data = [
+      {
+        uid: '0x1',
+        'Person.name': 'John',
+        'Person.friends|order': { '0': 0 },
+        'Person.friends': [
+          {
+            uid: '0x2',
+            'Person.name': 'Jane',
+          }
+        ]
+      }
+    ];
+
+    const transaction = TransactionBuilder.of(Person)
+      .setRoot(data)
+      .build();
+
+    const friends = transaction.tree[0].friends.get();
+    const facet = transaction.tree[0].friends.getFacet(friends[0]);
+    expect(facet).not.toBeUndefined();
+    expect(facet!.order).toBe(0);
+  })
+
   it('should handle nested correctly', function() {
     class PersonKnows {
       @Facet()
