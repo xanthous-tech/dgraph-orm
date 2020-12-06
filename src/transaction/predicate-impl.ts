@@ -44,7 +44,9 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
     }
 
     this._data.push(node);
-    this._diff.predicates.get(this)!.add(node);
+    if (this._owner.trackChanges) {
+      this._diff.predicates.get(this)!.add(node);
+    }
 
     return this;
   }
