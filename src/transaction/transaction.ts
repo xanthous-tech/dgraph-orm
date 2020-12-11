@@ -1,5 +1,6 @@
 import { Quad } from 'n3';
 import uniqid from 'uniqid';
+import { set } from 'lodash';
 
 import { DiffTracker } from './diff-tracker';
 import { FacetStorage } from './facet-storage';
@@ -99,7 +100,7 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
     }
 
     const nodeInstance = new nodeCls();
-    nodeInstance.trackChanges = trackChanges;
+    set(nodeInstance, 'trackChanges', trackChanges)
     this.trackProperties(nodeInstance);
     this.trackPredicatesForFreshNode(nodeInstance);
 

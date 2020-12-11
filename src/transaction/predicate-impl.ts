@@ -1,3 +1,4 @@
+import { get } from 'lodash';
 import { IPredicate } from '../index';
 import { FacetStorage } from './facet-storage';
 import { IDiffEnvelope } from './transaction';
@@ -44,7 +45,7 @@ export class PredicateImpl<T = any, U = any> implements IPredicate<T, U> {
     }
 
     this._data.push(node);
-    if (this._owner.trackChanges) {
+    if (get(this._owner, 'trackChanges', true)) {
       this._diff.predicates.get(this)!.add(node);
     }
 
