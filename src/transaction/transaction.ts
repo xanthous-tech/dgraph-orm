@@ -1,5 +1,6 @@
 import { Quad } from 'n3';
 import uniqid from 'uniqid';
+import { set } from 'lodash';
 
 import { DiffTracker } from './diff-tracker';
 import { FacetStorage } from './facet-storage';
@@ -92,13 +93,14 @@ export class Transaction<T extends Object, V> implements ITransaction<T> {
 
   public nodeFor<N extends Object>(nodeCls: Constructor<N>): N;
   public nodeFor<N extends Object, V extends Object>(nodeCls: Constructor<N>, data: V & { uid?: string }): N;
-  public nodeFor<N extends Object, V extends Object>(nodeCls: Constructor<N>, data?: V & { uid?: string }): N {
+  public nodeFor<N extends Object, V extends Object>(nodeCls: Constructor<N>, data?: V & { uid?: string }, trackChanges: boolean = true): N {
     const uids = MetadataStorage.Instance.uids.get(nodeCls.name);
     if (!uids || uids.length === 0) {
       throw new Error('Node must have a property decorated with @Uid');
     }
 
     const nodeInstance = new nodeCls();
+    set(nodeInstance, 'trackChanges', trackChanges)
     this.trackProperties(nodeInstance);
     this.trackPredicatesForFreshNode(nodeInstance);
 

@@ -1,3 +1,4 @@
+import { get } from 'lodash';
 import { IObjectLiteral } from '../utils/type';
 
 export class DiffTracker {
@@ -33,7 +34,7 @@ export class DiffTracker {
       enumerable: true,
       set: function(value: any) {
         tracker.ensureInstance(target, propertyName, diffKey || propertyName);
-        tracker._instances.get(target)![propertyName].set(value);
+        tracker._instances.get(target)![propertyName].set(value, get(target, 'trackChanges'));
       },
       get: function() {
         tracker.ensureInstance(target, propertyName, diffKey || propertyName);
@@ -149,8 +150,8 @@ export class DiffValue<T> {
     this._dirty = false;
   }
 
-  set(value: T): void {
-    this._dirty = true;
+  set(value: T, trackChanges: boolean = true): void {
+    this._dirty = trackChanges;
     this._value = value;
   }
 
